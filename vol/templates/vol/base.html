@@ -1,0 +1,181 @@
+{% load staticfiles %}
+{% comment %}
+Bootstrap template utilizado:
+https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-template
+{% endcomment %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A melhor maneira de ser voluntário ou de encontrar voluntários, doadores e informações sobre o voluntariado no Brasil.">
+    <meta name="keywords" content="voluntariado, voluntário, entidades assistenciais, doações, terceiro setor,">
+    <meta name="author" content="Stephen Kanitz">
+
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+
+    <link href="{% static 'css/vol-1.0.css' %}" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+      {% comment %}This script is the defacto way to enable use 
+      of HTML5 sectioning elements in legacy Internet Explorer.{% endcomment %}
+      <script src="{% static 'js/html5shiv.js' %}"></script>
+      {% comment %}A fast & lightweight polyfill for 
+      min/max-width CSS3 Media Queries (for IE 6-8, and more).{% endcomment %}
+      <script src="{% static 'js/respond.min.js' %}"></script>
+    <![endif]-->       
+
+    <link rel="shortcut icon" href="{% static 'images/ico/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'images/ico/apple-touch-icon-57x57.png' %}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'images/ico/apple-touch-icon-60x60.png' %}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'images/ico/apple-touch-icon-72x72.png' %}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'images/ico/apple-touch-icon-76x76.png' %}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'images/ico/apple-touch-icon-114x114.png' %}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'images/ico/apple-touch-icon-120x120.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'images/ico/apple-touch-icon-144x144.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'images/ico/apple-touch-icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/ico/apple-touch-icon-180x180.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/ico/favicon-32x32.png' %}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{% static 'images/ico/favicon-194x194.png' %}" sizes="194x194">
+    <link rel="icon" type="image/png" href="{% static 'images/ico/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="icon" type="image/png" href="{% static 'images/ico/android-chrome-192x192.png' %}" sizes="192x192">
+    <link rel="icon" type="image/png" href="{% static 'images/ico/favicon-16x16.png' %}" sizes="16x16">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="msapplication-TileColor" content="#dce9d4">
+    <meta name="msapplication-TileImage" content="{% static 'images/ico/mstile-144x144.png' %}">
+    <meta name="theme-color" content="#ffffff">
+
+    <script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}" defer></script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>   
+
+{% block head %}
+{% endblock head %}
+
+    <title>{% block title %}Campanha Seja um Voluntário{% endblock title %}</title>
+
+</head>
+
+<body>
+{% block body %}
+	<header id="header">      
+        <div class="navbar navbar-inverse" role="banner">
+            <div id="navbar-container" class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Menu de navegação</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+
+                    <a class="navbar-brand" href="/">
+                    	<h1><img src="{% static '/images/logo.png' %}" alt="logo"><span class="logo-name">Voluntários</span></h1>
+                    </a>
+                    
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown"><a href="#">Sobre <i class="fa fa-angle-down"></i></a>
+                            <ul role="menu" class="sub-menu">
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='quem-somos/' %}">Quem somos</a></li>
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='voluntariado/' %}">O que é voluntariado</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown"><a href="#">Voluntários <i class="fa fa-angle-down"></i></a>
+                            <ul role="menu" class="sub-menu">
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='por-que-ser-voluntario/' %}">Por que ser voluntário</a></li>
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='bom-voluntario/' %}">Como ser um bom voluntário</a></li>
+                                <li><a href="{% url 'voluntario_novo' %}" rel="nofollow">Cadastre-se</a></li>
+                                <li><a href="{% url 'busca_entidades' %}">Encontre uma entidade</a></li>
+                                <li><a href="{% url 'mapa_entidades' %}">Mapa de entidades</a></li>
+                                <li><a href="{% url 'busca_doacoes' %}">Pedidos de doação</a></li>
+                            </ul>
+                        </li>                  
+                        <li class="dropdown"><a href="#">Entidades <i class="fa fa-angle-down"></i></a>
+                            <ul role="menu" class="sub-menu">
+                                <li><a href="{% url 'entidade_nova' %}" rel="nofollow">Cadastre sua entidade</a></li>
+                                <li><a href="{% url 'busca_voluntarios' %}" rel="nofollow">Encontre voluntários</a></li>
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='leis/' %}">Leis</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown"><a href="#">Mais <i class="fa fa-angle-down"></i></a>
+                            <ul role="menu" class="sub-menu">
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='estatisticas/' %}">Estatísticas do setor</a></li>
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='personalidades/' %}">Personalidades voluntárias</a></li>
+                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='livros-voluntariado/' %}">Livros sobre voluntariado</a></li>
+                                <li><a href="http://www.filantropia.org/bibliografia.htm">Livros sobre Terceiro Setor</a></li>
+                            </ul>
+                        </li>                         
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!--/#header-->
+
+{% block content_container %}
+    <section id="content">
+        <div class="container">
+            <div class="row">
+                <div class="{% block container_class %}col-md-9 col-sm-8{% endblock container_class %}">
+<!--/#inicio-conteudo-->{% block content %}
+{% endblock content %}<!--/#fim-conteudo-->
+                </div>
+{% block sidebar %}
+                <div class="col-md-3 col-sm-4" style="margin-top:20px;">
+                    <div class="sidebar portfolio-sidebar">
+                        <div class="sidebar-item categories">
+                            <h3>Novas entidades cadastradas</h3>
+                            <ul class="nav navbar-stacked">
+                                {% for er in entidades_recentes %}
+                                <li><a href="{% url 'exibe_entidade' er.id %}">{{ er.menor_nome }}<br><span class="dica">({{ er.cidade }}-{{ er.estado }})</span></a></li>
+                                {% endfor%}
+                            </ul>
+                        </div>
+                        <div class="sidebar-item  recent">
+                            <h3>Pedidos recentes de serviço ou doação</h3>
+                            {% for pedido in pedidos_recentes %}
+                            <div class="media">
+                                <div>
+                                  <a href="{% url 'exibe_entidade' pedido.entidade.id %}">{{ pedido.entidade.menor_nome }} ({{ pedido.entidade.cidade }}-{{ pedido.entidade.estado }})</a>
+                                </div>
+                                <div class="pull-left">
+                                    <a href="{% url 'exibe_entidade' pedido.entidade.id %}">{{ pedido.qtde_orig|default:'1' }}</a>
+                                </div>
+                                <div class="media-body">
+                                    <h4><a href="{% url 'exibe_entidade' pedido.entidade.id %}">{{ pedido.descricao }}</a></h4>
+                                    <p>publicado em {{ pedido.data_solicitacao|date:'j F' }} de {{ pedido.data_solicitacao|date:'Y' }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+{% endblock sidebar %}
+            </div>
+        </div>
+    </section>
+    <!--/#content-->
+{% endblock content_container %}
+
+    <footer id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="copyright-text text-center">
+                        <p><a href="mailto:contato@voluntarios.com.br">contato@voluntarios.com.br</a></p>
+                        <p>Rua Padre Garcia Velho, 73 conj 81</p>
+                        <p>Pinheiros, São Paulo - SP, CEP 05421-030</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!--/#footer-->
+
+{% endblock body %}
+</body>
+</html>

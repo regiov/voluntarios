@@ -1,0 +1,88 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load staticfiles %}
+
+{% block title %}Cadastro de Voluntário{% endblock title %}
+
+{% block head %}
+
+<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
+
+<script type="text/javascript">
+    $(function() {
+        $('.formset').formset({deleteText: 'remover', addText: 'escolher mais uma área'});
+    })
+</script>
+
+{% endblock head %}
+
+{% block content %}
+<h1 class="margin-bottom">Cadastre-se como Voluntário</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% spaceless %}
+{% for field in form %}
+ {% for error in field.errors %}
+  <p><font face="Verdana" size="2" color="red">{{ error }}</font></p>
+ {% endfor %}
+{% endfor %}
+{% endspaceless %}
+
+<form id="form-voluntario" method="POST" action="">{% csrf_token %}
+
+{% include "vol/campo_formulario.html" with campo=form.nome %}
+{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_id="data_aniversario_container" label_id="data_aniversario_label" %}
+{% include "vol/campo_formulario.html" with campo=form.email %}
+<table width="100%">
+ <tr> 
+  <td width="10%">
+   {% include "vol/campo_formulario.html" with campo=form.ddd %}
+  </td>
+  <td width="90%" style="padding-left: 10px;">
+   {% include "vol/campo_formulario.html" with campo=form.telefone %}
+  </td>
+ </tr>
+</table>
+{% include "vol/campo_formulario.html" with campo=form.cidade %}
+{% include "vol/campo_formulario.html" with campo=form.estado %}
+{% include "vol/campo_formulario.html" with campo=form.profissao %}
+{% include "vol/campo_formulario.html" with campo=form.empresa %}
+{% include "vol/campo_formulario.html" with campo=form.foi_voluntario label="Já foi Voluntário?" after_field="sim" %}
+{% include "vol/campo_formulario.html" with campo=form.entidade_que_ajudou label="Se sim, para qual Entidade?" %}
+
+  <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
+    <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>
+    <p class="dica">Escolha a op&ccedil;&atilde;o que mais se aproxima do seu trabalho. Se quiser sugerir uma nova &aacute;rea de trabalho, envie um e-mail para <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
+    {% if form.area_trabalho.errors %}{{ form.area_trabalho.errors }}{% endif %}
+    {{ form.area_trabalho }}
+    {% if form.area_trabalho.help_text %}<p class="help-block dica">{{ form.area_trabalho.help_text }}</p>{% endif %}
+  </div>
+
+  <div class="form-group required{% if form.area_interesse.errors %} has-error{% endif %}">
+    <label for="{{ form.area_interesse.id_for_label }}" class="nowrap">{{ form.area_interesse.label }}</label>
+    <p class="dica">Escolha a &aacute;rea em que mais gostaria de exercer uma atividade volunt&aacute;ria.</p>
+    <table border="0" cellpadding="0" cellspacing="0">
+     <tbody>
+     {% for form in area_interesse_formset.forms %}
+       <tr class="formset">
+         <td>{{ form.area_atuacao }}</td>
+       </tr>
+     {% endfor %}
+     </tbody>
+    </table>
+    {{ area_interesse_formset.management_form }}
+  </div>
+
+  <div class="form-group required{% if form.descricao.errors %} has-error{% endif %}">
+   <p>Descreva o que voc&ecirc; poderia fazer:</p>
+    {{ form.descricao }}
+  </div>
+
+  <div class="form-group">
+   <input class="btn btn-submit" type="submit" name="submit2" value="Enviar">
+   {% if request.method == 'GET' %}<input class="btn btn-submit" type="reset" name="reset2" value="Limpar campos">{% endif %}
+  </div>
+
+</form>
+
+{% endblock content %}

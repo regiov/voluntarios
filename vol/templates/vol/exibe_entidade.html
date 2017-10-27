@@ -1,0 +1,45 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block title %}Entidade{% endblock title %}
+
+{% block content %}
+
+<h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2>
+<div class="registro">
+<p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
+<p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
+{% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
+{% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
+<p><label>Endereço:</label> {% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}{{ entidade.cep }} {% endif %}{{ entidade.cidade }}-{{ entidade.estado }}</p>
+{% if entidade.contato %}<p><label>Contato:</label> {{ entidade.contato|default:"-" }}</p>{% endif %}
+{% if entidade.telefone %}<p><label>Telefone:</label> {% if entidade.telefone %}({{ entidade.ddd }}){{ entidade.telefone }}{% else %}-{% endif %}</p>{% endif %}
+{% if entidade.email %}<p><label>E-mail:</label> <a href="mailto:{{ entidade.email }}">{{ entidade.email }}</a></p>{% endif %}
+{% if entidade.website %}<p><label>Home page:</label> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
+</div>
+<br>
+{% if necessidades %}
+<h3>Pedidos de serviço/doação</h3>
+<div class="table-responsive">
+<table class="table table-striped table-condensed">
+<thead>
+<th>qtde</th>
+<th>descrição</th>
+<th>data</th>
+</thead>
+<tbody>
+{% for necessidade in necessidades %}
+<tr>
+<td>{{ necessidade.qtde_orig|default:'1' }}</td>
+<td>{{ necessidade.descricao }}</td>
+<td>{{ necessidade.data_solicitacao|date:'j F' }} de {{ necessidade.data_solicitacao|date:'Y' }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<br>
+{% endif %}
+
+<p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p>
+
+{% endblock content %}

@@ -1,0 +1,164 @@
+{% extends "vol/base.html" %}
+{% load staticfiles %}
+
+{% block title %}Mapa de Entidades{% endblock title %}
+
+{% block head %}
+
+<script type="text/javascript">
+
+function initMap() {
+
+    var circle500 = false, circle1000 = false, circle2000 = false;
+
+    var map = new google.maps.Map(document.getElementById('gmap'), {
+      center: {lat: -10.8339, lng: -52.8731},
+      zoom: 4,
+      mapTypeControl: false,
+    });
+
+    var src = 'https://www.dropbox.com/s/o5bxxm74gnghwdl/entidades.kml?dl=1&';
+
+    var kmlLayer = new google.maps.KmlLayer(src + 'ts={{ agora.timestamp|floatformat:"0" }}', {
+      suppressInfoWindows: true,
+      preserveViewport: true,
+      map: map
+    });
+
+    var kmlinfowindow = new google.maps.InfoWindow();
+
+    kmlLayer.addListener('click', function(event) {
+      kmlinfowindow.setContent(event.featureData.description);
+      kmlinfowindow.setPosition(event.latLng);
+      kmlinfowindow.open(map);
+    });
+
+    var input = (document.getElementById('pac-input'));
+
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+    var autocomplete = new google.maps.places.Autocomplete(input, {componentRestrictions: {country: "br"}});
+    autocomplete.bindTo('bounds', map);
+
+    google.maps.event.addListenerOnce(map, 'idle', function(){
+        // after the map is loaded
+        $('#pac-input').show();        
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+    var marker = new google.maps.Marker({
+        map: map,
+        anchorPoint: new google.maps.Point(0, -29)
+    });
+
+    autocomplete.addListener('place_changed', function() {
+        infowindow.close();
+        marker.setVisible(false);
+        var place = autocomplete.getPlace();
+        if (!place.geometry) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed.
+            window.alert("Nenhuma informação sobre o local: '" + place.name + "'");
+            return;
+        }
+
+        // If the place has a geometry, then present it on a map.
+        if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+        } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17);  // Why 17? Because it looks good.
+        }
+        marker.setIcon(({
+            url: place.icon,
+            size: new google.maps.Size(71, 71),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(17, 34),
+            scaledSize: new google.maps.Size(35, 35)
+        }));
+        marker.setPosition(place.geometry.location);
+        //marker.setVisible(true);
+
+        if (circle500) circle500.setMap(null);
+        if (circle1000) circle1000.setMap(null);
+        if (circle2000) circle2000.setMap(null);
+
+        circle500 = new google.maps.Circle({
+            strokeColor: '#0a0f0f',
+            strokeOpacity: 0.8,
+            strokeWeight: 1,
+            fillColor: '#94b8b8',
+            fillOpacity: 0.35,
+            map: map,
+            center: place.geometry.location,
+            radius: 500
+        });
+
+        circle1000 = new google.maps.Circle({
+            strokeColor: '#0a0f0f',
+            strokeOpacity: 0.8,
+            strokeWeight: 1,
+            fillColor: '#94b8b8',
+            fillOpacity: 0.35,
+            map: map,
+            center: place.geometry.location,
+            radius: 1000
+        });
+
+        circle2000 = new google.maps.Circle({
+            strokeColor: '#0a0f0f',
+            strokeOpacity: 0.8,
+            strokeWeight: 1,
+            fillColor: '#94b8b8',
+            fillOpacity: 0.35,
+            map: map,
+            center: place.geometry.location,
+            radius: 2000
+        });
+
+        var address = '';
+        if (place.address_components) {
+            address = [
+              (place.address_components[0] && place.address_components[0].short_name || ''),
+              (place.address_components[1] && place.address_components[1].short_name || ''),
+              (place.address_components[2] && place.address_components[2].short_name || '')
+            ].join(' ');
+        }
+
+        infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
+        infowindow.open(map, marker);
+
+        $('#map-legend').show();
+    });
+
+    autocomplete.setTypes(['address']);
+}
+</script>
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBd4PtbRhVBkZEFTbyvonAuofRuc68I6sg&libraries=places&callback=initMap" async defer></script>
+
+{% endblock head %}
+
+{% block content_container %}
+    <section id="content">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9 col-sm-8">
+                  <h1>Mapa de Entidades</h1>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container">
+            <div class="row">
+                <input id="pac-input" type="text" placeholder="Busque um endereço..." style="display: none;">
+                <div class="map-canvas" id="gmap"></div>
+                <div id="map-legend" class="nowrap" style="display:none;"><img src="{% static 'images/home/raios-peq.png' %}"> <span class="dica" style="vertical-align: bottom;">raios de 500m, 1km e 2km</span></div>
+            </div>
+        </div>
+    </section>
+
+{% endblock content_container %}
+

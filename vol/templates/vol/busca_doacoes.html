@@ -1,0 +1,82 @@
+{% extends "vol/base.html" %}
+
+{% block head %}
+<title>Doação de Bens e Serviços</title>
+{% endblock head %}
+
+{% block content %}
+
+{% if not request.GET.pesquisa_ajuda and not request.GET.pesquisa_entidade %}
+
+  <h1 class="margin-bottom">Faça uma Doação</h1>
+  <p>Doe livros, roupas, produtos de higiene, remédios, etc.</p>
+  <p>Estamos procurando patrocinador para este serviço comunitário. Apresentamos este projeto já pronto e já testado para mais de dez grandes empresas, sem sucesso. Lamentamos que mais de 11 mil itens pedidos, no valor de 40 milhões de reais, tenham de sair do ar.</p>
+  <p>Caso você seja de uma empresa que ainda não tem um Serviço Comunitário, e gostaria de manter o Doe Bens no ar, contatar: <a href="mailto:leila@kanitz.com.br">leila@kanitz.com.br</a></p>
+  <p> Recebemos em 2003 mais de 4.000 pedidos das entidades registradas e avaliadas pelo site, dos mais variados tipos.</p>
+  <p>Entre com o tipo de bem que você quer doar (exemplos: fax, computador, livros didáticos, brinquedos) e com a cidade para a qual você deseja ajudar.</p>
+
+  <form id="form-doacoes" action="" method="GET">{% csrf_token %}
+
+  <div class="form-group">
+    <label for="id_fpalavra">Ajuda:</label>
+    <input id="id_fpalavra" type="text" class="form-control" name="fpalavra" size="30"{% if request.GET.fpalavra %} value="{{ request.GET.fpalavra }}"{% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="id_fcidade">Cidade:</label>
+    <input id="id_fcidade" type="text" class="form-control" name="fcidade" size="30"{% if request.GET.fcidade %} value="{{ request.GET.fcidade }}"{% endif %}>
+  </div>
+
+  <div class="form-group">
+   <input class="btn btn-submit" type="submit" name="pesquisa_ajuda" value="Pesquisar">
+   {% if not request.GET.pesquisa_ajuda %}<input class="btn btn-submit" type="reset" name="Limpa" value="Limpar campos">{% endif %}
+  </div>
+
+  <p>Ou digite o nome da Entidade para saber o que ela precisa.</p>
+
+  <div class="form-group">
+    <label for="id_fentidade">Entidade:</label>
+    <input id="id_fentidade" type="text" class="form-control" name="fentidade" size="30"{% if request.GET.fentidade %} value="{{ request.GET.fentidade }}"{% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="id_fcidade2">Cidade:</label>
+    <input id="id_fcidade2" type="text" class="form-control" name="fcidade2" size="30"{% if request.GET.fcidade2 %} value="{{ request.GET.fcidade2 }}"{% endif %}>
+  </div>
+
+  <div class="form-group">
+   <input class="btn btn-submit" type="submit" name="pesquisa_entidade" value="Pesquisar">
+   {% if not request.GET.pesquisa_entidade %}<input class="btn btn-submit" type="reset" name="Limpa" value="Limpar campos">{% endif %}
+  </div>
+
+  </form>
+
+{% else %}
+
+  {% if doacoes|length > 0 %}
+    <h1>Pedidos de Doações</h1>
+    <br>
+    <div class="table-responsive">
+    <table class="table table-striped table-condensed">
+    <thead><th align="left">Entidade</th><th align="left">Cidade/UF</th><th align="left">Telefone</th><th align="left">Qtde</th><th align="left">Necessidade</th></thead>
+    <tbody>
+    {% for doacao in doacoes %}
+    <tr><td><font size="2"><a href="{% url 'exibe_entidade' doacao.entidade.id %}">{{ doacao.entidade.nome_fantasia|default:doacao.entidade.razao_social }}</a></font></td><td><font size="2">{{ doacao.entidade.cidade }}-{{ doacao.entidade.estado }}</font></td><td><font size="2">{% if doacao.entidade.telefone %}({{ doacao.entidade.ddd }}) {{ doacao.entidade.telefone }}{% else %}-{% endif %}</font></td><td><font size="2">{{ doacao.qtde_orig }}</font></td><td><font size="2">{{ doacao.descricao }}</font></td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+
+    {% if doacoes.paginator.num_pages > 1 %}
+    <div>
+      <span>
+      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}{% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}">&lt;</a>&nbsp;{% endif %}&nbsp;{% for p in doacoes.paginator.page_range %}{% if p >= pagina_inicial and p <= pagina_final %}{% if p == doacoes.number %}<b>{{p}}</b>{% else %}<a href="?page={{ p }}&amp;{{ get_params }}">{{p}}</a>{% endif %}&nbsp;{% endif %}{% endfor %}{% if pagina_final < doacoes.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}">&gt;</a>{% endif %}{% if pagina_final < doacoes.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ doacoes.paginator.num_pages }}&amp;{{ get_params }}">&gt;&gt;</a>{% endif %}
+      </span>
+    </div>
+    {% endif %}
+  {% else %}
+  <h2>Nenhum pedido de doação encontrado com estes critérios.</h2>
+  {% endif %}
+{% endif %}
+
+{% endblock content %}

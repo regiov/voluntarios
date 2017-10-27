@@ -1,0 +1,9 @@
+{% spaceless %}
+{% if messages %}
+{% autoescape off %}
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+{% endautoescape %}
+{% endif %}
+{% endspaceless %}

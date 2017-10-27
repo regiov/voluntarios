@@ -1,0 +1,34 @@
+{% load l10n %}<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Entidades do Brasil</name>
+    <Style id="mystyle">
+      <IconStyle>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+        </Icon>
+      </IconStyle>{% comment %}
+      <BalloonStyle>
+        <text><![CDATA[
+        <h2>$[name]</h2><p>$[endereco]</p><p>$[telefone]</p><p>$[email]</p>
+        ]]></text>
+      </BalloonStyle>{% endcomment %}
+    </Style>
+{% for entidade in entidades %}{% with telefone=entidade.numero_telefone %}    <Placemark>
+      <name>{{ entidade.razao_social|escape }}</name>
+      <description><![CDATA[
+        <h2><a href="entidade.asp?colocweb={{ entidade.id }}">{% if entidade.nome_fantasia %}{{ entidade.nome_fantasia|escape }}{% else %}{{ entidade.razao_social|escape }}{% endif %}</a></h2><p>{{ entidade.endereco|escape }}</p>{% if telefone %}<p>{{ telefone|escape }}</p>{% endif %}<p>{{ entidade.email }}</p>
+        ]]></description>
+      <styleUrl>#mystyle</styleUrl>{% comment %}
+      <ExtendedData>
+        <Data name="endereco"><value>{{ entidade.endereco|escape }}</value></Data>{% if telefone %}
+        <Data name="telefone"><value>{{ telefone|escape }}</value></Data>{% endif %}
+        <Data name="email"><value>{{ entidade.email }}</value></Data>
+      </ExtendedData>{% endcomment %}
+      <Point>
+        <coordinates>{% localize off %}{{ entidade.coordenadas.x }},{{ entidade.coordenadas.y }},0{% endlocalize %}</coordinates>
+      </Point>
+    </Placemark>
+{% endwith %}{% endfor %}
+  </Document>
+</kml>

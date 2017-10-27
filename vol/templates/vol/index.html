@@ -1,0 +1,136 @@
+{% extends "vol/base.html" %}
+{% load staticfiles %}
+
+{% block title %}Campanha Seja um Voluntário{% endblock title %}
+
+{% block content_container %}
+
+{{ xxx }}
+    <section id="home">
+        <div id="main-carousel" class="carousel slide" data-ride="carousel" data-pause="null"> 
+            <div class="carousel-inner">
+                <div class="item active" style="background-image: url({{ slide }})">
+                    <div class="carousel-caption container">
+                        <div class="row">
+                            <div class="col-sm-7 text-left">
+                                <h1><span>Seja um voluntário</span></h1> 
+                                <p>Você acaba de achar a melhor maneira de ser ou de encontrar voluntários, doadores e informações sobre o voluntariado no Brasil!</p> 
+                                <a class="btn btn-common" href="{% url 'voluntario_novo' %}">Faça seu cadastro</a> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!--/.carousel-inner-->
+        </div>
+    </section><!--/#home-->
+
+    <section id="services">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 text-center padding">
+                    <div class="single-service">
+                        <a href="{% url 'busca_entidades' %}"><img src="{% static 'images/home/busca-peq.png' %}" alt="busca"></a>
+                        <a href="{% url 'busca_entidades' %}"><h2>Busca de Entidades</h2></a>
+                        <p>Procure por entidades que podem precisar de voluntários. Utilize vários critérios na busca, como cidade, bairro e área de atuação.</p>
+                    </div>
+                </div>
+                <div class="col-sm-4 text-center padding">
+                    <div class="single-service">
+                        <a href="{% url 'mapa_entidades' %}"><img src="{% static 'images/home/gmaps-brasil-peq.png' %}" alt="mapa"></a>
+                        <a href="{% url 'mapa_entidades' %}"><h2>Mapa de Entidades</h2></a>
+                        <p>Veja onde se localizam as entidades cadastradas no sistema. Digite um endereço para encontrar aquelas que estão mais próximas de você.</p>
+                    </div>
+                </div>
+                <div class="col-sm-4 text-center padding">
+                    <div class="single-service">
+                        <a href="{% url 'entidade_nova' %}" rel="nofollow"><img src="{% static 'images/home/cadastro-peq.png' %}" alt="cadastro"></a>
+                        <a href="{% url 'entidade_nova' %}" rel="nofollow"><h2>Cadastro de Entidades</h2></a>
+                        <p>Gestor, cadastre sua entidade aqui, aumentando a visibilidade da instituição para pessoas interessadas em ajudar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--/#services-->
+
+    <section id="action" class="responsive">
+        <div class="vertical-center">
+             <div class="container">
+                <div class="row">
+                    <div class="action take-tour">
+                        <div class="col-sm-7">
+                            <h1 class="title"><span>Como ajudar os outros</span></h1>
+                            <p>Acompanhe um blog que irá incentivar você a entender de voluntariado, filantropia e os problemas atuais do Terceiro Setor.</p>
+                        </div>
+                        <div class="col-sm-5">
+                            <div class="tour-button">
+                                <a href="http://dias.melhores.com.br" class="btn btn-common" target="_blank">Visite nosso blog</a>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+   </section>
+   <!--/#action-->
+
+   <section id="testimonials" class="responsive padding">
+       <div class="container">
+          <div class="row">
+              <div class="col-sm-12">
+                  <div class="testimonial bottom">
+                      <h1 class="title">Depoimentos</h1>
+                  </div>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-md-6">
+                  <div class="testimonial bottom">
+                      <div class="media">
+                          <div class="pull-left">
+                              <img src="{% static 'images/selfies/silvia.png' %}" alt="">
+                          </div>
+                          <div class="media-body">
+                              <blockquote>Tenho uma história antiga com o <a href="http://www.arrastao.org.br" target="_blank">Projeto Arrastão</a>. No meu trabalho voluntário na instituição o objetivo sempre foi passar conhecimento, mas posso dizer que nessa empreitada eu mais aprendi do que ensinei.</blockquote>
+                              <h3>- Silvia Gaspar de Souza</h3>
+                          </div>
+                      </div>
+                      <div class="media">
+                          <div class="pull-left">
+                              <img src="{% static 'images/selfies/sueli.png' %}" alt="">
+                          </div>
+                          <div class="media-body">
+                              <blockquote>Sou diretora de eventos da <a href="http://www.cresersp.org.br" target="_blank">CrêSer</a>, entidade beneficente com mais de 10 anos de existência. Sinto-me feliz em dobro em poder contribuir com as mais de 4 mil pessoas atendidas mensalmente em todos os projetos! Vale super a pena!</blockquote>
+                              <h3>- Sueli Anita Puccinelli Geraldi</h3>
+                          </div>
+                      </div>   
+                  </div>
+              </div>
+              <div class="col-md-6">
+                  <div class="testimonial bottom">
+                      <div class="media">
+                          <div class="pull-left">
+                              <a href="http://www.sinhazinhameirelles.org.br" target="_blank"><img src="{% static 'images/misc/sinhazinha.png' %}" alt=""></a>
+                          </div>
+                          <div class="media-body">
+                              <blockquote>O trabalho voluntário pode ser a oportunidade de desenvolver novas habilidades pessoais e profissionais. Proporciona a descoberta de novas amizades, propicia vivências de experiências diversas.</blockquote>
+                              <h3>- Centro Comunitário e Creche Sinhazinha Meirelles</h3>
+                          </div>
+                      </div>   
+                      <div class="media">
+                          <div class="pull-left">
+                              <a href="http://www.gprimavera.org.br" target="_blank"><img src="{% static 'images/misc/primavera.png' %}" alt=""></a>
+                          </div>
+                          <div class="media-body">
+                              <blockquote>Realizar um trabalho voluntário é levar para o seu dia a dia o prazer e a responsabilidade de agir por um bem maior. Foi com esse espírito de generosidade e doação voluntária, independente de instituições religiosas e governamentais, que o trabalho do <a href="http://www.gprimavera.org.br" target="_blank">Grupo Primavera</a> cresceu e se firmou. Nos primeiros 12 anos o grupo funcionava exclusivamente sob a dedicação do trabalho das voluntárias e com a colaboração das meninas assistidas. Hoje, o GP possui sede própria e conta com uma equipe dinâmica e mista de voluntários e profissionais contratados.</blockquote>
+                              <h3>- Grupo Primavera</h3>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+       </div>
+   </section>
+   <!--/#testimonials-->
+
+{% endblock content_container %}

@@ -1,0 +1,10 @@
+Olá {{ primeiro_nome }},
+
+Obrigado por se cadastrar no site voluntarios.com.br
+Lá você poderá procurar uma entidade próxima a sua casa e oferecer ajuda.
+
+Para confirmar o cadastro é necessário clicar no link abaixo:
+
+{{ url }}?email={{ email }}
+
+Equipe voluntarios.com.br 
