@@ -1,6 +1,5 @@
 .logo-name {
-    margin-left: 10px; /* aumento no espaçamento entre imagem e texto */
-    color: #DD4814;    /* laranja */
+    color: #006600;
 }
 .add-row {
     background: url(../images/misc/icon-addlink.svg) 0 1px no-repeat;
