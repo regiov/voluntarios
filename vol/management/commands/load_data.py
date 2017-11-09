@@ -416,7 +416,11 @@ class Command(BaseCommand):
                     ddd = m.group(1)
                     telefone = m.group(2).strip()
 
-                entidade = Entidade(id=entnec.colocweb, razao_social=entnec.entidade, nome_fantasia=entnec.nomeguerra, cnpj=entnec.cgc, reg_cnas=entnec.reg_cnas, fundacao=entnec.fundacao.date(), logradouro=entnec.endrec1, bairro=entnec.bairro, cep=entnec.cep, cidade=entnec.cidade, estado=entnec.estado, ddd=ddd, telefone=telefone, email=entnec.e_mail, website=entnec.link, banco=entnec.banco, agencia=entnec.agencia, conta=entnec.conta, nome_resp=entnec.nome, sobrenome_resp=entnec.sobrenome, cargo_resp=entnec.cargo, nome_contato=entnec.contato1, area_atuacao=area_atuacao, ultima_atualizacao=ult_atuali, importado=True, confirmado=True, aprovado=True)
+                data_fundacao = None
+                if entnec.fundacao:
+                    data_fundacao = entnec.fundacao.date()
+
+                entidade = Entidade(id=entnec.colocweb, razao_social=entnec.entidade, nome_fantasia=entnec.nomeguerra, cnpj=entnec.cgc, reg_cnas=entnec.reg_cnas, fundacao=data_fundacao, logradouro=entnec.endrec1, bairro=entnec.bairro, cep=entnec.cep, cidade=entnec.cidade, estado=entnec.estado, ddd=ddd, telefone=telefone, email=entnec.e_mail, website=entnec.link, banco=entnec.banco, agencia=entnec.agencia, conta=entnec.conta, nome_resp=entnec.nome, sobrenome_resp=entnec.sobrenome, cargo_resp=entnec.cargo, nome_contato=entnec.contato1, area_atuacao=area_atuacao, ultima_atualizacao=ult_atuali, importado=True, confirmado=True, aprovado=True)
 
                 # Evita auto_now_add/auto_now durante importação
                 for field in entidade._meta.fields:
