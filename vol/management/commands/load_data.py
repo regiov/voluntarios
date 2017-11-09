@@ -365,7 +365,7 @@ class Command(BaseCommand):
                 necessidade = Necessidade(id=id_rec, id_ong=id_ong, qtde_orig=qtde_orig, descricao=descricao, valor_orig=valor_orig, data_solicitacao=data_solicitacao)
 
                 # Evita auto_now_add durante importação
-                for field in entidade._meta.fields:
+                for field in necessidade._meta.fields:
                     if field.name == 'data_solicitacao':
                         field.auto_now_add = False
 
