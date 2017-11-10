@@ -76,7 +76,7 @@ class Voluntario(models.Model):
     """Voluntário"""
     """obs: id compatível com banco anterior"""
     nome                  = models.CharField(u'Nome completo', max_length=100)
-    data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=11, null=True, blank=True)
+    data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=20, null=True, blank=True)
     data_aniversario      = models.DateField(u'Data de nascimento', null=True, blank=True)
     profissao             = models.CharField(u'Profissão', max_length=100)
     email                 = models.EmailField(u'E-mail', db_index=True)
