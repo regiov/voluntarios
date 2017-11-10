@@ -10,10 +10,9 @@
 
   <h1 class="margin-bottom">Faça uma Doação</h1>
   <p>Doe livros, roupas, produtos de higiene, remédios, etc.</p>
-  <p>Estamos procurando patrocinador para este serviço comunitário. Apresentamos este projeto já pronto e já testado para mais de dez grandes empresas, sem sucesso. Lamentamos que mais de 11 mil itens pedidos, no valor de 40 milhões de reais, tenham de sair do ar.</p>
-  <p>Caso você seja de uma empresa que ainda não tem um Serviço Comunitário, e gostaria de manter o Doe Bens no ar, contatar: <a href="mailto:leila@kanitz.com.br">leila@kanitz.com.br</a></p>
-  <p> Recebemos em 2003 mais de 4.000 pedidos das entidades registradas e avaliadas pelo site, dos mais variados tipos.</p>
-  <p>Entre com o tipo de bem que você quer doar (exemplos: fax, computador, livros didáticos, brinquedos) e com a cidade para a qual você deseja ajudar.</p>
+  <p>Caso você seja de uma empresa que ainda não tem um Serviço Comunitário, e gostaria de manter o Doe Bens no ar, contatar: <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
+  <p>Já recebemos mais de 4.000 pedidos das entidades registradas e avaliadas pelo site, dos mais variados tipos.</p>
+  <p>Entre com o tipo de bem ou serviço que você quer doar (exemplos: fax, computador, livros didáticos, brinquedos) e com a cidade para a qual você deseja ajudar.</p>
 
   <form id="form-doacoes" action="" method="GET">{% csrf_token %}
 
