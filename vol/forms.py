@@ -203,14 +203,14 @@ class FormEntidade(forms.ModelForm):
                                choices=UFS_SIGLA,
                                widget=forms.Select(attrs={'class':'form-control'}),
                                help_text="")
-    ddd = forms.CharField(label=u'DDD',
+    ddd = forms.CharField(label=u'Telefone (ddd)',
                           max_length=4,
-                          widget=forms.TextInput(attrs={'class':'form-control', 'size':3}),
+                          widget=forms.TextInput(attrs={'class':'form-control', 'size':4}),
                           help_text="",
                           required=False)
-    telefone = forms.CharField(label=u'Telefone',
-                               max_length=100,
-                               widget=forms.TextInput(attrs={'class':'form-control', 'size':20}),
+    telefone = forms.CharField(label=u'número',
+                               max_length=60,
+                               widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
                                help_text="",
                                required=False)
     email = forms.EmailField(label=u'E-mail',
