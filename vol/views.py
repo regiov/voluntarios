@@ -69,7 +69,7 @@ def envia_confirmacao_voluntario(nome, email):
                'email': email,
                'url': 'http://voluntarios.com.br' + reverse('valida_email_voluntario')}
     try:
-        notify_email(email, u'Cadastro de voluntário', 'msg_confirmacao_cadastro_voluntario.txt', context=context)
+        notify_email(email, u'Cadastro de voluntário', 'vol/msg_confirmacao_cadastro_voluntario.txt', context=context)
     except Exception as e:
         # Se houver erro o próprio notify_email já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
@@ -276,7 +276,7 @@ def entidade_nova(request):
                            'email': form.cleaned_data['email'],
                            'url': protocol + '://' + request.get_host() + reverse('valida_email_entidade')}
                 
-                notify_email(form.cleaned_data['email'], u'Cadastro de entidade', 'msg_confirmacao_cadastro_entidade.txt', context=context)
+                notify_email(form.cleaned_data['email'], u'Cadastro de entidade', 'vol/msg_confirmacao_cadastro_entidade.txt', context=context)
             except Exception as e:
                 # Se houver erro o próprio notify_email já tenta notificar o suporte,
                 # portanto só cairá aqui se houver erro na notificação ao suporte
