@@ -12,6 +12,8 @@ from tinymce.widgets import TinyMCE
 
 from vol.models import AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
 
+from vol.views import envia_confirmacao_voluntario
+
 class MyFlatPageForm(FlatpageForm):
 
     class Meta:
@@ -43,7 +45,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     ordering = ('-data_cadastro',)
     search_fields = ('nome', 'email', )
     readonly_fields = ('site', 'importado', 'confirmado',)
-    actions = ['aprovar']
+    actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
         AreaInteresseInline,
     ]
@@ -65,6 +67,22 @@ class VoluntarioAdmin(admin.ModelAdmin):
             extra_msg = u'%s não modificado(s) por já estar(em) aprovado(s).' % (total_recs-num_updates)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
+
+    def enviar_confirmacao(self, request, queryset):
+        num_messages = 0
+        for obj in queryset:
+            if not obj.confirmado:
+                envia_confirmacao_voluntario(obj.nome, obj.email)
+                num_messages = num_messages + 1
+        main_msg = ''
+        if num_messages > 0:
+            main_msg = u'%s voluntário(s) notificado(s). ' % num_messages
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_messages:
+            extra_msg = u'%s não notificado(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação"
 
 class NecessidadeInline(admin.TabularInline):
     model = Necessidade

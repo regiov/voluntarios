@@ -63,6 +63,18 @@ def mensagem(request, titulo=''):
     context = {'titulo': titulo}
     return HttpResponse(template.render(context, request))
 
+def envia_confirmacao_voluntario(nome, email):
+    '''Envia mensagem de confirmação de cadastro ao voluntário'''
+    context = {'primeiro_nome': nome.split(' ')[0],
+               'email': email,
+               'url': 'http://voluntarios.com.br' + reverse('valida_email_voluntario')}
+    try:
+        notify_email(email, u'Cadastro de voluntário', 'msg_confirmacao_cadastro_voluntario.txt', context=context)
+    except Exception as e:
+        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # portanto só cairá aqui se houver erro na notificação ao suporte
+        pass
+
 @transaction.atomic
 def voluntario_novo(request):
     '''Página de cadastro de voluntário'''
@@ -98,20 +110,7 @@ def voluntario_novo(request):
                         # Ignora combos vazios
                         pass
                 # Envia mensagem de confirmação
-                try:
-                    protocol = 'http'
-                    if request.is_secure():
-                        protocol = protocol + 's'
-
-                    context = {'primeiro_nome': form.cleaned_data['nome'].split(' ')[0],
-                               'email': form.cleaned_data['email'],
-                               'url': protocol + '://' + request.get_host() + reverse('valida_email_voluntario')}
-                    
-                    notify_email(form.cleaned_data['email'], u'Cadastro de voluntário', 'msg_confirmacao_cadastro_voluntario.txt', context=context)
-                except Exception as e:
-                    # Se houver erro o próprio notify_email já tenta notificar o suporte,
-                    # portanto só cairá aqui se houver erro na notificação ao suporte
-                    pass
+                envia_confirmacao_voluntario(form.cleaned_data['nome'], form.cleaned_data['email'])
                 # Redireciona para página de exibição de mensagem
                 messages.info(request, u'Obrigado! Você receberá um e-mail de confirmação. Para ter seu cadastro validado, clique no link indicado no e-mail que receber.')
                 return mensagem(request, u'Cadastro de Voluntário')
