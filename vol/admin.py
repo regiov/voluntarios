@@ -73,7 +73,8 @@ class NecessidadeInline(admin.TabularInline):
     extra = 0
 
 class EntidadeAdmin(GeoModelAdmin):
-    list_display = ('razao_social', 'cnpj', 'email', 'importado', 'confirmado', 'aprovado',)
+    list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
+    ordering = ('-data_cadastro',)
     search_fields = ('razao_social', 'cnpj', 'email', )
     exclude = ('coordenadas',)
     readonly_fields = ('geocode_status', 'importado', 'confirmado',)
