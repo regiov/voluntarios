@@ -12,7 +12,7 @@ from tinymce.widgets import TinyMCE
 
 from vol.models import AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
 
-from vol.views import envia_confirmacao_voluntario
+from vol.views import envia_confirmacao_voluntario, envia_confirmacao_entidade
 
 class MyFlatPageForm(FlatpageForm):
 
@@ -118,6 +118,22 @@ class EntidadeAdmin(GeoModelAdmin):
             extra_msg = u'%s não modificada(s) por já estar(em) aprovada(s).' % (total_recs-num_updates)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Entidades selecionadas"
+
+    def enviar_confirmacao(self, request, queryset):
+        num_messages = 0
+        for obj in queryset:
+            if not obj.confirmado:
+                envia_confirmacao_entidade(obj.razao_social, obj.email)
+                num_messages = num_messages + 1
+        main_msg = ''
+        if num_messages > 0:
+            main_msg = u'%s entidade(s) notificada(s). ' % num_messages
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_messages:
+            extra_msg = u'%s não notificada(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação"
 
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)

@@ -75,6 +75,17 @@ def envia_confirmacao_voluntario(nome, email):
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
+def envia_confirmacao_entidade(nome, email):
+    context = {'razao_social': nome,
+               'email': email,
+               'url': 'http://voluntarios.com.br' + reverse('valida_email_entidade')}
+    try:
+        notify_email(email, u'Cadastro de entidade', 'vol/msg_confirmacao_cadastro_entidade.txt', context=context)
+    except Exception as e:
+        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # portanto só cairá aqui se houver erro na notificação ao suporte
+        pass
+
 @transaction.atomic
 def voluntario_novo(request):
     '''Página de cadastro de voluntário'''
@@ -267,20 +278,7 @@ def entidade_nova(request):
         if form.is_valid():
             form.save(commit=True)
             # Envia mensagem de confirmação
-            try:
-                protocol = 'http'
-                if request.is_secure():
-                    protocol = protocol + 's'
-
-                context = {'razao_social': form.cleaned_data['razao_social'],
-                           'email': form.cleaned_data['email'],
-                           'url': protocol + '://' + request.get_host() + reverse('valida_email_entidade')}
-                
-                notify_email(form.cleaned_data['email'], u'Cadastro de entidade', 'vol/msg_confirmacao_cadastro_entidade.txt', context=context)
-            except Exception as e:
-                # Se houver erro o próprio notify_email já tenta notificar o suporte,
-                # portanto só cairá aqui se houver erro na notificação ao suporte
-                pass
+            envia_confirmacao_entidade(form.cleaned_data['razao_social'], form.cleaned_data['email'])
             # Redireciona para página de exibição de mensagem
             messages.info(request, u'Obrigado! Você receberá um e-mail de confirmação. Para ter o cadastro de entidade validado, clique no link indicado no e-mail que receber.')
             return mensagem(request, u'Cadastro de Entidade')
