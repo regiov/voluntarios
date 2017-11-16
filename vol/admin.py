@@ -96,7 +96,7 @@ class EntidadeAdmin(GeoModelAdmin):
     search_fields = ('razao_social', 'cnpj', 'email', )
     exclude = ('coordenadas',)
     readonly_fields = ('geocode_status', 'importado', 'confirmado',)
-    actions = ['aprovar']
+    actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
         NecessidadeInline,
     ]
