@@ -42,7 +42,7 @@ class AreaInteresseInline(admin.TabularInline):
 
 class VoluntarioAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
-    ordering = ('-data_cadastro',)
+    ordering = ('-confirmado', '-data_cadastro',)
     search_fields = ('nome', 'email', )
     readonly_fields = ('site', 'importado', 'confirmado',)
     actions = ['aprovar', 'enviar_confirmacao']
