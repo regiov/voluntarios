@@ -11,7 +11,8 @@ def general(request):
     # últimas entidades cadastradas
     query1 = Entidade.objects.filter(confirmado=True)
     if query1.count() > 4:
-        entidades_recentes = query1.order_by('-data_cadastro')[:5]
+        # obs: entidades importadas da base anterior não possuem data de cadastro
+        entidades_recentes = query1.order_by('-id')[:5]
     else:
         entidades_recentes = Entidade.objects.none()
     context['entidades_recentes'] = entidades_recentes
