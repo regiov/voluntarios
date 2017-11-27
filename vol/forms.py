@@ -100,12 +100,14 @@ class FormVoluntario(forms.ModelForm):
     def clean_email(self):
         # Email PRECISA estar em caixa baixa para o procedimento de login.
         val = self.cleaned_data['email'].strip().lower()
-##         if self.instance and self.instance.pk:
-##             existing = User.objects.filter(email__exact=val).exclude(pk=self.instance.pk)
-##         else:
-##             existing = User.objects.filter(email__exact=val)
-##         if existing.exists():
-##             raise forms.ValidationError(_("This email address is already in use. Please supply a different email address."))
+
+        if self.instance and self.instance.pk:
+            user_with_same_email = Voluntario.objects.filter(email__exact=val).exclude(pk=self.instance.pk)
+        else:
+            user_with_same_email = Voluntario.objects.filter(email__exact=val)
+
+        if user_with_same_email.exists():
+            raise forms.ValidationError(u'Este e-mail já se encontra cadastrado. Para fazer alterações nos dados, por favor entre em contato conosco.')
         return val
 
     def clean_data_aniversario(self):
