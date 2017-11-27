@@ -191,6 +191,8 @@ NOTIFY_SUPPORT_FROM = 'SET IN LOCAL SETTINGS'
 NOTIFY_SUPPORT_TO = 'SET IN LOCAL SETTINGS'
 NOTIFY_USER_FROM = 'SET IN LOCAL SETTINGS'
 
+NOREPLY_EMAIL = 'SET IN LOCAL SETTINGS'
+
 ##############################################################
 
 # Sobrepõe configurações com configurações locais - caso existam
