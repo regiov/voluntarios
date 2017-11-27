@@ -277,6 +277,9 @@ def entidade_nova(request):
         form = FormEntidade(request.POST)
         if form.is_valid():
             form.save(commit=True)
+            # Tenta georeferenciar
+            if form.instance is not None:
+                form.instance.geocode()
             # Envia mensagem de confirmação
             envia_confirmacao_entidade(form.cleaned_data['razao_social'], form.cleaned_data['email'])
             # Redireciona para página de exibição de mensagem
