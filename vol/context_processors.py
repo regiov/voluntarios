@@ -9,7 +9,7 @@ def general(request):
     context = dict(EMAIL_CONTATO=settings.NOTIFY_USER_FROM)
 
     # últimas entidades cadastradas
-    query1 = Entidade.objects.filter(confirmado=True, aprovado=True)
+    query1 = Entidade.objects.filter(aprovado=True)
     if query1.count() > 4:
         # obs: entidades importadas da base anterior não possuem data de cadastro
         entidades_recentes = query1.order_by('-id')[:5]
