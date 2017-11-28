@@ -44,6 +44,8 @@ class VoluntarioAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
     ordering = ('-confirmado', '-data_cadastro',)
     search_fields = ('nome', 'email', )
+    list_filter = ('aprovado', 'confirmado', 'importado',)
+    preserve_filters = True
     readonly_fields = ('site', 'importado', 'confirmado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
@@ -93,7 +95,9 @@ class NecessidadeInline(admin.TabularInline):
 class EntidadeAdmin(GeoModelAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
-    search_fields = ('razao_social', 'cnpj', 'email', )
+    search_fields = ('razao_social', 'cnpj', 'email',)
+    list_filter = ('aprovado', 'confirmado', 'importado',)
+    preserve_filters = True
     exclude = ('coordenadas',)
     readonly_fields = ('geocode_status', 'importado', 'confirmado',)
     actions = ['aprovar', 'enviar_confirmacao']
