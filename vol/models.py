@@ -204,7 +204,7 @@ class Entidade(models.Model):
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
-    data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True)
+    data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização', auto_now=True, null=True, blank=True)
 
     objects = models.GeoManager()
