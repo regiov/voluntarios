@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.conf import settings
 from django.urls import reverse
+from django.views.decorators.cache import cache_page
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, Necessidade, AreaInteresse
 
@@ -427,12 +428,13 @@ def exibe_entidade_old(request):
     id_entidade = request.GET.get('colocweb')
     return exibe_entidade(id_entidade)
 
+@cache_page(60 * 60 * 24) # timeout: 24h
 def entidades_kml(request):
     '''KML de todas as Entidades'''
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
-    entidades_georref = Entidade.objects.filter(coordenadas__isnull=False, confirmado=True)
+    entidades_georref = Entidade.objects.filter(coordenadas__isnull=False, aprovado=True)
     context = {'entidades': entidades_georref}
     return render(request, 'vol/entidades.kml', context=context, content_type='application/vnd.google-earth.kml+xml; charset=utf-8')
 

@@ -170,6 +170,13 @@ LOGGING = {
     }
 }
 
+# Cache (SET IN LOCAL SETTINGS)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 # TinyMCE configuration
 TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'table,paste',
