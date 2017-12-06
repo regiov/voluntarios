@@ -535,13 +535,13 @@ def mapa_entidades(request):
     template = loader.get_template('vol/mapa_entidades.html')
     return HttpResponse(template.render(context, request))
 
-def frases(request):
+def mural(request):
     '''Página para exibir frases de voluntários'''
     context = {}
-    template = loader.get_template('vol/frases.html')
+    template = loader.get_template('vol/mural.html')
     return HttpResponse(template.render(context, request))
 
-def frase_voluntario(request):
+def frase_mural(request):
     '''Retorna descrição aleatória de voluntário'''
     from django.db.models import TextField
     from django.db.models.functions import Length

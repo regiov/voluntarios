@@ -44,9 +44,9 @@ urlpatterns = [
     url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),#ok
     url(r'^voluntario.asp$', views.exibe_voluntario_old),
 
-    url(r'^voluntario/frases/?$', views.frases, name='frases'),#ok
+    url(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),#ok
 
-    url(r'^voluntario/frase/?$', views.frase_voluntario, name='frase_voluntario'),#ok
+    url(r'^mural/?$', views.mural, name='mural'),#ok
 
     # Entidades
     url(r'^entidade/nova$', views.entidade_nova, name='entidade_nova'),#ok
