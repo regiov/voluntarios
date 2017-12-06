@@ -426,7 +426,7 @@ def exibe_entidade_old(request):
     if 'colocweb' not in request.GET:
         raise SuspiciousOperation('Ausência do parâmetro colocweb')
     id_entidade = request.GET.get('colocweb')
-    return exibe_entidade(id_entidade)
+    return exibe_entidade(request, id_entidade)
 
 @cache_page(60 * 60 * 24) # timeout: 24h
 def entidades_kml(request):
