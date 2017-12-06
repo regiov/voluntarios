@@ -410,7 +410,7 @@ def exibe_entidade(request, id_entidade):
     if not id_entidade.isdigit():
         raise SuspiciousOperation('Parâmetro id inválido')
     try:
-        entidade = Entidade.objects.select_related('area_atuacao').get(pk=id_entidade, confirmado=True)
+        entidade = Entidade.objects.select_related('area_atuacao').get(pk=id_entidade, aprovado=True)
     except Entidade.DoesNotExist:
         raise SuspiciousOperation('Entidade inexistente')
     necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
