@@ -3,6 +3,7 @@
 import urllib.parse
 import urllib.request
 import json
+from datetime import date
 
 from django.db import models
 from django.conf import settings
@@ -105,6 +106,19 @@ class Voluntario(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def iniciais(self):
+        txt = ''
+        partes = self.nome.split(' ')
+        for parte in partes:
+            txt = txt + parte[:1].upper() + '.'
+        return txt
+
+    def idade(self):
+        if self.data_aniversario is not None:
+            hoje = date.today()
+            return str(hoje.year - self.data_aniversario.year - ((hoje.month, hoje.day) < (self.data_aniversario.month, self.data_aniversario.day))) + u' anos'
+        return ''
 
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""

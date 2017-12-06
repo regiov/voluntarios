@@ -79,6 +79,13 @@
     display: inline;
     width: 70px;
 }
+#textslide {
+    height:200px;
+    padding: 10px;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
 /* --------------------------------------- */
 #form-voluntario .combo-area-interesse {
     display: inline; /* não jogar remover na outra linha */
@@ -176,7 +183,5 @@
 #map-legend img {
     margin-top: 10px;
 }
-.nowrap {
-    white-space: nowrap !important;
-}
+
 /* ------ */

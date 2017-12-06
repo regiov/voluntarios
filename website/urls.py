@@ -44,6 +44,10 @@ urlpatterns = [
     url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),#ok
     url(r'^voluntario.asp$', views.exibe_voluntario_old),
 
+    url(r'^voluntario/frases/?$', views.frases, name='frases'),#ok
+
+    url(r'^voluntario/frase/?$', views.frase_voluntario, name='frase_voluntario'),#ok
+
     # Entidades
     url(r'^entidade/nova$', views.entidade_nova, name='entidade_nova'),#ok
     url(r'^banco_de_dados.htm$', views.entidade_nova),

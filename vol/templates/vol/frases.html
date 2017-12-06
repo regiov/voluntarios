@@ -1,0 +1,74 @@
+{% extends "vol/base.html" %}
+{% load staticfiles %}
+
+{% block title %}Frases de Voluntários{% endblock title %}
+
+{% block head %}
+
+<script type="text/javascript">
+
+var colors = new Array();
+
+colors[0] = "d7efae";
+colors[1] = "ccc";
+colors[2] = "e9f0bd";
+colors[3] = "f1bad0";
+colors[4] = "bbedea";
+colors[5] = "f3c5c1";
+
+var cnt = 0;
+
+function loop() {
+
+    if (cnt > 5) {
+
+      cnt = 0;
+    }
+
+    var request = $.ajax({
+        url: '/voluntario/frase/',
+        method: 'GET',
+    });
+
+    request.done(function (ret) {
+
+        $('#textslide').css('background-image', 'linear-gradient(#' + colors[cnt] + ', #fff)');
+        $('#textslide h1').text(ret.texto);
+        $('#textslide h2').text(ret.iniciais + '   ' + ret.idade);
+        $('#textslide h3').text(ret.cidade + ' - ' + ret.estado);
+        {% comment %}fadeTo: duration, opacity{% endcomment %}
+        $('#textslide').fadeTo(500, 100).delay(5000);
+        $('#textslide').fadeTo(500, 0);
+        cnt = cnt + 1;
+        setTimeout(loop, 7000);
+    });
+
+    request.fail(function (jqXHR, textStatus) {
+
+        loop();
+    });
+}
+
+loop();
+
+</script>
+
+{% endblock head %}
+
+{% block content_container %}
+    <section id="content">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9 col-sm-8">
+                  <div id="textslide">
+                    <h1>Frases de Voluntários</h1>
+                    <h2></h2>
+                    <h3></h3>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock content_container %}
+

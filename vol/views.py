@@ -2,11 +2,11 @@
 
 import datetime
 import os
-#import random
+import random
 
 from django.shortcuts import render, redirect
 from django.template import loader
-from django.http import HttpResponse, Http404, HttpResponseNotAllowed
+from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed
 from django.core.exceptions import ValidationError, SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
@@ -534,3 +534,30 @@ def mapa_entidades(request):
     context = {'agora': now}
     template = loader.get_template('vol/mapa_entidades.html')
     return HttpResponse(template.render(context, request))
+
+def frases(request):
+    '''Página para exibir frases de voluntários'''
+    context = {}
+    template = loader.get_template('vol/frases.html')
+    return HttpResponse(template.render(context, request))
+
+def frase_voluntario(request):
+    '''Retorna descrição aleatória de voluntário'''
+    from django.db.models import TextField
+    from django.db.models.functions import Length
+
+    c = TextField.register_lookup(Length, 'length')
+
+    query = Voluntario.objects.filter(aprovado=True, descricao__length__gt=30, descricao__length__lt=100)
+
+    cnt = query.count()
+
+    i = random.randint(0, cnt-1)
+
+    vol = query[i]
+
+    return JsonResponse({'texto': vol.descricao,
+                         'iniciais': vol.iniciais(),
+                         'idade': vol.idade(),
+                         'cidade': vol.cidade.title(),
+                         'estado': vol.estado.upper()})
