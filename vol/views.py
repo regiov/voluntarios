@@ -193,6 +193,10 @@ def busca_voluntarios(request):
         if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
             voluntarios = voluntarios.filter(area_trabalho=fareatrabalho)
 
+        # Já inclui áreas de interesse para otimizar
+        # obs: essa abordagem não funciona junto com paginação! (django 1.10.7)
+        #voluntarios = voluntarios.prefetch_related('areainteresse__area_atuacao')
+
         # Ordem dos resultados
         if request.GET.get('ordem', 'interesse') == 'interesse':
             voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'nome')
