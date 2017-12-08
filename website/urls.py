@@ -29,56 +29,56 @@ urlpatterns = [
 
     url(r'^tinymce/', include('tinymce.urls')),
 
-    url(r'^$', views.index, name='index'),#ok
+    url(r'^$', views.index, name='index'),
 
     # Voluntários
-    url(r'^voluntario/novo/?$', views.voluntario_novo, name='voluntario_novo'),#ok
-    url(r'^voluntario.htm$', views.voluntario_novo),
+    url(r'^voluntario/novo/?$', views.voluntario_novo, name='voluntario_novo'),
+    url(r'^voluntario.htm$', views.voluntario_novo),#old
 
     url(r'^voluntario/validacao/?$', views.valida_email_voluntario, name='valida_email_voluntario'),
-    url(r'^confirma-cadastro-voluntario/?$', views.valida_email_voluntario),
+    url(r'^confirma-cadastro-voluntario/?$', views.valida_email_voluntario),#old
 
-    url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),#ok
-    url(r'^contato.htm$', views.busca_voluntarios),
+    url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
+    url(r'^contato.htm$', views.busca_voluntarios),#old
 
-    url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),#ok
-    url(r'^voluntario.asp$', views.exibe_voluntario_old),
+    url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),
+    url(r'^voluntario.asp$', views.exibe_voluntario_old),#old
 
-    url(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),#ok
+    url(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),
 
-    url(r'^mural/?$', views.mural, name='mural'),#ok
+    url(r'^mural/?$', views.mural, name='mural'),
 
     # Entidades
-    url(r'^entidade/nova$', views.entidade_nova, name='entidade_nova'),#ok
-    url(r'^banco_de_dados.htm$', views.entidade_nova),
+    url(r'^entidade/nova$', views.entidade_nova, name='entidade_nova'),
+    url(r'^banco_de_dados.htm$', views.entidade_nova),#old
 
     url(r'^entidade/validacao/?$', views.valida_email_entidade, name='valida_email_entidade'),
-    url(r'^confirma-cadastro-entidade/?$', views.valida_email_entidade),
+    url(r'^confirma-cadastro-entidade/?$', views.valida_email_entidade),#old
 
-    url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),#ok
-    url(r'^pesquisa.htm$', views.busca_entidades),
+    url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
+    url(r'^pesquisa.htm$', views.busca_entidades),#old
 
-    url(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),#ok
-    url(r'^entidade.asp$', views.exibe_entidade_old),
+    url(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),
+    url(r'^entidade.asp$', views.exibe_entidade_old),#old
 
-    url(r'^entidade/mapa$', views.mapa_entidades, name='mapa_entidades'),#ok
+    url(r'^entidade/mapa$', views.mapa_entidades, name='mapa_entidades'),
     
-    url(r'^doacao/busca$', views.busca_doacoes, name='busca_doacoes'),#ok
-    url(r'^doacao.htm$', views.busca_doacoes),
+    url(r'^doacao/busca$', views.busca_doacoes, name='busca_doacoes'),
+    url(r'^doacao.htm$', views.busca_doacoes),#old
     
-    url(r'^entidades.kml$', views.entidades_kml, name='entidades_kml'),#ok
+    url(r'^entidades.kml$', views.entidades_kml, name='entidades_kml'),
     
     # Páginas estáticas
     url(r'^p/', include('django.contrib.flatpages.urls')),
     
-    url(r'^oque_e_voluntariado.htm$', flatpages.flatpage, {'url': '/voluntariado/'}),#ok
-    url(r'^brasil.htm$', flatpages.flatpage, {'url': '/por-que-ser-voluntario/'}),#ok
-    url(r'^profissionalismo.htm$', flatpages.flatpage, {'url': '/bom-voluntario/'}),#ok
-    url(r'^leis.htm$', flatpages.flatpage, {'url': '/leis/'}),#ok
-    url(r'^termo.htm$', flatpages.flatpage, {'url': '/termo-adesao-voluntario/'}),#ok
-    url(r'^estatisticas.htm$', flatpages.flatpage, {'url': '/estatisticas/'}),#ok
-    url(r'^personalidades.htm$', flatpages.flatpage, {'url': '/personalidades/'}),#ok
-    url(r'^livros_voluntariado.htm$', flatpages.flatpage, {'url': '/livros-voluntariado/'}),#ok
+    url(r'^oque_e_voluntariado.htm$', flatpages.flatpage, {'url': '/voluntariado/'}),
+    url(r'^brasil.htm$', flatpages.flatpage, {'url': '/por-que-ser-voluntario/'}),
+    url(r'^profissionalismo.htm$', flatpages.flatpage, {'url': '/bom-voluntario/'}),
+    url(r'^leis.htm$', flatpages.flatpage, {'url': '/leis/'}),
+    url(r'^termo.htm$', flatpages.flatpage, {'url': '/termo-adesao-voluntario/'}),
+    url(r'^estatisticas.htm$', flatpages.flatpage, {'url': '/estatisticas/'}),
+    url(r'^personalidades.htm$', flatpages.flatpage, {'url': '/personalidades/'}),
+    url(r'^livros_voluntariado.htm$', flatpages.flatpage, {'url': '/livros-voluntariado/'}),
 
     #url(r'^assistencia.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-atuacao/'}),
     #url(r'^trabalho.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-trabalho/'}),
@@ -101,7 +101,10 @@ urlpatterns = [
     #url(r'^executivo_porqueservolunt.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-voluntario/'}),
 
     # Interface adm
-    url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),#ok
+    url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
+
+    # Páginas temporárias
+    url(r'^revisao/voluntarios/?$', views.revisao_voluntarios),
 ]
 
 if settings.DEBUG:

@@ -16,6 +16,7 @@ from django.forms.formsets import BaseFormSet, formset_factory
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
+from django.contrib.auth.decorators import login_required
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, Necessidade, AreaInteresse
 
@@ -565,3 +566,74 @@ def frase_mural(request):
                          'idade': vol.idade(),
                          'cidade': vol.cidade.title(),
                          'estado': vol.estado.upper()})
+
+#@login_required
+@transaction.atomic
+def revisao_voluntarios(request):
+    '''Página temporária apenas para revisar o banco de dados de voluntários e eliminar duplicidades'''
+    from django.db.models import Count
+
+    # Primeiro grava alterações se necessário
+    if request.method == 'POST':
+
+        vol0 = Voluntario.objects.get(pk=int(request.POST.get('id0')), email=request.POST.get('email'))
+        vol1 = Voluntario.objects.get(pk=int(request.POST.get('id1')), email=request.POST.get('email'))
+
+        if request.POST.get('id') == '0':
+            vol_fica = vol0
+            vol_vai = vol1
+        elif request.POST.get('id') == '1':
+            vol_fica = vol1
+            vol_vai = vol0
+        else:
+            raise SuspiciousOperation(u'Parâmetro id incorreto')
+
+        campos = ['nome', 'profissao', 'data_aniversario_orig', 'ddd', 'telefone', 'cidade', 'estado', 'empresa', 'foi_voluntario', 'entidade_que_ajudou', 'area_trabalho', 'descricao']
+
+        salvar = False
+
+        for campo in campos:
+            if request.POST.get('id') != request.POST.get(campo):
+                setattr(vol_fica, campo, getattr(vol_vai, campo))
+                salvar = True
+
+        if salvar:
+            vol_fica.save()
+
+        for interesse in vol_vai.areainteresse_set.all():
+            if interesse.area_atuacao not in AreaAtuacao.objects.filter(areainteresse__voluntario=vol_fica):
+                interesse.voluntario = vol_fica
+                interesse.save()
+
+        vol_vai.delete()
+
+    # Depois atualiza a contagem e pega a próxima duplicidade
+    dups = Voluntario.objects.values('email').order_by('email').annotate(total=Count('email')).filter(total__gt=1)
+    total = dups.count()
+
+    dup = None
+    vols = None
+
+    if total > 0:
+
+        if request.method == 'GET':
+            i = request.GET.get('i')
+        else:
+            i = request.POST.get('i')
+
+        if i is None:
+            i = 0
+        else:
+            i = int(i)
+
+            if i >= total:
+                i = total - 1
+
+        dup = dups[i]
+        vols = Voluntario.objects.filter(email=dup['email'])
+
+    context = {'total': total,
+               'dup': dup,
+               'vols': vols}
+    template = loader.get_template('vol/revisao_voluntarios.html')
+    return HttpResponse(template.render(context, request))

@@ -117,8 +117,20 @@ class Voluntario(models.Model):
     def idade(self):
         if self.data_aniversario is not None:
             hoje = date.today()
-            return str(hoje.year - self.data_aniversario.year - ((hoje.month, hoje.day) < (self.data_aniversario.month, self.data_aniversario.day))) + u' anos'
+            val = hoje.year - self.data_aniversario.year - ((hoje.month, hoje.day) < (self.data_aniversario.month, self.data_aniversario.day))
+            if val <= 110:
+                return str(val) + u' anos'
         return ''
+
+    def areas_de_interesse(self):
+        areas = ''
+        cnt = 0
+        for area in self.areainteresse_set.all():
+            if cnt > 0:
+                areas = areas + ', '
+            areas = areas + area.area_atuacao.nome
+            cnt = cnt + 1
+        return areas
 
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
