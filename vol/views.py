@@ -574,7 +574,7 @@ def revisao_voluntarios(request):
     from django.db.models import Count
 
     # Primeiro grava alterações se necessário
-    if request.method == 'POST':
+    if request.method == 'POST' and 'salvar' in request.POST:
 
         vol0 = Voluntario.objects.get(pk=int(request.POST.get('id0')), email=request.POST.get('email'))
         vol1 = Voluntario.objects.get(pk=int(request.POST.get('id1')), email=request.POST.get('email'))
@@ -613,27 +613,32 @@ def revisao_voluntarios(request):
 
     dup = None
     vols = None
+    i = None
 
     if total > 0:
 
         if request.method == 'GET':
-            i = request.GET.get('i')
-        else:
-            i = request.POST.get('i')
 
-        if i is None:
-            i = 0
-        else:
-            i = int(i)
+            i = int(request.GET.get('i', 0))
 
-            if i >= total:
-                i = total - 1
+        else:
+
+            i = int(request.POST.get('i', 0))
+
+            if 'pular' in request.POST:
+                
+                i = i + 1
+
+        if i >= total:
+            
+            i = total - 1
 
         dup = dups[i]
-        vols = Voluntario.objects.filter(email=dup['email'])
+        vols = Voluntario.objects.filter(email=dup['email']).order_by('data_cadastro')
 
     context = {'total': total,
                'dup': dup,
-               'vols': vols}
+               'vols': vols,
+               'i': i}
     template = loader.get_template('vol/revisao_voluntarios.html')
     return HttpResponse(template.render(context, request))
