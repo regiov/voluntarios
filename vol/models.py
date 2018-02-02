@@ -233,8 +233,6 @@ class Entidade(models.Model):
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização', auto_now=True, null=True, blank=True)
 
-    objects = models.GeoManager()
-
     class Meta:
         verbose_name = u'Entidade'
         verbose_name_plural = u'Entidades'
