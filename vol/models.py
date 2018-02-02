@@ -307,13 +307,15 @@ class Entidade(models.Model):
                     self.coordenadas = None
                     self.save(update_fields=['coordenadas', 'geocode_status'])
 
+                else:
+
+                    # Status desconhecido
+                    notify_support(u'Surpresa no geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Response: ' + str(j), request)
+
+            # Erro reportado pelo google
             if 'error_message' in j:
 
                 notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Erro: ' + j['error_message'], request)
-
-            else:
-
-                notify_support(u'Surpresa no geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Response: ' + str(j), request)
 
             if verbose:
                 print(endereco + ': ' + str(j))
