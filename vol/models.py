@@ -266,13 +266,13 @@ class Entidade(models.Model):
             return '(' + self.ddd + ') ' + self.telefone
         return self.telefone
 
-    def geocode(self, request=None, dump_error=False):
+    def geocode(self, request=None, verbose=False):
         '''Atribui uma coordenada à entidade a partir de seu endereço usando o serviço do Google'''
         endereco = self.endereco()
         if len(endereco) == 0:
             self.coordenadas = None
             self.save(update_fields=['coordenadas'])
-            return
+            return 'NO_ADDRESS'
 
         params = urllib.parse.urlencode({'address': endereco,
                                          'key': settings.GOOGLE_MAPS_API_KEY,
@@ -288,22 +288,24 @@ class Entidade(models.Model):
         except Exception as e:
             motivo = type(e).__name__ + str(e.args)
             notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Motivo: ' + motivo, request)
-            return
+            return 'GOOGLE_ERROR'
 
+        status = 'NO_RESPONSE'
         if j:
-            if j['status'] == 'OK':
+            status = 'NO_STATUS'
+            if 'status' in j:
+                status = j['status']
+                if status == 'OK':
 
-                self.coordenadas = Point(j['results'][0]['geometry']['location']['lng'], j['results'][0]['geometry']['location']['lat'])
-                self.geocode_status = 'OK'
-                self.save(update_fields=['coordenadas', 'geocode_status'])
-                return
+                    self.coordenadas = Point(j['results'][0]['geometry']['location']['lng'], j['results'][0]['geometry']['location']['lat'])
+                    self.geocode_status = status
+                    self.save(update_fields=['coordenadas', 'geocode_status'])
 
-            elif j['status'] == 'ZERO_RESULTS':
+                elif status == 'ZERO_RESULTS':
 
-                self.geocode_status = 'ZERO_RESULTS'
-                self.coordenadas = None
-                self.save(update_fields=['coordenadas', 'geocode_status'])
-                return
+                    self.geocode_status = status
+                    self.coordenadas = None
+                    self.save(update_fields=['coordenadas', 'geocode_status'])
 
             if 'error_message' in j:
 
@@ -313,8 +315,10 @@ class Entidade(models.Model):
 
                 notify_support(u'Surpresa no geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Response: ' + str(j), request)
 
-            if dump_error:
+            if verbose:
                 print(endereco + ': ' + str(j))
+
+        return status
 
 class Necessidade(models.Model):
     """Necessidade de bem/serviço por parte de uma entidade"""
