@@ -247,9 +247,12 @@ class Entidade(models.Model):
             return self.nome_fantasia
         return self.razao_social
 
-    def endereco(self):
+    def endereco(self, logradouro=None):
         '''Retorna logradouro, cidade e estado separados por vírgula'''
-        endereco = self.logradouro if self.logradouro else ''
+        if logradouro is None:
+            endereco = self.logradouro if self.logradouro else ''
+        else:
+            endereco = logradouro
         if self.cidade:
             if endereco:
                 endereco = endereco + ', '
@@ -267,58 +270,84 @@ class Entidade(models.Model):
         return self.telefone
 
     def geocode(self, request=None, verbose=False):
-        '''Atribui uma coordenada à entidade a partir de seu endereço usando o serviço do Google'''
+        '''Atribui automaticamente uma coordenada à entidade a partir de seu endereço usando o serviço do Google'''
         endereco = self.endereco()
         if len(endereco) == 0:
             self.coordenadas = None
             self.save(update_fields=['coordenadas'])
             return 'NO_ADDRESS'
 
-        params = urllib.parse.urlencode({'address': endereco,
-                                         'key': settings.GOOGLE_MAPS_API_KEY,
-                                         'sensor': 'false',
-                                         'region': 'br'})
+        logradouro = self.logradouro if self.logradouro else ''
 
-        url = settings.GOOGLE_MAPS_GEOCODE_URL + '?%s' % params
-
-        j = None
-        try:
-            resp = urllib.request.urlopen(url)
-            j = json.loads(resp.read().decode('utf-8'))
-        except Exception as e:
-            motivo = type(e).__name__ + str(e.args)
-            notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Motivo: ' + motivo, request)
-            return 'GOOGLE_ERROR'
-
-        status = 'NO_RESPONSE'
-        if j:
-            status = 'NO_STATUS'
-            if 'status' in j:
-                status = j['status']
-                if status == 'OK':
-
-                    self.coordenadas = Point(j['results'][0]['geometry']['location']['lng'], j['results'][0]['geometry']['location']['lat'])
-                    self.geocode_status = status
-                    self.save(update_fields=['coordenadas', 'geocode_status'])
-
-                elif status == 'ZERO_RESULTS':
-
-                    self.geocode_status = status
-                    self.coordenadas = None
-                    self.save(update_fields=['coordenadas', 'geocode_status'])
-
-                else:
-
-                    # Status desconhecido
-                    notify_support(u'Surpresa no geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Response: ' + str(j), request)
-
-            # Erro reportado pelo google
-            if 'error_message' in j:
-
-                notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Erro: ' + j['error_message'], request)
+        while True:
 
             if verbose:
-                print(endereco + ': ' + str(j))
+                print(endereco)
+
+            params = urllib.parse.urlencode({'address': endereco,
+                                             'key': settings.GOOGLE_MAPS_API_KEY,
+                                             'sensor': 'false',
+                                             'region': 'br'})
+
+            url = settings.GOOGLE_MAPS_GEOCODE_URL + '?%s' % params
+
+            j = None
+            try:
+                resp = urllib.request.urlopen(url)
+                j = json.loads(resp.read().decode('utf-8'))
+            except Exception as e:
+                motivo = type(e).__name__ + str(e.args)
+                notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Motivo: ' + motivo, request)
+                return 'GOOGLE_ERROR'
+
+            status = 'NO_RESPONSE'
+            if j:
+                status = 'NO_STATUS'
+                if 'status' in j:
+                    status = j['status']
+                    if status == 'OK':
+
+                        self.coordenadas = Point(j['results'][0]['geometry']['location']['lng'], j['results'][0]['geometry']['location']['lat'])
+                        self.geocode_status = status
+                        self.save(update_fields=['coordenadas', 'geocode_status'])
+                        break
+
+                    elif status == 'ZERO_RESULTS':
+
+                        if logradouro.count(' ') > 1:
+                            # Remove última palavra do logradouro e tenta de novo,
+                            # pois muitas vezes o google não consegue quando o
+                            # logradouro termina em s/n, andar ou outras coisas estranhas
+                            partes = logradouro.split(' ')
+                            partes.pop()
+                            logradouro = ' '.join(partes)
+                            endereco = self.endereco(logradouro)
+                            continue
+                        elif logradouro.count(' ') == 1:
+                            # Tenta só com cidade e estado
+                            logradouro = ''
+                            endereco = self.endereco(logradouro)
+                            continue
+                        else:
+                            self.geocode_status = status
+                            self.coordenadas = None
+                            self.save(update_fields=['coordenadas', 'geocode_status'])
+                            break
+                    else:
+
+                        # Status desconhecido
+                        notify_support(u'Surpresa no geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Response: ' + str(j), request)
+                        break
+
+                # Erro reportado pelo google
+                if 'error_message' in j:
+
+                    notify_support(u'Erro de geocode', u'Entidade: ' + str(self.id) + "\n" + u'Endereço: ' + endereco + "\n" + u'Erro: ' + j['error_message'], request)
+
+                    if verbose:
+                        print('Dump: ' + str(j))
+                        
+                    break
 
         return status
 
