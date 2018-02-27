@@ -354,7 +354,7 @@ class Entidade(models.Model):
 class Necessidade(models.Model):
     """Necessidade de bem/serviço por parte de uma entidade"""
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, null=True)
-    id_ong           = models.IntegerField(u'IDOng') 
+    id_ong           = models.IntegerField(u'IDOng', null=True, blank=True) 
     qtde_orig        = models.CharField(u'Quantidade', max_length=510, null=True, blank=True) 
     descricao        = models.CharField(u'Descrição', max_length=510, null=True, blank=True) 
     valor_orig       = models.CharField(u'Valor', max_length=510, null=True, blank=True) 
