@@ -361,4 +361,6 @@ class Necessidade(models.Model):
     data_solicitacao = models.DateTimeField(u'Data da solicitação', auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
+        if self.qtde_orig is None:
+            return self.descricao
         return self.qtde_orig + u' ' + self.descricao
