@@ -80,7 +80,7 @@ class Voluntario(models.Model):
     data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=20, null=True, blank=True)
     data_aniversario      = models.DateField(u'Data de nascimento', null=True, blank=True)
     profissao             = models.CharField(u'Profissão', max_length=100, null=True, blank=True)
-    email                 = models.EmailField(u'E-mail', db_index=True)
+    email                 = models.EmailField(u'E-mail', unique=True)
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
     cidade                = models.CharField(u'Cidade', max_length=100)
