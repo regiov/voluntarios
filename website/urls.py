@@ -104,7 +104,7 @@ urlpatterns = [
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
 
     # Páginas temporárias
-    url(r'^revisao/voluntarios/?$', views.revisao_voluntarios),
+    #url(r'^revisao/voluntarios/?$', views.revisao_voluntarios),
 ]
 
 if settings.DEBUG:
