@@ -63,8 +63,9 @@ def notify_user(user, subject_template, msg_template, from_email=settings.NOTIFY
     message = render_to_string(msg_template, context)
     try:
         user.email_user(subject, message, from_email)
-    except Exception:
-        msg = u"subject: %s\n\nto: %s\n\nmessage:\n\n%s" % (subject, user.get_full_name(), message)
+    except Exception as e:
+        erro = type(e).__name__ + str(e.args)
+        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, user.get_full_name(), message)
         notify_support(u'Notification failure', msg)
 
 def notify_email(to, subject, msg_template, context={}, from_email=settings.NOTIFY_USER_FROM, **kwargs):
@@ -74,6 +75,7 @@ def notify_email(to, subject, msg_template, context={}, from_email=settings.NOTI
     message = render_to_string(msg_template, context)
     try:
         send_mail(subject, message, from_email, [to], **kwargs)
-    except Exception:
-        msg = u"subject: %s\n\nto: %s\n\nmessage:\n\n%s" % (subject, to, message)
+    except Exception as e:
+        erro = type(e).__name__ + str(e.args)
+        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, to, message)
         notify_support(u'Notification failure', msg)
