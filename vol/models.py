@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.utils import timezone
+from django.core.mail import send_mail
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -98,6 +99,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nome']
 
+    def __str__(self):
+        return self.email
+
     def get_full_name(self):
         return self.nome
 
@@ -107,8 +111,11 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
             return self.nome.title()
         return self.nome[:space_position].title()
 
-    def __str__(self):
-        return self.email
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        """
+        Envia mensagem para o usuário.
+        """
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
