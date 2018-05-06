@@ -36,6 +36,9 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'SET IN LOCAL SETTINGS'
 SERVER_EMAIL = 'SET IN LOCAL SETTINGS'
 
+# Custom user model
+AUTH_USER_MODEL = 'vol.Usuario'
+
 # Application definition
 
 INSTALLED_APPS = [

@@ -3,6 +3,10 @@
 from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
 from django.db import transaction
+from django.utils.translation import gettext, gettext_lazy as _
+
+# Usuário customizado
+from django.contrib.auth.admin import UserAdmin
 
 # Como usar TinyMCE para editar flatpages:
 # source: https://stackoverflow.com/questions/15123927/embedding-tinymce-in-django-flatpage
@@ -10,9 +14,27 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
 
 from vol.views import envia_confirmacao_voluntario, envia_confirmacao_entidade
+
+class MyUserAdmin(UserAdmin):
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        (_('Personal info'), {'fields': ('nome',)}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2'),
+        }),
+    )
+    list_display = ('email', 'nome', 'is_staff')
+    search_fields = ('nome', 'email')
+    ordering = ('email',)
 
 class MyFlatPageForm(FlatpageForm):
 
@@ -139,6 +161,7 @@ class EntidadeAdmin(GeoModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação"
 
+admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
 admin.site.register(AreaTrabalho, AreaTrabalhoAdmin)

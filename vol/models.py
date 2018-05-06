@@ -9,6 +9,11 @@ from django.db import models
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.utils import timezone
+
+from django.contrib.auth.models import (
+    BaseUserManager, AbstractBaseUser, PermissionsMixin
+)
 
 from notification.utils import notify_support
 
@@ -43,6 +48,67 @@ UFS = (
 )
 
 UFS_SIGLA = [(uf[0], uf[0]) for uf in UFS]
+
+class MyUserManager(BaseUserManager):
+
+    def get_by_natural_key(self, username):
+        """
+        Sobreposição de método default para viabilizar case-insensitive login.
+        """
+        return self.get(**{self.model.USERNAME_FIELD: username.lower()})
+
+    def create_user(self, email, nome, password=None):
+        """
+        Cria e salva um novo usuário com o email, nome e senha fornecidos.
+        Método necessário para apps com definição própria de usuário.
+        Utilizado apenas pela interface adm.
+        """
+        if not email:
+            raise ValueError('Faltou o e-mail')
+
+        user = self.model(email=self.normalize_email(email), nome=nome,)
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, nome, password):
+        """
+        Cria e salva um superusuário com o email, nome e senha fornecidos.
+        Método necessário para apps com definição própria de usuário.
+        Utilizado apenas pela interface adm.
+        """
+        user = self.create_user(email, password=password, nome=nome,)
+        user.is_superuser = True
+        user.is_staff = True
+        user.is_active = True
+        user.save(using=self._db)
+        return user
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
+    email        = models.EmailField(verbose_name=u'E-mail', unique=True,)
+    nome         = models.CharField(u'Nome completo', max_length=255, blank=True)
+    is_superuser = models.BooleanField(u'Poderes de superusuário', default=False)
+    is_staff     = models.BooleanField(u'Membro da equipe', default=False, help_text=u'Indica que usuário consegue acessar a interface administrativa.')
+    is_active    = models.BooleanField(u'Ativo', default=False, help_text=u'Indica que o usuário encontra-se ativo, estando habilitado a fazer login no sistema.')
+    date_joined  = models.DateTimeField(u'Data de registro', default=timezone.now)
+
+    objects = MyUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['nome']
+
+    def get_full_name(self):
+        return self.nome
+
+    def get_short_name(self):
+        space_position = self.nome.find(' ')
+        if space_position == -1:
+            return self.nome.title()
+        return self.nome[:space_position].title()
+
+    def __str__(self):
+        return self.email
 
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
@@ -144,48 +210,6 @@ class AreaInteresse(models.Model):
 
     def __str__(self):
         return self.area_atuacao.nome
-
-class EntNec(models.Model):
-    """Tabela temporária para armazenar dados de tblEntidades do banco V_EntNec97Asp.mdb"""
-    colocweb      = models.IntegerField(u'colocweb') 
-    entidade      = models.CharField(u'Entidade', max_length=120) 
-    nomeguerra    = models.CharField(u'Nome de guerra', max_length=100, null=True, blank=True) 
-    cgc           = models.CharField(u'CGC', max_length=36, null=True, blank=True) 
-    mantenedor    = models.CharField(u'mantenedor', max_length=60, null=True, blank=True) 
-    reg_cnas      = models.CharField(u'reg_cnas', max_length=50, null=True, blank=True)
-    fundacao      = models.DateTimeField(u'fundacao', null=True, blank=True) 
-    sede          = models.IntegerField(u'sede', null=True, blank=True) 
-    endrec1       = models.CharField(u'endrec1', max_length=100, null=True, blank=True) 
-    bairro        = models.CharField(u'Bairro', max_length=40, null=True, blank=True) 
-    cep           = models.CharField(u'CEP', max_length=100, null=True, blank=True) 
-    idcidade      = models.IntegerField(u'IDCidade', null=True, blank=True) 
-    cidade        = models.CharField(u'Cidade', max_length=60, null=True, blank=True) 
-    estado        = models.CharField(u'Estado', max_length=4, null=True, blank=True) 
-    telefone      = models.CharField(u'Telefone', max_length=100, null=True, blank=True) 
-    e_mail        = models.CharField(u'E-mail', max_length=90, null=True, blank=True) 
-    link          = models.CharField(u'Link', max_length=110, null=True, blank=True) 
-    banco         = models.CharField(u'Banco', max_length=74, null=True, blank=True) 
-    agencia       = models.CharField(u'Agência', max_length=14, null=True, blank=True) 
-    conta         = models.CharField(u'Conta', max_length=26, null=True, blank=True) 
-    nome          = models.CharField(u'nome', max_length=50, null=True, blank=True) 
-    sobrenome     = models.CharField(u'sobrenome', max_length=70, null=True, blank=True) 
-    cargo         = models.CharField(u'cargo', max_length=50, null=True, blank=True) 
-    contato1      = models.CharField(u'contato1', max_length=100, null=True, blank=True) 
-    idsetor       = models.CharField(u'IDSetor', max_length=100, null=True, blank=True) 
-    setor         = models.CharField(u'setor', max_length=100, null=True, blank=True) 
-    ult_atuali    = models.CharField(u'ult_atuali', max_length=30, null=True, blank=True)
-
-class GetEnt(models.Model):
-    """Tabela temporária para armazenar dados de tblEntidades do banco V_GetEntidade97Asp.mdb"""
-    entidade      = models.CharField(u'Entidade', max_length=120) 
-    nomeguerra    = models.CharField(u'Nome de guerra', max_length=100, null=True, blank=True) 
-    cgc           = models.CharField(u'CGC', max_length=36, null=True, blank=True) 
-    despesas      = models.CharField(u'Despesas', max_length=100, null=True, blank=True) 
-    beneficiados  = models.CharField(u'Beneficiados', max_length=100, null=True, blank=True) 
-    voluntarios   = models.CharField(u'Voluntarios', max_length=100, null=True, blank=True) 
-    auditores     = models.CharField(u'Auditores', max_length=100, null=True, blank=True) 
-    premios       = models.CharField(u'Prêmios', max_length=100, null=True, blank=True) 
-    data_cadastro = models.DateTimeField(u'Data do cadastro')
 
 GEOCODE_STATUS = (
     ('OK', 'Georreferenciado com endereço completo'),
