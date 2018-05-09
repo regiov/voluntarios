@@ -1,0 +1,7 @@
+{% spaceless %}
+{% for field in form %}
+ {% for error in field.errors %}
+  <p><font face="Verdana" size="2" color="red">{{ error }}</font></p>
+ {% endfor %}
+{% endfor %}
+{% endspaceless %}
