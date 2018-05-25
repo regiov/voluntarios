@@ -9,6 +9,7 @@
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
 <p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
 {% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
+{% if entidade.descricao %}<p><label>Descrição:</label> {{ entidade.descricao }}</p>{% endif %}
 {% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
 <p><label>Endereço:</label> {% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}{{ entidade.cep }} {% endif %}{{ entidade.cidade }}-{{ entidade.estado }}</p>
 {% if entidade.contato %}<p><label>Contato:</label> {{ entidade.contato|default:"-" }}</p>{% endif %}
