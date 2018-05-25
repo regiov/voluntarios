@@ -194,6 +194,16 @@ def busca_voluntarios(request):
         if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
             voluntarios = voluntarios.filter(area_trabalho=fareatrabalho)
 
+        # Filtro por última atualização cadastral
+        atualiza = request.GET.get('atualiza')
+        if atualiza.isdigit():
+            atualiza = int(atualiza)
+            if atualiza in [5, 3, 2, 1]:
+                now = datetime.datetime.now()
+                year = datetime.timedelta(days=365)
+                ref = now-atualiza*year
+                voluntarios = voluntarios.filter(ultima_atualizacao__gt=ref)
+
         # Já inclui áreas de interesse para otimizar
         # obs: essa abordagem não funciona junto com paginação! (django 1.10.7)
         #voluntarios = voluntarios.prefetch_related('areainteresse__area_atuacao')

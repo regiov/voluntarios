@@ -37,6 +37,17 @@ Escolha o tipo do voluntário desejado e entre em contato com ele:</p>
   </div>
 
   <div class="form-group">
+    <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
+    <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
+      <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Sem restrição --</option>
+      <option value="5"{% if request.GET.atualiza and request.GET.atualiza == 5 %} selected{% endif %}>há menos de 5 anos</option>
+      <option value="3"{% if request.GET.atualiza and request.GET.atualiza == 3 %} selected{% endif %}>há menos de 3 anos</option>
+      <option value="2"{% if request.GET.atualiza and request.GET.atualiza == 2 %} selected{% endif %}>há menos de 2 anos</option>
+      <option value="1"{% if request.GET.atualiza and request.GET.atualiza == 1 %} selected{% endif %}>há menos de 1 ano</option>
+    </select>
+  </div>
+
+  <div class="form-group">
     <label for="id_ordem">Ordenado por:</label><br>
     <input type="radio" name="ordem" value="interesse"{% if request.GET.ordem == 'trabalho' %}{% else %} checked{% endif %}>
     Área de Interesse
