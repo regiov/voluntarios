@@ -170,6 +170,19 @@ class FormEntidade(forms.ModelForm):
                                           queryset=AreaAtuacao.objects.all().order_by('nome'),
                                           widget=forms.Select(attrs={'class':'form-control'}),
                                           help_text="")
+    descricao = forms.CharField(label=u'Descrição',
+                                max_length=7000,
+                                widget=forms.Textarea(attrs={'class':'form-control', 'rows':5, 'cols':30}),
+                                help_text="objetivo da entidade, tipo de trabalho realizado, quem se beneficia, perfil dos voluntários, etc.",
+                                required=False)
+    num_vol = forms.CharField(label=u'N° atual de voluntários',
+                              max_length=5,
+                              widget=forms.TextInput(attrs={'class':'form-control', 'size':5}),
+                              help_text="")
+    num_vol_ano = forms.CharField(label=u'N° de voluntários necessários por ano',
+                                  max_length=5,
+                                  widget=forms.TextInput(attrs={'class':'form-control', 'size':5}),
+                                  help_text="")
     nome_resp = forms.CharField(label=u'Primeiro nome',
                                 max_length=50,
                                 widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
@@ -231,7 +244,7 @@ class FormEntidade(forms.ModelForm):
 
     class Meta:
         model = Entidade
-        fields = ("nome_fantasia", "razao_social", "cnpj", "area_atuacao",
+        fields = ("nome_fantasia", "razao_social", "cnpj", "area_atuacao", "descricao", "num_vol", "num_vol_ano",
                   "nome_resp", "sobrenome_resp", "cargo_resp", "cep", "logradouro", "bairro",
                   "cidade", "estado", "ddd", "telefone", "email", "nome_contato", "website")
 
@@ -244,6 +257,18 @@ class FormEntidade(forms.ModelForm):
             rec_with_same_email = Entidade.objects.filter(email__exact=val)
         if rec_with_same_email.exists():
             raise forms.ValidationError(u'Este e-mail já se encontra cadastrado. Para fazer alterações nos dados, por favor entre em contato conosco.')
+        return val
+
+    def clean_num_vol(self):
+        val = self.cleaned_data['num_vol'].strip()
+        if not val.isdigit():
+            raise forms.ValidationError(u'Digite apenas números na quantidade atual de voluntários')
+        return val
+
+    def clean_num_vol_ano(self):
+        val = self.cleaned_data['num_vol_ano'].strip()
+        if not val.isdigit():
+            raise forms.ValidationError(u'Digite apenas números na quantidade de voluntários necessária por ano')
         return val
 
     def clean_estado(self):

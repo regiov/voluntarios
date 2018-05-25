@@ -230,6 +230,7 @@ class Entidade(models.Model):
     razao_social       = models.CharField(u'Razão Social', max_length=120) 
     cnpj               = models.CharField(u'CNPJ', max_length=36, null=True, blank=True) 
     area_atuacao       = models.ForeignKey(AreaAtuacao, verbose_name=u'Área de Atuação', on_delete=models.PROTECT, null=True)
+    descricao          = models.TextField(u'Descrição', null=True, blank=True)
     cep                = models.CharField(u'CEP', max_length=10, null=True, blank=True) 
     logradouro         = models.CharField(u'Logradouro', max_length=100, null=True, blank=True) 
     bairro             = models.CharField(u'Bairro', max_length=40, null=True, blank=True) 
@@ -248,6 +249,8 @@ class Entidade(models.Model):
     fundacao           = models.DateField(u'Fundação', null=True, blank=True) 
     auditores          = models.CharField(u'Auditores', max_length=100, null=True, blank=True) 
     premios            = models.CharField(u'Prêmios', max_length=100, null=True, blank=True) 
+    num_vol            = models.IntegerField(u'Número de voluntários trabalhando atualmente', null=True, blank=True) 
+    num_vol_ano        = models.IntegerField(u'Número de voluntários necessários ao longo do ano', null=True, blank=True) 
 
     nome_resp          = models.CharField(u'Nome do responsável', max_length=50, null=True, blank=True) 
     sobrenome_resp     = models.CharField(u'Sobrenome do responsável', max_length=70, null=True, blank=True) 
@@ -258,6 +261,7 @@ class Entidade(models.Model):
     agencia            = models.CharField(u'Agência', max_length=14, null=True, blank=True) 
     conta              = models.CharField(u'Conta', max_length=26, null=True, blank=True) 
 
+    obs                = models.TextField(u'Observações', null=True, blank=True)
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
