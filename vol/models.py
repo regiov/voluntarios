@@ -171,6 +171,7 @@ class Voluntario(models.Model):
     importado             = models.BooleanField(u'Importado da base anterior', default=False)
     confirmado            = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado              = models.NullBooleanField(u'Cadastro revisado e aprovado')
+    ultima_atualizacao    = models.DateTimeField(u'Data de última atualização', auto_now_add=True, null=True, blank=True, db_index=True)
 
     class Meta:
         verbose_name = u'Voluntário'
