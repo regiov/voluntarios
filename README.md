@@ -28,7 +28,7 @@ cd website/website
 cp settings.py local_settings.py
 ```
 
-Edite o programa *local_settings.py*, removendo todas as configurações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação.
+Edite o arquivo *local_settings.py*, removendo todas as configurações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação.
 
 Crie as tabelas através do Django:
 
