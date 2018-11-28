@@ -6,6 +6,8 @@
 * Python 3
 * Django 2.0
 * django-tinymce 2.6.0
+* django-bootstrapform 3.4
+* django-allauth 0.37.0
 
 ## Configuração
 
@@ -42,6 +44,12 @@ Exporte os arquivos estáticos para um diretório previamente criado e já espec
 
 ```
 ./manage.py collectstatic -l
+```
+
+Compile os dicionários com as traduções locais:
+
+```
+django-admin.py compilemessages --locale=pt_BR
 ```
 
 Inicie o Django em modo desenvolvimento:

@@ -4,14 +4,14 @@
 
 {% block content %}
 
-<h2>{{ voluntario.nome }}</h2>
+<h2>{{ voluntario.usuario.nome }}</h2>
 <div class="registro">
-<p><label>Nome:</label> {{ voluntario.nome }}</p>
+<p><label>Nome:</label> {{ voluntario.usuario.nome }}</p>
 <p><label>Nascimento:</label> {% if voluntario.data_aniversario %}{{ voluntario.data_aniversario|date:"d/m/Y" }}{% else %}{{ voluntario.data_aniversario_orig }}{% endif %}</p>
 <p><label>Profissão:</label> {{ voluntario.profissao|default:"-" }}</p>
 <p><label>Área de Trabalho:</label> {{ voluntario.area_trabalho.nome|default:"-" }}</p>
 <p><label>Área{% if areas_de_interesse.count > 1 %}s{% endif %} de Interesse:</label> {% if areas_de_interesse.count == 0 %}-{% else %}{% for area_de_interesse in areas_de_interesse %}{% if forloop.counter0 > 0 %}, {% endif %}{{ area_de_interesse.area_atuacao.nome }}{% endfor %}{% endif %}</p>
-<p><label>E-mail:</label> {{ voluntario.email|default:"-" }}</p>
+<p><label>E-mail:</label> {{ voluntario.usuario.email|default:"-" }}</p>
 <p><label>Telefone:</label> {% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}{% else %}-{% endif %}</p>
 <p><label>Cidade:</label> {{ voluntario.cidade|default:"-" }}</p>
 <p><label>Estado:</label> {{ voluntario.estado|default:"-" }}</p>

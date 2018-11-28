@@ -16,7 +16,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 
-    <link href="{% static 'css/vol-1.0.css' %}" rel="stylesheet">
+    <link href="{% static 'css/vol-2.0.css' %}" rel="stylesheet">
 
     <!--[if lt IE 9]>
       {% comment %}This script is the defacto way to enable use 
@@ -60,7 +60,18 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
 
 <body>
 {% block body %}
-	<header id="header">      
+    <header id="header">
+
+        <div id="pre-navbar" class="navbar navbar-inverse">
+            <div id="pre-navbar-container" class="container">
+                   <div class="social-icons pull-right">
+                        <ul class="nav nav-pills">
+                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'usuario_cadastro' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></li>{% else %}<li><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
+                        </ul>
+                   </div>
+            </div>
+        </div>
+
         <div class="navbar navbar-inverse" role="banner">
             <div id="navbar-container" class="container">
                 <div class="navbar-header">
@@ -88,7 +99,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                             <ul role="menu" class="sub-menu">
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='por-que-ser-voluntario/' %}">Por que ser voluntário</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='bom-voluntario/' %}">Como ser um bom voluntário</a></li>
-                                <li><a href="{% url 'voluntario_novo' %}" rel="nofollow">Cadastre-se</a></li>
+                                <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'voluntario_cadastro' %}" rel="nofollow">Alterar cadastro de voluntário</a>{% else %}<a href="{% url 'voluntario_novo' %}" rel="nofollow">Cadastre-se</a>{% endif %}</li>
                                 <li><a href="{% url 'busca_entidades' %}">Encontre uma entidade</a></li>
                                 <li><a href="{% url 'mapa_entidades' %}">Mapa de entidades</a></li>
                                 <li><a href="{% url 'busca_doacoes' %}">Pedidos de doação</a></li>

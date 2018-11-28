@@ -56,8 +56,8 @@ Escolha o tipo do voluntário desejado e entre em contato com ele:</p>
   </div>
 
   <div class="form-group">
-   <input class="btn btn-submit" type="submit" name="Envia" value="Listar">
-   {% if not request.GET.Envia %}<input class="btn btn-submit" type="reset" name="Limpa" value="Limpar campos">{% endif %}
+   <input class="btn btn-primary" type="submit" name="Envia" value="Listar">
+   {% if not request.GET.Envia %}<input class="btn btn-primary" type="reset" name="Limpa" value="Limpar campos">{% endif %}
   </div>
 </form>
 
@@ -71,7 +71,7 @@ Escolha o tipo do voluntário desejado e entre em contato com ele:</p>
     <thead><th>Nome</th><th>Área de Interesse</th><th>Área de Trabalho/Profissão</th><th>Cidade</th><th>Telefone/E-mail</th></thead>
     <tbody>
     {% for voluntario in voluntarios %}{% with interesses=voluntario.areainteresse_set.all %}
-      <tr><td><a href="{% url 'exibe_voluntario' voluntario.id %}" rel="nofollow">{{ voluntario.nome}}</a></td><td>{% if interesses.count == 0 %}-{% else %}{% for interesse in interesses %}{% if forloop.counter0 > 0 %}, {% endif %}{{ interesse.area_atuacao.nome }}{% endfor %}{% endif %}</td><td>{{ voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ voluntario.profissao }}</span></td><td>{{ voluntario.cidade }}-{{ voluntario.estado }}</td><td>{% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}<br>{% endif %}<span class="dica"><a href="mailto:{{ voluntario.email }}">{{ voluntario.email }}</a></span></td></tr>
+      <tr><td><a href="{% url 'exibe_voluntario' voluntario.id %}" rel="nofollow">{{ voluntario.usuario.nome}}</a></td><td>{% if interesses.count == 0 %}-{% else %}{% for interesse in interesses %}{% if forloop.counter0 > 0 %}, {% endif %}{{ interesse.area_atuacao.nome }}{% endfor %}{% endif %}</td><td>{{ voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ voluntario.profissao }}</span></td><td>{{ voluntario.cidade }}-{{ voluntario.estado }}</td><td>{% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}<br>{% endif %}<span class="dica"><a href="mailto:{{ voluntario.usuario.email }}">{{ voluntario.usuario.email }}</a></span></td></tr>
     {% endwith %}{% endfor %}
     </tbody>
     </table>

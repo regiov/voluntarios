@@ -8,15 +8,6 @@ from vol.models import AreaTrabalho, AreaAtuacao, Voluntario, Entidade, UFS_SIGL
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
-    nome = forms.RegexField(regex=r'^[^\s]+\s[^\s]+',
-                            max_length=100,
-                            label=u'Nome completo',
-                            error_messages={'invalid': u'Favor digitar nome e sobrenome.'},
-                            help_text="(não utilize abreviações)",
-                            widget=forms.TextInput(attrs={'class':'form-control', 'size':35}))
-    email = forms.EmailField(label=u'E-mail',
-                             widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
-                             error_messages={'invalid': u'Digite um e-mail válido.'})
     data_aniversario = forms.DateField(label=u'Data de nascimento',
                                        widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-105, date.today().year-5)], empty_label=(u'ano', u'mês', u'dia'),attrs={'class':'form-control'}),
                                        #input_date_formats=['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y'],
@@ -45,7 +36,7 @@ class FormVoluntario(forms.ModelForm):
                                            help_text="",
                                            required=False)
     ddd = forms.CharField(label=u'Telefone (ddd)',
-                          max_length=4,
+                          max_length=3,
                           widget=forms.TextInput(attrs={'class':'form-control', 'size':4}),
                           help_text="",
                           required=False)
@@ -81,34 +72,8 @@ class FormVoluntario(forms.ModelForm):
 
     class Meta:
         model = Voluntario
-        fields = ("nome", "email", "data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone",
+        fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone",
                   "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho", "area_interesse")
-
-    def clean_nome(self):
-        """
-        Garante apenas caracteres alfanuméricos e pelo menos duas palavras.
-        
-        """
-        nome = self.cleaned_data['nome']
-        partes = nome.split(' ')
-        
-        if len(partes) < 2:
-            raise forms.ValidationError(u'Favor digitar nome e sobrenome.')
-        else:
-            return self.cleaned_data['nome']
-
-    def clean_email(self):
-        # Email PRECISA estar em caixa baixa para o procedimento de login.
-        val = self.cleaned_data['email'].strip().lower()
-
-        if self.instance and self.instance.pk:
-            user_with_same_email = Voluntario.objects.filter(email__exact=val).exclude(pk=self.instance.pk)
-        else:
-            user_with_same_email = Voluntario.objects.filter(email__exact=val)
-
-        if user_with_same_email.exists():
-            raise forms.ValidationError(u'Este e-mail já se encontra cadastrado. Para fazer alterações nos dados, por favor entre em contato conosco.')
-        return val
 
     def clean_data_aniversario(self):
         val = self.cleaned_data['data_aniversario']
@@ -305,3 +270,30 @@ class FormAreaInteresse(forms.ModelForm):
     class Meta:
         model = AreaInteresse
         fields = ("area_atuacao",)
+
+class ExtendedSignupForm(forms.Form):
+    "Formulário com campos adicionais para a página de cadastro de usuário"
+    nome = forms.RegexField(regex=r'^[^\s]+\s[^\s]+',
+                            max_length=100,
+                            label=u'Nome completo',
+                            error_messages={'invalid': u'Favor digitar nome e sobrenome.'},
+                            help_text="(não utilize abreviações)",
+                            widget=forms.TextInput(attrs={'class':'form-control', 'size':35}))
+    field_order = ['nome', 'email', 'password1', 'password2']
+
+    def clean_nome(self):
+        """
+        Garante apenas caracteres alfanuméricos e pelo menos duas palavras.
+        
+        """
+        nome = self.cleaned_data['nome']
+        partes = nome.split(' ')
+        
+        if len(partes) < 2:
+            raise forms.ValidationError(u'Favor digitar nome e sobrenome.')
+        else:
+            return self.cleaned_data['nome']
+
+    def signup(self, request, user):
+        user.nome = self.cleaned_data['nome']
+        user.save()

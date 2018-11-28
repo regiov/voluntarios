@@ -36,9 +36,6 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'SET IN LOCAL SETTINGS'
 SERVER_EMAIL = 'SET IN LOCAL SETTINGS'
 
-# Custom user model
-AUTH_USER_MODEL = 'vol.Usuario'
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -50,19 +47,26 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.gis',
+    'bootstrapform',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'website.apps.MyFlatPagesConfig',
     'tinymce',
     'notification',
     'vol',
+    'trans',
     #'debug_toolbar',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
@@ -73,7 +77,7 @@ ROOT_URLCONF = 'website.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'vol', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -89,7 +93,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'website.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -100,6 +103,15 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+# Custom user model
+AUTH_USER_MODEL = 'vol.Usuario'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -119,9 +131,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/aut/login'
+LOGIN_REDIRECT_URL = '/redirlogin'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
+
+LANGUAGES = [
+    ('pt-BR', u'Português'),
+]
 
 LANGUAGE_CODE = 'pt-BR'
 
@@ -189,6 +207,24 @@ TINYMCE_DEFAULT_CONFIG = {
     'resize': 'both',
     'theme_advanced_resizing' : True,
 }
+
+# Django allauth config
+ACCOUNT_ADAPTER = 'vol.util.MyAccountAdapter'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 10
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '\o/ '
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/anonconf'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/redirlogin'
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGOUT_REDIRECT_URL = '/aut/login'
+ACCOUNT_PRESERVE_USERNAME_CASING = False
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SIGNUP_FORM_CLASS = 'vol.forms.ExtendedSignupForm'
 
 # Google maps API
 GOOGLE_MAPS_API_KEY = 'SET IN LOCAL SETTINGS'

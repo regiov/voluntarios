@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
+from django.db.models import Count, Q
 
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
@@ -16,7 +17,10 @@ from tinymce.widgets import TinyMCE
 
 from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
 
-from vol.views import envia_confirmacao_voluntario, envia_confirmacao_entidade
+from vol.views import envia_confirmacao_entidade
+
+from allauth.account.models import EmailAddress, EmailConfirmation
+from allauth.account.adapter import get_adapter
 
 class MyUserAdmin(UserAdmin):
     fieldsets = (
@@ -32,9 +36,32 @@ class MyUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'nome', 'is_staff')
+    list_display = ('email', 'nome', 'date_joined', 'email_confirmado')
     search_fields = ('nome', 'email')
-    ordering = ('email',)
+    ordering = ('-date_joined',)
+    actions = ['reenviar_confirmacao']
+
+    def email_confirmado(self, instance):
+        return EmailAddress.objects.filter(user=instance, email=instance.email, verified=True).exists()
+    email_confirmado.boolean = True
+    email_confirmado.short_description = u'E-mail confirmado'
+
+    def reenviar_confirmacao(self, request, queryset):
+        num_messages = 0
+        account_adapter = get_adapter(request)
+        for obj in queryset:
+            for emailconfirmation in EmailConfirmation.objects.filter(email_address__user_id=obj.id, email_address__verified=False):
+                account_adapter.send_confirmation_mail(request, emailconfirmation, False)
+                num_messages = num_messages + 1
+        main_msg = ''
+        if num_messages > 0:
+            main_msg = u'%s usuário(s) notificado(s). ' % num_messages
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_messages:
+            extra_msg = u'%s usuário(s) não notificado(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    reenviar_confirmacao.short_description = "Reenviar mensagem de confirmação de email"
 
 class MyFlatPageForm(FlatpageForm):
 
@@ -63,16 +90,43 @@ class AreaInteresseInline(admin.TabularInline):
     extra = 0
 
 class VoluntarioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
-    ordering = ('-confirmado', '-data_cadastro',)
-    search_fields = ('nome', 'email', )
-    list_filter = ('aprovado', 'confirmado', 'importado',)
+    list_select_related = ('usuario',)
+    list_display = ('nome_usuario', 'email_usuario', 'data_cadastro', 'email_confirmado', 'aprovado',)
+    ordering = ('-data_cadastro',)
+    search_fields = ('usuario__nome', 'usuario__email', )
+    list_filter = ('aprovado',)
     preserve_filters = True
-    readonly_fields = ('site', 'importado', 'confirmado',)
+    readonly_fields = ('usuario', 'site', 'importado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
         AreaInteresseInline,
     ]
+    fields = ('usuario', 'data_aniversario_orig', 'data_aniversario', 'profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa', 'foi_voluntario', 'entidade_que_ajudou', 'area_trabalho', 'descricao', 'newsletter', 'fonte', 'site', 'importado',)
+
+    def get_queryset(self, request):
+        qs = super(VoluntarioAdmin, self).get_queryset(request)
+        # Inclui campo de confirmação de e-mail
+        return qs.annotate(num_emails_confirmados=Count('usuario__emailaddress', filter=Q(usuario__emailaddress__verified=True)))
+
+    def nome_usuario(self, instance):
+        if instance.usuario:
+            return instance.usuario.nome
+        return None
+    nome_usuario.short_description = u'Nome'
+    nome_usuario.admin_order_field = 'usuario__nome'
+
+    def email_usuario(self, instance):
+        if instance.usuario:
+            return instance.usuario.email
+        return None
+    email_usuario.short_description = u'E-mail'
+    email_usuario.admin_order_field = 'usuario__email'
+
+    def email_confirmado(self, instance):
+        return instance.num_emails_confirmados > 0
+    email_confirmado.boolean = True
+    email_confirmado.short_description = u'E-mail confirmado'
+    email_confirmado.admin_order_field = 'num_emails_confirmados'
 
     @transaction.atomic
     def aprovar(self, request, queryset):
@@ -91,22 +145,6 @@ class VoluntarioAdmin(admin.ModelAdmin):
             extra_msg = u'%s não modificado(s) por já estar(em) aprovado(s).' % (total_recs-num_updates)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
-
-    def enviar_confirmacao(self, request, queryset):
-        num_messages = 0
-        for obj in queryset:
-            if not obj.confirmado:
-                envia_confirmacao_voluntario(obj.nome, obj.email)
-                num_messages = num_messages + 1
-        main_msg = ''
-        if num_messages > 0:
-            main_msg = u'%s voluntário(s) notificado(s). ' % num_messages
-        extra_msg = ''
-        total_recs = len(queryset)
-        if total_recs > num_messages:
-            extra_msg = u'%s não notificado(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
-        self.message_user(request, "%s%s" % (main_msg, extra_msg))
-    enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação"
 
 class NecessidadeInline(admin.TabularInline):
     model = Necessidade

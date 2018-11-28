@@ -1,0 +1,102 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-11-26 19:31-0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: admin.py:28
+msgid "Personal info"
+msgstr "Dados pessoais"
+
+#: admin.py:29
+msgid "Permissions"
+msgstr "Permissões"
+
+#: admin.py:31
+msgid "Important dates"
+msgstr "Datas importantes"
+
+#: locale_messages.py:11
+msgid "E-mail address"
+msgstr "Endereço de e-mail"
+
+#: locale_messages.py:12
+msgid "Remember Me"
+msgstr "Mantenha-me conectado"
+
+#: templates/account/login.html:7
+msgctxt "page title"
+msgid "Sign In"
+msgstr "Login"
+
+#: templates/account/login.html:14
+msgctxt "page heading"
+msgid "Sign In"
+msgstr "Acesso"
+
+#: templates/account/login.html:18
+#, python-format
+msgid ""
+"Please sign in with one\n"
+"of your existing third party accounts. Or, <a href=\"%(signup_url)s\">sign "
+"up</a>\n"
+"for a %(site_name)s account and sign in\n"
+"below:"
+msgstr ""
+
+#: templates/account/login.html:29
+msgid "or"
+msgstr "ou"
+
+#: templates/account/login.html:37
+#, python-format
+msgid ""
+"If you have not created an account yet, then please\n"
+"<a href=\"%(signup_url)s\">sign up</a> first."
+msgstr ""
+"Se ainda não tiver um cadastro, clique <a href=\"%(signup_url)s\">aqui</a>."
+
+#: templates/account/login.html:49
+msgctxt "button"
+msgid "Sign In"
+msgstr "Entrar"
+
+#: templates/account/login.html:50
+msgid "Forgot Password?"
+msgstr "Esqueceu a senha?"
+
+#: templates/account/signup.html:6
+msgctxt "page title"
+msgid "Signup"
+msgstr "Cadastro de usuário"
+
+#: templates/account/signup.html:12
+msgctxt "page heading"
+msgid "Sign Up"
+msgstr "Cadastro de usuário"
+
+#: templates/account/signup.html:14
+#, python-format
+msgid ""
+"Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
+msgstr ""
+"Já possui cadastro? Então basta fazer <a href=\"%(login_url)s\">login</a>."
+
+#: templates/account/signup.html:23
+msgctxt "submit button"
+msgid "Sign Up"
+msgstr "Cadastrar"

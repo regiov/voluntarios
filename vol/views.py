@@ -17,10 +17,15 @@ from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.urls import reverse
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, Necessidade, AreaInteresse
 
+from allauth.account.models import EmailAddress
+
 from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse
+from vol.util import ChangeUserProfileForm
 
 from notification.utils import notify_support, notify_email
 
@@ -65,17 +70,46 @@ def mensagem(request, titulo=''):
     context = {'titulo': titulo}
     return HttpResponse(template.render(context, request))
 
-def envia_confirmacao_voluntario(nome, email):
-    '''Envia mensagem de confirmação de cadastro ao voluntário'''
-    context = {'primeiro_nome': nome.split(' ')[0],
-               'email': email,
-               'url': 'http://voluntarios.com.br' + reverse('valida_email_voluntario')}
-    try:
-        notify_email(email, u'Cadastro de voluntário', 'vol/msg_confirmacao_cadastro_voluntario.txt', from_email=settings.NOREPLY_EMAIL, context=context)
-    except Exception as e:
-        # Se houver erro o próprio notify_email já tenta notificar o suporte,
-        # portanto só cairá aqui se houver erro na notificação ao suporte
-        pass
+@login_required
+@transaction.atomic
+def usuario_cadastro(request):
+    template = loader.get_template('vol/formulario_usuario.html')
+    if request.method == 'POST':
+        form = ChangeUserProfileForm(request=request, data=request.POST)
+        if form.is_valid():
+            request.user.nome = form.cleaned_data['nome']
+            confirm_email = False
+            if request.user.email != form.cleaned_data['email']:
+                request.user.email = form.cleaned_data['email']
+                try:
+                    email = EmailAddress.objects.get(user=request.user, email=form.cleaned_data['email'])
+                    if not email.primary:
+                        email.set_as_primary()
+                    if not email.verified:
+                        confirm_email = True
+                        email.send_confirmation(request=request)
+                except EmailAddress.DoesNotExist:
+                    confirm_email = True
+                    # Remove outros eventuais emails
+                    EmailAddress.objects.filter(user=request.user).delete()
+                    # Adiciona novo email no modelo do allauth (mensagem de confirmação é enviada automaticamente)
+                    email = EmailAddress.objects.add_email(request, request.user, form.cleaned_data["email"], confirm=True)
+                    email.set_as_primary()
+                    confirm_email = True
+            if len(form.cleaned_data['password1']) > 0:
+                request.user.set_password(form.cleaned_data["password1"])
+            request.user.save()
+            messages.info(request, u'Alterações gravadas com sucesso.')
+            if confirm_email:
+                messages.info(request, u'Devido à troca de e-mail será necessário confirmá-lo antes de entrar novamente no sistema. Acabamos de enviar uma mensagem contendo um link para confirmação.')
+                # Faz logout do usuário e não permite login até que o novo e-mail seja confirmado
+                logout(request)
+                # Redireciona para página de login
+                return redirect('/aut/signin')
+    else:
+        form = ChangeUserProfileForm(initial={'nome': request.user.nome, 'email': request.user.email})
+    context = {'form': form}
+    return HttpResponse(template.render(context, request))
 
 def envia_confirmacao_entidade(nome, email):
     context = {'razao_social': nome,
@@ -88,8 +122,18 @@ def envia_confirmacao_entidade(nome, email):
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
-@transaction.atomic
 def voluntario_novo(request):
+    '''Link para cadastro de novo voluntário'''
+    if request.user.is_authenticated:
+        # Redireciona para página de cadastro que irá exibir formulário preenchido ou não
+        return redirect('/voluntario/cadastro')
+    # Indica que usuário quer se cadastrar como voluntário e redireciona para cadastro básico
+    request.session['link'] = 'voluntario_novo'
+    return redirect('/aut/signup')
+
+@login_required
+@transaction.atomic
+def voluntario_cadastro(request, msg=None):
     '''Página de cadastro de voluntário'''
     metodos = ['GET', 'POST']
     if request.method not in (metodos):
@@ -98,58 +142,73 @@ def voluntario_novo(request):
     FormSetAreaInteresse = formset_factory(FormAreaInteresse, formset=BaseFormSet, extra=1, max_num=10, can_delete=True)
 
     if request.method == 'GET':
-        messages.info(request, u'Estamos cadastrando profissionais que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa.<br>Ao enviar os dados, você receberá um e-mail para confirmação do cadastro.')
-        form = FormVoluntario()
-        area_interesse_formset = FormSetAreaInteresse()
+
+        if request.user.is_voluntario:
+            form = FormVoluntario(instance=request.user.voluntario)
+            area_interesse_formset = FormSetAreaInteresse(initial=AreaInteresse.objects.filter(voluntario=request.user.voluntario).order_by('area_atuacao__nome').values('area_atuacao'))
+        else:
+
+            if msg is None:
+                msg = u'Estamos cadastrando profissionais que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa. Preencha o formulário abaixo para participar:'
+
+            form = FormVoluntario()
+            area_interesse_formset = FormSetAreaInteresse()
+
+        if msg:
+            messages.info(request, msg)
+        
     if request.method == 'POST':
-        form = FormVoluntario(request.POST)
+        agradece_cadastro = False
+        if request.user.is_voluntario:
+            form = FormVoluntario(request.POST, instance=request.user.voluntario)
+        else:
+            agradece_cadastro = True
+            form = FormVoluntario(request.POST)
         if form.is_valid():
             voluntario = form.save(commit=False)
+            areas_preexistentes = []
+            if request.user.is_voluntario:
+                areas_preexistentes = list(AreaInteresse.objects.filter(voluntario=request.user.voluntario).values_list('area_atuacao', flat=True))
+            else:
+                voluntario.usuario = request.user
             area_interesse_formset = FormSetAreaInteresse(request.POST, request.FILES)
             if area_interesse_formset.is_valid():
                 voluntario.save()
-                areas = []
+                areas_incluidas = []
+                areas_selecionadas = []
                 for area_interesse_form in area_interesse_formset:
                     area_atuacao = area_interesse_form.cleaned_data.get('area_atuacao')
                     if area_atuacao:
-                        if area_atuacao not in areas:
-                            areas.append(area_atuacao)
+                        areas_selecionadas.append(area_atuacao.id)
+                        if area_atuacao.id not in areas_preexistentes and area_atuacao.id not in areas_incluidas:
+                            areas_incluidas.append(area_atuacao.id)
                             area_interesse = AreaInteresse(area_atuacao=area_atuacao, voluntario=voluntario)
                             area_interesse.save()
                         else:
-                            # Ignora duplicidades
+                            # Ignora duplicidades e áreas já salvas
                             pass
                     else:
                         # Ignora combos vazios
                         pass
-                # Envia mensagem de confirmação
-                envia_confirmacao_voluntario(form.cleaned_data['nome'], form.cleaned_data['email'])
-                # Redireciona para página de exibição de mensagem
-                messages.info(request, u'Obrigado! Você receberá um e-mail de confirmação. Para ter seu cadastro validado, clique no link indicado no e-mail que receber.')
-                return mensagem(request, u'Cadastro de Voluntário')
+                # Apaga áreas removidas
+                for area_preexistente in areas_preexistentes:
+                    if area_preexistente not in areas_selecionadas:
+                        try:
+                            r_area = AreaInteresse.objects.get(area_atuacao=area_preexistente, voluntario=voluntario)
+                            r_area.delete()
+                        except AreaInteresse.DoesNotExist:
+                            pass
+                if agradece_cadastro:
+                    # Redireciona para página de exibição de mensagem
+                    messages.info(request, u'Obrigado! Assim que o seu cadastro for validado ele estará disponível para as entidades. Enquanto isso, você já pode procurar por entidades <a href="' + reverse('mapa_entidades') + '">próximas a você</a> ou que atendam a <a href="' + reverse('busca_entidades') + '">outros critérios de busca</a>.')
+                    return mensagem(request, u'Cadastro de Voluntário')
+                messages.info(request, u'Alterações gravadas com sucesso!')
         else:
             area_interesse_formset = FormSetAreaInteresse(request.POST, request.FILES)
             
     context = {'form': form, 'area_interesse_formset': area_interesse_formset}
     template = loader.get_template('vol/formulario_voluntario.html')
     return HttpResponse(template.render(context, request))
-
-def valida_email_voluntario(request):
-    '''Confirmação de e-mail de voluntário'''
-    metodos = ['GET']
-    if request.method not in (metodos):
-        return HttpResponseNotAllowed(metodos)
-
-    email = request.GET.get('email')
-    if email:
-        voluntarios = Voluntario.objects.filter(email=email)
-        if len(voluntarios) > 0:
-            voluntarios.update(confirmado=True)
-
-        messages.info(request, u'Obrigado! Cadastro validado com sucesso.')
-        return mensagem(request, u'Confirmação de Cadastro')
-
-    raise SuspiciousOperation(u'Parâmetro email ausente')
 
 def busca_voluntarios(request):
     '''Página para busca de voluntários'''
@@ -165,7 +224,8 @@ def busca_voluntarios(request):
 
     if 'Envia' in request.GET:
 
-        voluntarios = Voluntario.objects.select_related('area_trabalho').filter(confirmado=True)
+        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado
+        voluntarios = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(aprovado=True)
 
         # Filtro por área de interesse
         fasocial = request.GET.get('fasocial')
@@ -262,9 +322,9 @@ def exibe_voluntario(request, id_voluntario):
     if not id_voluntario.isdigit():
         raise SuspiciousOperation('Parâmetro id inválido')
     try:
-        voluntario = Voluntario.objects.select_related('area_trabalho').get(pk=id_voluntario, confirmado=True)
+        voluntario = Voluntario.objects.select_related('area_trabalho', 'usuario').get(pk=id_voluntario, aprovado=True)
     except Voluntario.DoesNotExist:
-        raise SuspiciousOperation('Voluntário inexistente')
+        raise SuspiciousOperation('Voluntário inexistente ou cujo cadastro ainda não foi aprovado')
     areas_de_interesse = voluntario.areainteresse_set.all()
     now = datetime.datetime.now()
     context = {'voluntario': voluntario,
@@ -652,3 +712,22 @@ def revisao_voluntarios(request):
                'i': i}
     template = loader.get_template('vol/revisao_voluntarios.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+def redirect_login(request):
+    "Redireciona usuário após login bem sucedido"
+    # Se o link original de cadastro era para voluntário
+    if request.user.link == 'voluntario_novo':
+        if request.user.is_voluntario:
+            # Se já é voluntário, busca entidades
+            return redirect(reverse('busca_entidades'))
+        # Caso contrário exibe página de cadastro
+        return voluntario_cadastro(request, msg=u'Para finalizar o cadatro de voluntário, complete o formulário abaixo:')
+    return redirect(reverse('index'))
+
+def anonymous_email_confirmation(request):
+    "Chamado após confirmação de e-mail sem estar logado"
+    messages.info(request, u'Agora você já pode identificar-se no sistema e prosseguir.')
+    # Sinal para omitir link de cadastro na página de login
+    request.session['omit_reg_link'] = 1
+    return redirect(reverse('redirlogin'))

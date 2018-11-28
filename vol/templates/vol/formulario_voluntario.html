@@ -16,7 +16,7 @@
 {% endblock head %}
 
 {% block content %}
-<h1 class="margin-bottom">Cadastre-se como Voluntário</h1>
+<h1 class="margin-bottom">{%if request.user.is_voluntario %}Cadastro de Voluntário{% else %}Cadastre-se como Voluntário{% endif %}</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -24,9 +24,7 @@
 
 <form id="form-voluntario" method="POST" action="">{% csrf_token %}
 
-{% include "vol/campo_formulario.html" with campo=form.nome %}
 {% include "vol/campo_formulario.html" with campo=form.data_aniversario div_id="data_aniversario_container" label_id="data_aniversario_label" %}
-{% include "vol/campo_formulario.html" with campo=form.email %}
 <table width="100%">
  <tr> 
   <td width="10%">
@@ -73,8 +71,8 @@
   </div>
 
   <div class="form-group">
-   <input class="btn btn-submit" type="submit" name="submit2" value="Enviar">
-   {% if request.method == 'GET' %}<input class="btn btn-submit" type="reset" name="reset2" value="Limpar campos">{% endif %}
+   <input class="btn btn-primary" type="submit" name="submit2" value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
+   {% if request.method == 'GET' and not request.user.is_voluntario %}<input class="btn btn-primary" type="reset" name="reset2" value="Limpar campos">{% endif %}
   </div>
 
 </form>

@@ -10,7 +10,9 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.core.mail import send_mail
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -93,6 +95,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     is_staff     = models.BooleanField(u'Membro da equipe', default=False, help_text=u'Indica que usuário consegue acessar a interface administrativa.')
     is_active    = models.BooleanField(u'Ativo', default=False, help_text=u'Indica que o usuário encontra-se ativo, estando habilitado a fazer login no sistema.')
     date_joined  = models.DateTimeField(u'Data de registro', default=timezone.now)
+    link         = models.CharField(u'Link que levou ao cadastro', max_length=20, null=True, blank=True)
 
     objects = MyUserManager()
 
@@ -106,6 +109,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         return self.nome
 
     def get_short_name(self):
+        if not self.nome:
+            return '???'
         space_position = self.nome.find(' ')
         if space_position == -1:
             return self.nome.title()
@@ -116,6 +121,14 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         Envia mensagem para o usuário.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    @cached_property
+    def is_voluntario(self):
+        try:
+            self.voluntario
+            return True
+        except ObjectDoesNotExist:
+            return False
 
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
@@ -149,11 +162,12 @@ class AreaAtuacao(models.Model):
 class Voluntario(models.Model):
     """Voluntário"""
     """obs: id compatível com banco anterior"""
-    nome                  = models.CharField(u'Nome completo', max_length=100)
+    usuario               = models.OneToOneField(Usuario, null=True, on_delete=models.CASCADE)
+    nome                  = models.CharField(u'Nome completo', max_length=100, null=True, blank=True)
     data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=20, null=True, blank=True)
     data_aniversario      = models.DateField(u'Data de nascimento', null=True, blank=True)
     profissao             = models.CharField(u'Profissão', max_length=100, null=True, blank=True)
-    email                 = models.EmailField(u'E-mail', unique=True)
+    email                 = models.EmailField(u'E-mail', unique=True, null=True, blank=True)
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
     cidade                = models.CharField(u'Cidade', max_length=100)
@@ -170,7 +184,7 @@ class Voluntario(models.Model):
     data_cadastro         = models.DateTimeField(u'Data do cadastro', auto_now_add=True)
     importado             = models.BooleanField(u'Importado da base anterior', default=False)
     confirmado            = models.BooleanField(u'E-mail confirmado', default=False)
-    aprovado              = models.NullBooleanField(u'Cadastro revisado e aprovado')
+    aprovado              = models.NullBooleanField(u'Aprovado')
     ultima_atualizacao    = models.DateTimeField(u'Data de última atualização', auto_now_add=True, null=True, blank=True, db_index=True)
 
     class Meta:

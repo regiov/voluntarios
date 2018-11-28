@@ -1,0 +1,29 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% load bootstrap %}
+{% load i18n %}
+
+{% block head_title %}Cadastro de usuário{% endblock %}
+
+{% block content %}
+
+{% include "vol/mensagens.html" %}
+{% include "vol/erros.html" %}
+
+<h1>Cadastro de usuário</h1>
+
+{% if request.user.is_voluntario %}
+<p>Este é seu cadastro de usuário. Para visualizar ou alterar seu Perfil de Voluntário, clique <a href="{% url 'voluntario_cadastro' %}">aqui</a>.</p>
+{% else %}
+<p>Este é seu cadastro de usuário. Para criar um Perfil de Voluntário, clique <a href="{% url 'voluntario_cadastro' %}">aqui</a>.</p>
+{% endif %}
+
+<form id="form-usuario" method="post" action="{% url 'usuario_cadastro' %}">
+  {% csrf_token %}
+  {{ form|bootstrap }}
+  <div class="form-actions">
+  <button class="btn btn-primary" type="submit">Gravar alterações</button>
+  </div>
+</form>
+
+{% endblock %}

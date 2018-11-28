@@ -31,12 +31,16 @@ urlpatterns = [
 
     url(r'^$', views.index, name='index'),
 
+    url(r'^aut/', include('allauth.urls')),
+
+    # Usuário
+    url(r'^usuario/?$', views.usuario_cadastro, name='usuario_cadastro'),
+
     # Voluntários
     url(r'^voluntario/novo/?$', views.voluntario_novo, name='voluntario_novo'),
     url(r'^voluntario.htm$', views.voluntario_novo),#old
 
-    url(r'^voluntario/validacao/?$', views.valida_email_voluntario, name='valida_email_voluntario'),
-    url(r'^confirma-cadastro-voluntario/?$', views.valida_email_voluntario),#old
+    url(r'^voluntario/cadastro/?$', views.voluntario_cadastro, {'msg': None}, name='voluntario_cadastro'),
 
     url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
     url(r'^contato.htm$', views.busca_voluntarios),#old
@@ -80,6 +84,10 @@ urlpatterns = [
     url(r'^personalidades.htm$', flatpages.flatpage, {'url': '/personalidades/'}),
     url(r'^livros_voluntariado.htm$', flatpages.flatpage, {'url': '/livros-voluntariado/'}),
 
+    url(r'^redirlogin/?', views.redirect_login, name='redirlogin'),
+
+    url(r'^anonconf/?', views.anonymous_email_confirmation),
+
     #url(r'^assistencia.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-atuacao/'}),
     #url(r'^trabalho.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-trabalho/'}),
     #url(r'^distribuicao.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-estado/'}),
@@ -111,3 +119,9 @@ if settings.DEBUG:
     urlpatterns += [
         url(r'^imagens/(?P<path>.*)$', static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url('__debug__/', include(debug_toolbar.urls)),
+] + urlpatterns

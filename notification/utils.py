@@ -24,7 +24,7 @@ def notify_support(subject, msg, request=None, repeat_after=None):
     if not settings.SUPPORT_NOTIFICATION_ENABLED:
         return
     env = ''
-    if request is not None and request.user.is_authenticated():
+    if request is not None and request.user.is_authenticated:
         env = 'user: ' + request.user.full_name + "\n\n"
     new_record = True
     last_event = None
