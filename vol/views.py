@@ -79,16 +79,26 @@ def usuario_cadastro(request):
         if form.is_valid():
             request.user.nome = form.cleaned_data['nome']
             confirm_email = False
+            # Gerenciamento de alteração de e-mail
             if request.user.email != form.cleaned_data['email']:
+                email_anterior = request.user.email
                 request.user.email = form.cleaned_data['email']
                 try:
                     email = EmailAddress.objects.get(user=request.user, email=form.cleaned_data['email'])
+                    # Se o novo e-mail já existe:
                     if not email.primary:
                         email.set_as_primary()
                     if not email.verified:
                         confirm_email = True
                         email.send_confirmation(request=request)
+                    # Apaga o outro email
+                    try:
+                        ex_email = EmailAddress.objects.get(user=request.user, email=email_anterior)
+                        ex_email.delete()
+                    except EmailAddress.DoesNotExist:
+                        pass
                 except EmailAddress.DoesNotExist:
+                    # Se o novo e-mail não existe:
                     confirm_email = True
                     # Remove outros eventuais emails
                     EmailAddress.objects.filter(user=request.user).delete()
