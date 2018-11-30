@@ -95,7 +95,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     ordering = ('-data_cadastro',)
     search_fields = ('usuario__nome', 'usuario__email', )
     #list_filter = ('aprovado',)
-    preserve_filters = True
+    #preserve_filters = True
     readonly_fields = ('usuario', 'site', 'importado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
