@@ -405,7 +405,7 @@ def busca_entidades(request):
     get_params = ''
     pagina_inicial = pagina_final = None
 
-    if 'Envia' in request.GET:
+    if 'Envia' in request.GET or 'envia' in request.GET:
 
         entidades = Entidade.objects.select_related('area_atuacao').filter(confirmado=True)
 
