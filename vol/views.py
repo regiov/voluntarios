@@ -396,22 +396,46 @@ def valida_email_entidade(request):
 
 def busca_entidades(request):
     '''Página de busca de entidades'''
-    metodos = ['GET']
+    # Obs: Existe pelo menos um site externo que faz buscas com POST
+    metodos = ['GET', 'POST']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
 
     areas_de_atuacao = AreaAtuacao.objects.all().order_by('id')
-    entidades = None
+
+    buscar = False
+    fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = None
     get_params = ''
     pagina_inicial = pagina_final = None
 
-    if 'Envia' in request.GET or 'envia' in request.GET:
+    if request.method == 'GET':
+
+        if 'Envia' in request.GET or 'envia' in request.GET:
+            buscar = True
+            fasocial = request.GET.get('fasocial')
+            fcidade = request.GET.get('fcidade')
+            fbairro = request.GET.get('fbairro')
+            fentidade = request.GET.get('fentidade')
+            params = request.GET.items()
+            boxexato = 'boxexato' in request.GET
+            
+    if request.method == 'POST':
+
+        if 'Envia' in request.POST or 'envia' in request.POST:
+            buscar = True
+            fasocial = request.POST.get('fasocial')
+            fcidade = request.POST.get('fcidade')
+            fbairro = request.POST.get('fbairro')
+            fentidade = request.POST.get('fentidade')
+            params = request.POST.items()
+            boxexato = 'boxexato' in request.POST
+
+    if buscar:
 
         entidades = Entidade.objects.select_related('area_atuacao').filter(confirmado=True)
 
         # Filtro por área de atuação
-        fasocial = request.GET.get('fasocial')
-        if fasocial.isdigit() and fasocial not in [0, '0']:
+        if fasocial is not None and fasocial.isdigit() and fasocial not in [0, '0']:
             try:
                 area_atuacao = AreaAtuacao.objects.get(pk=fasocial)
                 if '.' in area_atuacao.indice:
@@ -422,24 +446,21 @@ def busca_entidades(request):
                 raise SuspiciousOperation('Área de Atuação inexistente')
 
         # Filtro por cidade
-        fcidade = request.GET.get('fcidade')
         if fcidade is not None:
             fcidade = fcidade.strip()
             if len(fcidade) > 0:
-                if 'boxexato' in request.GET:
+                if boxexato:
                     entidades = entidades.filter(cidade__iexact=fcidade)
                 else:
                     entidades = entidades.filter(cidade__icontains=fcidade)
 
         # Filtro por bairro
-        fbairro = request.GET.get('fbairro')
         if fbairro is not None:
             fbairro = fbairro.strip()
             if len(fbairro) > 0:
                 entidades = entidades.filter(bairro__icontains=fbairro)
 
         # Filtro por nome
-        fentidade = request.GET.get('fentidade')
         if fentidade is not None:
             fentidade = fentidade.strip()
             if len(fentidade) > 0:
@@ -470,8 +491,8 @@ def busca_entidades(request):
         if pagina_final > paginador.num_pages:
             pagina_final = paginador.num_pages
             pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET
-        for k, v in request.GET.items():
+        # Parâmetros GET na paginação
+        for k, v in params:
             if k in ('page', 'csrfmiddlewaretoken'):
                 continue
             if len(get_params) > 0:
