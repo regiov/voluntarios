@@ -61,6 +61,7 @@ urlpatterns = [
 
     url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
     url(r'^pesquisa.htm$', views.busca_entidades),#old
+    url(r'^resultadoent.asp$', views.busca_entidades),#old
 
     url(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),
     url(r'^entidade.asp$', views.exibe_entidade_old),#old
