@@ -111,14 +111,14 @@ class VoluntarioAdmin(admin.ModelAdmin):
     def nome_usuario(self, instance):
         if instance.usuario:
             return instance.usuario.nome
-        return None
+        return '(vazio)'
     nome_usuario.short_description = u'Nome'
     nome_usuario.admin_order_field = 'usuario__nome'
 
     def email_usuario(self, instance):
         if instance.usuario:
             return instance.usuario.email
-        return None
+        return '(vazio)'
     email_usuario.short_description = u'E-mail'
     email_usuario.admin_order_field = 'usuario__email'
 
