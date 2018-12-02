@@ -25,7 +25,7 @@ def notify_support(subject, msg, request=None, repeat_after=None):
         return
     env = ''
     if request is not None and request.user.is_authenticated:
-        env = 'user: ' + request.user.full_name + "\n\n"
+        env = 'user: ' + request.user.get_full_name() + "\n\n"
     new_record = True
     last_event = None
     delta_minutes = None
