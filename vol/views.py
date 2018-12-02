@@ -31,7 +31,8 @@ from notification.utils import notify_support, notify_email
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
-    notify_support(u'Erro de CSRF', reason, request, 300) # 5h
+    if settings.NOTIFY_CSRF_ERROR:
+        notify_support(u'Erro de CSRF', reason, request, 300) # 5h
     return render(request, 'csrf_failure.html', content_type='text/html; charset=utf-8', status=403)
 
 def index(request):
