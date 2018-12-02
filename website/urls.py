@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^tinymce/', include('tinymce.urls')),
 
     url(r'^$', views.index, name='index'),
+    url(r'^executivo.htm$', views.index),#old (na falta de pagina melhor para redirecionar)
 
     url(r'^aut/', include('allauth.urls')),
 
