@@ -176,6 +176,11 @@ LOGGING = {
          }
     },
     'handlers': {
+       #'file': {
+       #     'level': 'ERROR',
+       #     'class': 'logging.FileHandler',
+       #     'filename': 'LOGFILE_PATH',
+       # },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -183,10 +188,15 @@ LOGGING = {
         }
     },
     'loggers': {
+        #'django': {
+        #    'handlers': ['file'],
+        #    'level': 'ERROR',
+        #    'propagate': True,
+        #},
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
-            'propagate': False,
+            'propagate': True,
         },
     }
 }
