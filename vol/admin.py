@@ -94,14 +94,14 @@ class VoluntarioAdmin(admin.ModelAdmin):
     list_display = ('nome_usuario', 'email_usuario', 'data_cadastro', 'email_confirmado', 'aprovado',)
     ordering = ('-data_cadastro',)
     search_fields = ('usuario__nome', 'usuario__email', )
-    #list_filter = ('aprovado',)
-    #preserve_filters = True
+    list_filter = ('aprovado',)
+    preserve_filters = True
     readonly_fields = ('usuario', 'site', 'importado',)
-    actions = ['aprovar', 'enviar_confirmacao']
+    actions = ['aprovar']
     inlines = [
         AreaInteresseInline,
     ]
-    fields = ('usuario', 'data_aniversario_orig', 'data_aniversario', 'profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa', 'foi_voluntario', 'entidade_que_ajudou', 'area_trabalho', 'descricao', 'newsletter', 'fonte', 'site', 'importado',)
+    fields = ('usuario', 'data_aniversario_orig', 'data_aniversario', 'profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa', 'foi_voluntario', 'entidade_que_ajudou', 'area_trabalho', 'descricao', 'newsletter', 'fonte', 'site', 'importado', 'aprovado',)
 
     def get_queryset(self, request):
         qs = super(VoluntarioAdmin, self).get_queryset(request)
