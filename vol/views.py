@@ -557,7 +557,7 @@ def busca_doacoes(request):
 
     if 'pesquisa_ajuda' in request.GET or 'pesquisa_entidade' in request.GET:
 
-        doacoes = Necessidade.objects.select_related('entidade').all()
+        doacoes = Necessidade.objects.select_related('entidade').filter(entidade__isnull=False)
 
         if 'pesquisa_ajuda' in request.GET:
 
