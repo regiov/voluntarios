@@ -433,7 +433,7 @@ def busca_entidades(request):
 
     if buscar:
 
-        entidades = Entidade.objects.select_related('area_atuacao').filter(confirmado=True)
+        entidades = Entidade.objects.select_related('area_atuacao').filter(aprovado=True)
 
         # Filtro por área de atuação
         if fasocial is not None and fasocial.isdigit() and fasocial not in [0, '0']:
