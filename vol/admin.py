@@ -96,7 +96,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     search_fields = ('usuario__nome', 'usuario__email', )
     list_filter = ('aprovado',)
     preserve_filters = True
-    readonly_fields = ('usuario', 'site', 'importado',)
+    readonly_fields = ('usuario', 'data_aniversario_orig', 'site', 'importado',)
     actions = ['aprovar']
     inlines = [
         AreaInteresseInline,
