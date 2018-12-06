@@ -6,7 +6,7 @@ import random
 
 from django.shortcuts import render, redirect
 from django.template import loader
-from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed
+from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.core.exceptions import ValidationError, SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
@@ -531,7 +531,7 @@ def exibe_entidade(request, id_entidade):
 def exibe_entidade_old(request):
     '''Detalhes de entidade usando URL antiga'''
     if 'colocweb' not in request.GET:
-        raise SuspiciousOperation('Ausência do parâmetro colocweb')
+        return HttpResponseBadRequest('Ausência do parâmetro colocweb')
     id_entidade = request.GET.get('colocweb')
     return exibe_entidade(request, id_entidade)
 
