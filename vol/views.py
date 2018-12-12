@@ -281,9 +281,9 @@ def busca_voluntarios(request):
 
         # Ordem dos resultados
         if request.GET.get('ordem', 'interesse') == 'interesse':
-            voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'nome')
+            voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
         else:
-            voluntarios = voluntarios.order_by('area_trabalho__nome', 'nome')
+            voluntarios = voluntarios.order_by('area_trabalho__nome', 'usuario__nome')
 
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página
