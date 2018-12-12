@@ -335,7 +335,8 @@ def exibe_voluntario(request, id_voluntario):
     try:
         voluntario = Voluntario.objects.select_related('area_trabalho', 'usuario').get(pk=id_voluntario, aprovado=True)
     except Voluntario.DoesNotExist:
-        raise SuspiciousOperation('Voluntário inexistente ou cujo cadastro ainda não foi aprovado')
+        #raise SuspiciousOperation('Voluntário inexistente ou cujo cadastro ainda não foi aprovado')
+        raise Http404
     areas_de_interesse = voluntario.areainteresse_set.all()
     now = datetime.datetime.now()
     context = {'voluntario': voluntario,
@@ -519,7 +520,8 @@ def exibe_entidade(request, id_entidade):
     try:
         entidade = Entidade.objects.select_related('area_atuacao').get(pk=id_entidade, aprovado=True)
     except Entidade.DoesNotExist:
-        raise SuspiciousOperation('Entidade inexistente')
+        #raise SuspiciousOperation('Entidade inexistente')
+        raise Http404
     necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
     now = datetime.datetime.now()
     context = {'entidade': entidade,
