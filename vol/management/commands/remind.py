@@ -18,7 +18,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
 
-        usuarios = Usuario.objects.filter(link='voluntario_novo', date_joined__gte=timezone.now()-timedelta(days=7), date_joined__lte=timezone.now()-timedelta(days=30))
+        usuarios = Usuario.objects.filter(link='voluntario_novo', date_joined__lte=timezone.now()-timedelta(days=7), date_joined__gte=timezone.now()-timedelta(days=30))
 
         msg = Message.objects.get(code='LEMBRETE_CADASTRO_VOLUNTARIO')
 
