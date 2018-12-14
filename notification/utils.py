@@ -41,7 +41,7 @@ def notify_support(subject, msg, request=None, repeat_after=None):
                 last_event.save(update_fields=['repeat', 'last_rep'])
                 new_record = False
     if new_record:
-        event = Event(rtype='S', subject=subject, msg=env + msg)
+        event = Event(rtype='S', subject=subject, content=env + msg)
         event.save()
         try:
             send_mail(settings.SUBJECT_PREFIX + subject,
