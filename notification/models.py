@@ -1,22 +1,14 @@
 from django.db import models
 from django.conf import settings
 
-class MessageType(models.Model):
-    '''
-    Message type.
-    Ex: Remind user about pending registration.
-    Code: REMIND_PENDING_REG
-    '''
-    code        = models.CharField(u'Code', max_length=50)
-    description = models.TextField(u'Message purpose')
-
 class Message(models.Model):
     '''
     Message template.
     '''
-    message_type = models.ForeignKey(MessageType, on_delete=models.CASCADE)
-    subject      = models.CharField(u'Subject', max_length=200)
-    content      = models.TextField(u'Message content')
+    code        = models.CharField(u'Code', max_length=50)
+    description = models.TextField(u'Description')
+    subject     = models.CharField(u'Subject', max_length=200, null=True, blank=True)
+    content     = models.TextField(u'Message content', null=True, blank=True)
 
 class Event(models.Model):
     '''

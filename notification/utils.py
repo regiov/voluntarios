@@ -53,7 +53,22 @@ def notify_support(subject, msg, request=None, repeat_after=None):
             # TODO?
             pass
 
-def notify_user(user, subject_template, msg_template, from_email=settings.NOTIFY_USER_FROM, context={}):
+def notify_user_msg(user, message, from_email=settings.NOTIFY_USER_FROM):
+    """
+    Generic funtion to send e-mail to users based on a message object.
+    """
+    subject = message.subject
+    content = message.content
+    try:
+        user.email_user(subject, content, from_email)
+        event = Event(rtype='U', user=user, message=message)
+        event.save()
+    except Exception as e:
+        erro = type(e).__name__ + str(e.args)
+        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, user.get_full_name(), content)
+        notify_support(u'Notification failure', msg)
+
+def notify_user_template(user, subject_template, msg_template, from_email=settings.NOTIFY_USER_FROM, context={}):
     """
     Generic funtion to send e-mail to users based on templates for subject and message.
     """
