@@ -139,7 +139,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def has_entidade_aprovada(self):
-        return self.vinculoentidade_set.filter(aprovado=True, data_fim__isnull=True).count() > 0
+        return self.vinculoentidade_set.filter(entidade__aprovado=True, data_fim__isnull=True).count() > 0
 
     def entidades(self):
         return Entidade.objects.filter(vinculoentidade__usuario=self, vinculoentidade__data_fim__isnull=True, vinculoentidade__confirmado=True)
