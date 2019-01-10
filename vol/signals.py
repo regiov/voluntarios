@@ -10,6 +10,6 @@ def my_user_signed_up(request, user, **kwargs):
         # direcionar usuário corretamente após login
         user.link = request.session['link']
         fields.append('link')
-        request.session.remove('link')
+        del request.session['link']
         request.session.modified = True
     user.save(update_fields=fields)
