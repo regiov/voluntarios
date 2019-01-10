@@ -87,7 +87,7 @@ msgstr "Cadastro de usuário"
 #: templates/account/signup.html:12
 msgctxt "page heading"
 msgid "Sign Up"
-msgstr "Cadastro de usuário"
+msgstr "Cadastro de usuário (pessoa física)"
 
 #: templates/account/signup.html:14
 #, python-format

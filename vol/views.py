@@ -359,7 +359,7 @@ def link_entidade_nova(request):
         return redirect('/entidade/cadastro')
     # Indica que usuário quer cadastrar uma entidade e redireciona para cadastro básico
     request.session['link'] = 'entidade_nova'
-    messages.info(request, u'Para cadastrar uma entidade, é preciso antes possuir um cadastro de usuário (pessoa física).')
+    messages.info(request, u'<strong>Para cadastrar uma entidade, é preciso antes possuir um cadastro de usuário (pessoa física).</strong>')
     return redirect('/aut/signup')
 
 def envia_confirmacao_email_entidade(request, entidade):
@@ -474,7 +474,7 @@ def confirma_vinculo(request):
     vinculo.confirmado = True
     vinculo.save(update_fields=['confirmado'])
     # Se houver outras entidades com o mesmo e-mail sem ninguém vinculado a elas, já cria outros vínculos com o mesmo usuário
-    entidades_com_mesmo_email = Entidade.objects.filter(email=entidade.email).exclude(pk=entidade.pk)
+    entidades_com_mesmo_email = Entidade.objects.filter(email=vinculo.entidade.email).exclude(pk=vinculo.entidade.pk)
     for entidade_irma in entidades_com_mesmo_email:
         if VinculoEntidade.objects.filter(entidade=entidade_irma).count() == 0:
             novo_vinculo = VinculoEntidade(entidade=entidade_irma, usuario=request.user, confirmado=True)
@@ -574,9 +574,23 @@ def cadastro_entidade(request, id_entidade=None):
             else:
 
                 entidade = form.save(commit=True)
-                # Envia mensagem com link de confirmação
-                envia_confirmacao_email_entidade(request, entidade)
-                messages.info(request, u'Entidade cadastrada com sucesso! Verifique agora a caixa postal da entidade para efetuar a validação do e-mail.')
+
+                msg = u'Entidade cadastrada com sucesso!'
+
+                # Se o email já existe no sistema e já foi confirmado por alguém anteriormente
+                if EmailAddress.objects.filter(email__iexact=entidade.email, verified=True).count() > 0 or Entidade.objects.filter(email__iexact=entidade.email, confirmado=True) > 0:
+
+                    entidade.confirmado = True
+                    entidade.save(update_fields=['confirmado'])
+                    msg = msg + u' Aguarde a aprovação do cadastro para que ela comece a aparecer nas buscas.'
+                    
+                else:
+                
+                    # Do contrário dispara nova confirmação de e-mail
+                    envia_confirmacao_email_entidade(request, entidade)
+                    msg = msg + u' Como o e-mail da entidade é novo, acesse a caixa postal dele para validá-lo. Caso não tenha recebido, verifique a pasta de spam ou clique no botão "reenviar" abaixo.'
+
+                messages.info(request, msg)
 
                 # Tenta georeferenciar
                 entidade.geocode()
@@ -884,7 +898,7 @@ def redirect_login(request):
 
     if 'link' in request.session:
         if request.session['link'] == 'entidade_nova':
-            request.session.remove('link')
+            del request.session['link']
             request.session.modified = True
             return cadastro_entidade(request)
     return redirect(reverse('index'))
