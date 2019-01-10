@@ -1,9 +1,0 @@
-Olá,
-
-Obrigado por cadastrar a entidade {{ razao_social }} no site voluntarios.com.br
-
-Para confirmar o cadastro é necessário clicar no link abaixo:
-
-{{ url }}?email={{ email }}
-
-Equipe voluntarios.com.br 

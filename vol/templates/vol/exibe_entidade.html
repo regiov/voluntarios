@@ -4,7 +4,11 @@
 
 {% block content %}
 
+{% if user.is_authenticated and entidade in user.entidades %}
+<a href="{% url 'cadastro_entidade_id' entidade.id %}"><h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2></a>
+{% else %}
 <h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2>
+{% endif %}
 <div class="registro">
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
 <p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
@@ -42,5 +46,19 @@
 {% endif %}
 
 <p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p>
+
+{% if user.is_authenticated %}
+  {% if entidade in user.entidades %}
+  <br/>
+  <a href="{% url 'cadastro_entidade_id' entidade.id %}" class="btn btn-primary">Editar cadastro</a>
+  {% else %}
+    {% if entidade.email and not entidade.gerenciada %}
+    <br/>
+    <a href="{% url 'envia_confirmacao_vinculo' entidade.id %}" class="btn btn-primary">Gerenciar cadastro desta entidade</a>
+    <br/>
+    <span class="dica">(será necessário ter acesso ao e-mail da entidade para comprovar vínculo com ela)</span>
+    {% endif %}
+  {% endif %}
+{% endif %}
 
 {% endblock content %}

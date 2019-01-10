@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1 class="margin-bottom">Cadastro de Entidade</h1>
+<h1 class="margin-bottom">{% if form.instance.id %}Cadastro de Entidade{% else %}Nova Entidade{% endif %}</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -56,8 +56,7 @@
 </fieldset>
 
 <div class="form-group">
-  <input class="btn btn-primary" type="submit" name="submit" value="Enviar">
-  {% if request.method == 'GET' %}<input class="btn btn-primary" type="reset" name="reset" value="Limpar campos">{% endif %}
+  <input class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
 </div>
 
 </form>

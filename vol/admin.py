@@ -15,9 +15,9 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, Necessidade, AreaInteresse
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse
 
-from vol.views import envia_confirmacao_entidade
+from vol.views import envia_confirmacao_email_entidade
 
 from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.account.adapter import get_adapter
@@ -146,6 +146,13 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
+class VinculoEntidadeInline(admin.TabularInline):
+    model = VinculoEntidade
+    fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
+    raw_id_fields = ('usuario',)
+    readonly_fields = ['data_inicio']
+    extra = 0
+
 class NecessidadeInline(admin.TabularInline):
     model = Necessidade
     fields = ['qtde_orig', 'descricao', 'valor_orig', 'data_solicitacao',]
@@ -162,7 +169,7 @@ class EntidadeAdmin(GeoModelAdmin):
     readonly_fields = ('geocode_status', 'importado', 'confirmado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        NecessidadeInline,
+        NecessidadeInline, VinculoEntidadeInline
     ]
 
     @transaction.atomic
@@ -187,7 +194,7 @@ class EntidadeAdmin(GeoModelAdmin):
         num_messages = 0
         for obj in queryset:
             if not obj.confirmado:
-                envia_confirmacao_entidade(obj.razao_social, obj.email)
+                envia_confirmacao_email_entidade(request, obj)
                 num_messages = num_messages + 1
         main_msg = ''
         if num_messages > 0:
@@ -195,9 +202,9 @@ class EntidadeAdmin(GeoModelAdmin):
         extra_msg = ''
         total_recs = len(queryset)
         if total_recs > num_messages:
-            extra_msg = u'%s não notificada(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
+            extra_msg = u'%s não notificada(s) por já possuir(em) e-mail confirmado.' % (total_recs-num_messages)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
-    enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação"
+    enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)

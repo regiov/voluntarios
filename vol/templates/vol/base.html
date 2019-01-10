@@ -68,7 +68,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             <div id="pre-navbar-container" class="container">
                    <div class="social-icons pull-right">
                         <ul class="nav nav-pills">
-                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'usuario_cadastro' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></li>{% else %}<li><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
+                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></li>{% else %}<li><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
                         </ul>
                    </div>
             </div>
@@ -101,7 +101,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                             <ul role="menu" class="sub-menu">
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='por-que-ser-voluntario/' %}">Por que ser voluntário</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='bom-voluntario/' %}">Como ser um bom voluntário</a></li>
-                                <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'voluntario_cadastro' %}" rel="nofollow">Alterar cadastro de voluntário</a>{% else %}<a href="{% url 'voluntario_novo' %}" rel="nofollow">Cadastre-se</a>{% endif %}</li>
+                                <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'cadastro_voluntario' %}" rel="nofollow">Alterar cadastro de voluntário</a>{% else %}<a href="{% url 'link_voluntario_novo' %}" rel="nofollow">Cadastre-se</a>{% endif %}</li>
                                 <li><a href="{% url 'busca_entidades' %}">Encontre uma entidade</a></li>
                                 <li><a href="{% url 'mapa_entidades' %}">Mapa de entidades</a></li>
                                 <li><a href="{% url 'busca_doacoes' %}">Pedidos de doação</a></li>
@@ -109,7 +109,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                         </li>                  
                         <li class="dropdown"><a href="#">Entidades <i class="fa fa-angle-down"></i></a>
                             <ul role="menu" class="sub-menu">
-                                <li><a href="{% url 'entidade_nova' %}" rel="nofollow">Cadastre sua entidade</a></li>
+                                <li>{% if user.is_authenticated and user.has_entidade %}<a href="{% url 'cadastro_entidade' %}" rel="nofollow">Gerencie suas entidades</a>{% else %}<a href="{% url 'link_entidade_nova' %}" rel="nofollow">Cadastre sua entidade</a>{% endif %}</li>
                                 <li><a href="{% url 'busca_voluntarios' %}" rel="nofollow">Encontre voluntários</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='leis/' %}">Leis</a></li>
                             </ul>

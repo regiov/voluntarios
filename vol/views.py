@@ -7,7 +7,7 @@ import random
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseBadRequest
-from django.core.exceptions import ValidationError, SuspiciousOperation
+from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Q
@@ -18,9 +18,8 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.urls import reverse
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, Necessidade, AreaInteresse
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse
 
 from allauth.account.models import EmailAddress
 
@@ -73,7 +72,7 @@ def mensagem(request, titulo=''):
 
 @login_required
 @transaction.atomic
-def usuario_cadastro(request):
+def cadastro_usuario(request):
     template = loader.get_template('vol/formulario_usuario.html')
     if request.method == 'POST':
         form = ChangeUserProfileForm(request=request, data=request.POST)
@@ -122,18 +121,7 @@ def usuario_cadastro(request):
     context = {'form': form}
     return HttpResponse(template.render(context, request))
 
-def envia_confirmacao_entidade(nome, email):
-    context = {'razao_social': nome,
-               'email': email,
-               'url': 'http://voluntarios.com.br' + reverse('valida_email_entidade')}
-    try:
-        notify_email(email, u'Cadastro de entidade', 'vol/msg_confirmacao_cadastro_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
-    except Exception as e:
-        # Se houver erro o próprio notify_email já tenta notificar o suporte,
-        # portanto só cairá aqui se houver erro na notificação ao suporte
-        pass
-
-def voluntario_novo(request):
+def link_voluntario_novo(request):
     '''Link para cadastro de novo voluntário'''
     if request.user.is_authenticated:
         # Redireciona para página de cadastro que irá exibir formulário preenchido ou não
@@ -144,7 +132,7 @@ def voluntario_novo(request):
 
 @login_required
 @transaction.atomic
-def voluntario_cadastro(request, msg=None):
+def cadastro_voluntario(request, msg=None):
     '''Página de cadastro de voluntário'''
     metodos = ['GET', 'POST']
     if request.method not in (metodos):
@@ -226,6 +214,18 @@ def busca_voluntarios(request):
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
+
+    if not request.user.is_authenticated:
+        messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar cadastrado no sistema como usuário, além de estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
+        return mensagem(request, u'Busca de voluntários')
+
+    if not request.user.has_entidade:
+        messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
+        return mensagem(request, u'Busca de voluntários')
+
+    if not request.user.has_entidade_aprovada:
+        messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Pedimos que aguarde a aprovação da entidade cadastrada.')
+        return mensagem(request, u'Busca de voluntários')
 
     areas_de_trabalho = AreaTrabalho.objects.all().order_by('nome')
     areas_de_interesse = AreaAtuacao.objects.all().order_by('nome')
@@ -352,49 +352,246 @@ def exibe_voluntario_old(request):
     id_voluntario = request.GET.get('idvoluntario')
     return exibe_voluntario(request, id_voluntario)
 
+def link_entidade_nova(request):
+    '''Link para cadastro de nova entidade'''
+    if request.user.is_authenticated:
+        # Redireciona para página de cadastro que irá exibir formulário preenchido ou não
+        return redirect('/entidade/cadastro')
+    # Indica que usuário quer cadastrar uma entidade e redireciona para cadastro básico
+    request.session['link'] = 'entidade_nova'
+    messages.info(request, u'Para cadastrar uma entidade, é preciso antes possuir um cadastro de usuário (pessoa física).')
+    return redirect('/aut/signup')
+
+def envia_confirmacao_email_entidade(request, entidade):
+    context = {'nome': entidade.menor_nome(),
+               'scheme': 'https' if request.is_secure() else 'http',
+               'host': request.get_host(),
+               'key': entidade.hmac_key()}
+    try:
+        notify_email(entidade.email, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+    except Exception as e:
+        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # portanto só cairá aqui se houver erro na notificação ao suporte
+        pass
+
+@login_required
+def lista_entidades_vinculadas(request):
+    '''Lista entidades gerenciadas pelo usuário'''
+    context = {'entidades': request.user.entidades()}
+    template = loader.get_template('vol/lista_entidades.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def reenvia_confirmacao_email_entidade(request, id_entidade):
+    '''Reenvia mensagem de confirmação de e-mail da entidade'''
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        messages.error(request, u'Entidade inexistente!')
+        return lista_entidades_vinculadas(request)
+    # Verifica se entidade está entre as gerenciadas pelo usuário
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        messages.error(request, u'Não é permitido enviar confirmação para esta entidade!')
+        return lista_entidades_vinculadas(request)
+    envia_confirmacao_email_entidade(request, entidade)
+    messages.info(request, u'Mensagem de confirmação reenviada. Verifique a caixa postal do e-mail da entidade e clique no link fornecido na mensagem.')
+    # Melhor redirecionar para evitar link recarregável indesejado
+    return redirect('/entidade/cadastro')
+
+def valida_email_entidade(request):
+    '''Valida e-mail de uma entidade com base no parâmetro t que deverá conter a chave HMAC da entidade.
+    OBS: esta função também pode ser chamada pela interface administrativa.'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    if 't' not in request.GET:
+        return HttpResponseBadRequest('Ausência do parâmetro t')
+    entidade = Entidade.objects.from_hmac_key(request.GET['t'])
+    if entidade is None:
+        messages.error(request, u'Não foi possível validar o e-mail. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+        return mensagem(request, u'Validação de e-mail de entidade')
+    entidade.confirmado = True
+    entidade.save(update_fields=['confirmado'])
+    msg = u'E-mail confirmado com sucesso!'
+    if not entidade.aprovado:
+        msg = msg + ' Agora basta aguardar a aprovação do cadastro para que a entidade apareça nas buscas.'
+    messages.info(request, msg)
+    return mensagem(request, u'Validação de e-mail de entidade')
+
+@login_required
+def envia_confirmacao_vinculo(request, id_entidade):
+    '''Envia mensagem de confirmação de vínculo com entidade'''
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        messages.error(request, u'Entidade inexistente!')
+        return mensagem(request, u'Solicitação de vínculo com entidade')
+
+    # Verifica se a entidade possui e-mail
+    if not entidade.email:
+        messages.error(request, u'Esta entidade não possui e-mail. Entre em contato conosco para resolver isso.')
+        return mensagem(request, u'Solicitação de vínculo com entidade')
+
+    # Verifica se a entidade já está entre as gerenciadas pelo usuário
+    if int(id_entidade) in request.user.entidades().values_list('pk', flat=True):
+        messages.error(request, u'Esta entidade já possui vínculo confirmado com você!')
+        return mensagem(request, u'Solicitação de vínculo com entidade')
+
+    # Caso não exista um vínculo pendente, cria um aguardando confirmação
+    try:
+        vinculo = VinculoEntidade.objects.get(usuario=request.user, entidade=entidade, data_fim__isnull=True, confirmado=False)
+    except VinculoEntidade.DoesNotExist:
+        vinculo = VinculoEntidade(usuario=request.user, entidade=entidade, confirmado=False)
+        vinculo.save()
+
+    # Envia mensagem de confirmação de vínculo
+    context = {'usuario': request.user.nome,
+               'entidade': entidade.menor_nome(),
+               'scheme': 'https' if request.is_secure() else 'http',
+               'host': request.get_host(),
+               'key': vinculo.hmac_key()}
+    try:
+        notify_email(entidade.email, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+    except Exception as e:
+        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # portanto só cairá aqui se houver erro na notificação ao suporte
+        pass
+
+    messages.info(request, u'Acabamos de enviar uma mensagem para o e-mail ' + entidade.email + '. Verifique a caixa postal e clique no link fornecido na mensagem para confirmar seu vínculo com ela.')
+    return mensagem(request, u'Solicitação de vínculo com entidade')
+
+def confirma_vinculo(request):
+    '''Confirma vínculo de usuário com entidade com base no parâmetro t que deverá conter a chave HMAC do vínculo.'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    if 't' not in request.GET:
+        return HttpResponseBadRequest('Ausência do parâmetro t')
+    vinculo = VinculoEntidade.objects.from_hmac_key(request.GET['t'])
+    if vinculo is None:
+        messages.error(request, u'Não foi possível confirmar o vínculo com a entidade. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+        return mensagem(request, u'Solicitação de vínculo com entidade')
+    vinculo.confirmado = True
+    vinculo.save(update_fields=['confirmado'])
+    # Se houver outras entidades com o mesmo e-mail sem ninguém vinculado a elas, já cria outros vínculos com o mesmo usuário
+    entidades_com_mesmo_email = Entidade.objects.filter(email=entidade.email).exclude(pk=entidade.pk)
+    for entidade_irma in entidades_com_mesmo_email:
+        if VinculoEntidade.objects.filter(entidade=entidade_irma).count() == 0:
+            novo_vinculo = VinculoEntidade(entidade=entidade_irma, usuario=request.user, confirmado=True)
+            novo_vinculo.save()
+    messages.info(request, u'Vínculo confirmado com sucesso! Para gerenciar o cadastro de suas entidades clique <a href="' + reverse('cadastro_entidade') + '">aqui</a>')
+    return mensagem(request, u'Confirmação de vínculo com entidade')
+
+@login_required
 @transaction.atomic
-def entidade_nova(request):
-    '''Página de cadastro de entidade'''
+def cadastro_entidade(request, id_entidade=None):
+    '''Página de cadastro de entidade, podendo exibir a lista de entidades
+    gerenciadas ou o formulário de edição dos dados de uma das entidades.'''
     metodos = ['GET', 'POST']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
 
+    entidade = None
+
+    # Entidades gerenciadas pelo usuário
+    entidades = request.user.entidades()
+
+    if id_entidade is not None:
+
+        try:
+            entidade = Entidade.objects.get(pk=id_entidade)
+        except Entidade.DoesNotExist:
+            raise Http404
+
+        # Garante que apenas usuários vinculados à entidade editem seus dados
+        if int(id_entidade) not in entidades.values_list('pk', flat=True):
+            raise PermissionDenied
+
     if request.method == 'GET':
-        form = FormEntidade()
-    if request.method == 'POST':
-        form = FormEntidade(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            # Tenta georeferenciar
-            if form.instance is not None:
-                form.instance.geocode()
-            # Envia mensagem de confirmação
-            envia_confirmacao_entidade(form.cleaned_data['razao_social'], form.cleaned_data['email'])
-            # Redireciona para página de exibição de mensagem
-            messages.info(request, u'Obrigado! Você receberá um e-mail de confirmação. Para ter o cadastro de entidade validado, clique no link indicado no e-mail que receber.')
-            return mensagem(request, u'Cadastro de Entidade')
+        
+        if entidade is not None:
             
+            form = FormEntidade(instance=entidade)
+        else:
+            
+            if 'nova' in request.GET:
+                
+                form = FormEntidade()
+            else:
+                
+                # Exibe lista de entidades
+                return lista_entidades_vinculadas(request)
+
+    elif request.method == 'POST':
+
+        # Entidade já cadastrada no banco
+        if entidade is not None:
+
+            # ATENÇÃO: instanciar um formulário especificando o parâmetro instance
+            # automaticamente atribui os valores do form à instância em questão!
+            # Portanto o armazenamento de valores originais deve permanecer aqui,
+            # antes de criar o formulário.
+            
+            # Armazena alguns valores originais pra ver se mudaram
+            email_anterior = entidade.email.lower()
+            nome_fantasia_anterior = entidade.nome_fantasia.lower()
+            razao_social_anterior = entidade.razao_social.lower()
+            endereco_original = entidade.endereco()
+
+            form = FormEntidade(request.POST, instance=entidade)
+        else:
+            form = FormEntidade(request.POST)
+        
+        if form.is_valid():
+
+            # Entidade já cadastrada no banco
+            if entidade is not None:
+
+                entidade = form.save(commit=False)
+                entidade.ultima_atualizacao = datetime.datetime.now()
+                entidade.save()
+                messages.info(request, u'Alterações gravadas com sucesso!')
+
+                if email_anterior != request.POST['email'].lower():
+                    # Se alterou o email, força nova confirmação
+                    entidade.confirmado = False
+                    entidade.save(update_fields=['confirmado'])
+                    # Envia mensagem com link de confirmação
+                    envia_confirmacao_email_entidade(request, entidade)
+                    messages.info(request, u'Verifique a caixa postal da entidade para efetuar a validação do novo e-mail.')
+
+                # Força reaprovação de cadastro caso dados importantes tenham mudado
+                if nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower():
+                    entidade.aprovado = False
+                    entidade.save(update_fields=['aprovado'])
+                    messages.warning(request, u'Atenção: a alteração no nome dá início a uma nova etapa de revisão/aprovação do cadastro da entidade. Aguarde a aprovação para que a entidade volte a aparecer nas buscas.')
+
+                # Caso tenha alterado o endereço, tenta georreferenciar novamente
+                if endereco_original != entidade.endereco():
+                    entidade.geocode()
+
+            # Nova entidade
+            else:
+
+                entidade = form.save(commit=True)
+                # Envia mensagem com link de confirmação
+                envia_confirmacao_email_entidade(request, entidade)
+                messages.info(request, u'Entidade cadastrada com sucesso! Verifique agora a caixa postal da entidade para efetuar a validação do e-mail.')
+
+                # Tenta georeferenciar
+                entidade.geocode()
+                
+                # Vincula usuário à entidade
+                vinculo = VinculoEntidade(usuario=request.user, entidade=entidade, confirmado=True)
+                vinculo.save()
+
+            # Exibe lista de entidades
+            return redirect('/entidade/cadastro')
+
+    # Exibe formulário de cadastro de entidade
     context = {'form': form}
     template = loader.get_template('vol/formulario_entidade.html')
     return HttpResponse(template.render(context, request))
-
-def valida_email_entidade(request):
-    '''Confirmação de e-mail de entidade'''
-    metodos = ['GET']
-    if request.method not in (metodos):
-        return HttpResponseNotAllowed(metodos)
-
-    email = request.GET.get('email')
-    if email:
-        entidades = Entidade.objects.filter(email=email)
-        if len(entidades) > 0:
-            entidades.update(confirmado=True)
-
-        messages.info(request, u'Obrigado! Cadastro validado com sucesso.')
-    
-        return mensagem(request, u'Confirmação de Cadastro')
-
-    raise SuspiciousOperation(u'Parâmetro email ausente')
 
 def busca_entidades(request):
     '''Página de busca de entidades'''
@@ -466,7 +663,7 @@ def busca_entidades(request):
         if fentidade is not None:
             fentidade = fentidade.strip()
             if len(fentidade) > 0:
-                entidades = entidades.filter(nome_fantasia__icontains=fentidade)
+                entidades = entidades.filter(Q(nome_fantasia__icontains=fentidade) | Q(razao_social__icontains=fentidade))
 
         # Ordem dos resultados
         entidades = entidades.order_by('estado', 'cidade', 'bairro', 'nome_fantasia')
@@ -671,82 +868,6 @@ def frase_mural(request):
                          'cidade': vol.cidade.title(),
                          'estado': vol.estado.upper()})
 
-#@login_required
-@transaction.atomic
-def revisao_voluntarios(request):
-    '''Página temporária apenas para revisar o banco de dados de voluntários e eliminar duplicidades'''
-    from django.db.models import Count
-
-    # Primeiro grava alterações se necessário
-    if request.method == 'POST' and 'salvar' in request.POST:
-
-        vol0 = Voluntario.objects.get(pk=int(request.POST.get('id0')), email=request.POST.get('email'))
-        vol1 = Voluntario.objects.get(pk=int(request.POST.get('id1')), email=request.POST.get('email'))
-
-        if request.POST.get('id') == '0':
-            vol_fica = vol0
-            vol_vai = vol1
-        elif request.POST.get('id') == '1':
-            vol_fica = vol1
-            vol_vai = vol0
-        else:
-            raise SuspiciousOperation(u'Parâmetro id incorreto')
-
-        campos = ['nome', 'profissao', 'data_aniversario_orig', 'ddd', 'telefone', 'cidade', 'estado', 'empresa', 'foi_voluntario', 'entidade_que_ajudou', 'area_trabalho', 'descricao']
-
-        salvar = False
-
-        for campo in campos:
-            if request.POST.get('id') != request.POST.get(campo):
-                setattr(vol_fica, campo, getattr(vol_vai, campo))
-                salvar = True
-
-        if salvar:
-            vol_fica.save()
-
-        for interesse in vol_vai.areainteresse_set.all():
-            if interesse.area_atuacao not in AreaAtuacao.objects.filter(areainteresse__voluntario=vol_fica):
-                interesse.voluntario = vol_fica
-                interesse.save()
-
-        vol_vai.delete()
-
-    # Depois atualiza a contagem e pega a próxima duplicidade
-    dups = Voluntario.objects.values('email').order_by('email').annotate(total=Count('email')).filter(total__gt=1)
-    total = dups.count()
-
-    dup = None
-    vols = None
-    i = None
-
-    if total > 0:
-
-        if request.method == 'GET':
-
-            i = int(request.GET.get('i', 0))
-
-        else:
-
-            i = int(request.POST.get('i', 0))
-
-            if 'pular' in request.POST:
-                
-                i = i + 1
-
-        if i >= total:
-            
-            i = total - 1
-
-        dup = dups[i]
-        vols = Voluntario.objects.filter(email=dup['email']).order_by('data_cadastro')
-
-    context = {'total': total,
-               'dup': dup,
-               'vols': vols,
-               'i': i}
-    template = loader.get_template('vol/revisao_voluntarios.html')
-    return HttpResponse(template.render(context, request))
-
 @login_required
 def redirect_login(request):
     "Redireciona usuário após login bem sucedido"
@@ -756,7 +877,16 @@ def redirect_login(request):
             # Se já é voluntário, busca entidades
             return redirect(reverse('busca_entidades'))
         # Caso contrário exibe página de cadastro
-        return voluntario_cadastro(request, msg=u'Para finalizar o cadatro de voluntário, complete o formulário abaixo:')
+        return cadastro_voluntario(request, msg=u'Para finalizar o cadatro de voluntário, complete o formulário abaixo:')
+    elif request.user.link == 'entidade_nova':
+        # Exibe página de cadastro de entidade
+        return cadastro_entidade(request)
+
+    if 'link' in request.session:
+        if request.session['link'] == 'entidade_nova':
+            request.session.remove('link')
+            request.session.modified = True
+            return cadastro_entidade(request)
     return redirect(reverse('index'))
 
 def anonymous_email_confirmation(request):

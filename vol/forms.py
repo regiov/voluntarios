@@ -213,15 +213,26 @@ class FormEntidade(forms.ModelForm):
                   "nome_resp", "sobrenome_resp", "cargo_resp", "cep", "logradouro", "bairro",
                   "cidade", "estado", "ddd", "telefone", "email", "nome_contato", "website")
 
-    def clean_email(self):
-        # Email PRECISA estar em caixa baixa para o procedimento de login.
-        val = self.cleaned_data['email'].strip().lower()
+    def __init__(self, *args, **kwargs):
+
+        super(FormEntidade, self).__init__(*args, **kwargs)
+
         if self.instance and self.instance.pk:
-            rec_with_same_email = Entidade.objects.filter(email__exact=val).exclude(pk=self.instance.pk)
-        else:
-            rec_with_same_email = Entidade.objects.filter(email__exact=val)
-        if rec_with_same_email.exists():
-            raise forms.ValidationError(u'Este e-mail já se encontra cadastrado. Para fazer alterações nos dados, por favor entre em contato conosco.')
+
+            if self.instance.cnpj is not None and len(self.instance.cnpj) > 0:
+                self.fields['cnpj'].widget.attrs['readonly'] = True
+                self.fields['cnpj'].help_text = ''
+
+    def clean_cnpj(self):
+        # Garante que o CNPJ não seja alterado quando já preenchido
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk and instance.cnpj and len(instance.cnpj) > 0:
+            return instance.cnpj
+        return self.cleaned_data['cnpj']
+        
+    def clean_email(self):
+        # Deixar e-mail em caixa baixa para padronização
+        val = self.cleaned_data['email'].strip().lower()
         return val
 
     def clean_num_vol(self):

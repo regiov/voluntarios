@@ -12,11 +12,14 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.core.mail import send_mail
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core import signing
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
 )
+
+from allauth.account import app_settings as allauth_settings
 
 from notification.utils import notify_support
 
@@ -67,7 +70,7 @@ class MyUserManager(BaseUserManager):
         Utilizado apenas pela interface adm.
         """
         if not email:
-            raise ValueError('Faltou o e-mail')
+            raise ValidationError('Faltou o e-mail')
 
         user = self.model(email=self.normalize_email(email), nome=nome,)
 
@@ -129,6 +132,17 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
             return True
         except ObjectDoesNotExist:
             return False
+
+    @cached_property
+    def has_entidade(self):
+        return self.vinculoentidade_set.filter(data_fim__isnull=True).count() > 0
+
+    @cached_property
+    def has_entidade_aprovada(self):
+        return self.vinculoentidade_set.filter(aprovado=True, data_fim__isnull=True).count() > 0
+
+    def entidades(self):
+        return Entidade.objects.filter(vinculoentidade__usuario=self, vinculoentidade__data_fim__isnull=True, vinculoentidade__confirmado=True)
 
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
@@ -234,6 +248,20 @@ GEOCODE_STATUS = (
     ('ZERO_RESULTS', 'Não foi possível georreferenciar'),
 )
 
+ENTIDADE_SALT = 'ent'
+
+class EntidadeManager(models.Manager):
+
+    def from_hmac_key(self, key):
+        "Retorna uma entidade com base na sua chave hmac"
+        try:
+            max_age = (60 * 60 * 24 * allauth_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
+            pk = signing.loads(key, max_age=max_age, salt=ENTIDADE_SALT)
+            ret = Entidade.objects.get(pk=pk)
+        except (signing.SignatureExpired, signing.BadSignature, Entidade.DoesNotExist):
+            ret = None
+        return ret
+
 class Entidade(models.Model):
     """Entidade."""
     """obs: id corresponde ao colocweb em registros importados."""
@@ -277,7 +305,9 @@ class Entidade(models.Model):
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
-    ultima_atualizacao = models.DateTimeField(u'Última atualização', auto_now=True, null=True, blank=True)
+    ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now=True, null=True, blank=True)
+
+    objects = EntidadeManager()
 
     class Meta:
         verbose_name = u'Entidade'
@@ -286,6 +316,16 @@ class Entidade(models.Model):
 
     def __str__(self):
         return self.razao_social
+
+    def hmac_key(self):
+        "Retorna a chave hmac da entidade"
+        if self.pk:
+            return signing.dumps(obj=self.pk, salt=ENTIDADE_SALT)
+        raise ValueError(u'Entidade sem chave primária')
+
+    @cached_property
+    def gerenciada(self):
+        return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True).count() > 0
 
     def menor_nome(self):
         '''Retorna o nome fantasia, se houver. Caso contrário retorna a razão social.'''
@@ -314,6 +354,18 @@ class Entidade(models.Model):
         if self.ddd:
             return '(' + self.ddd + ') ' + self.telefone
         return self.telefone
+
+    def status(self):
+        if self.aprovado is None:
+            return u'aguardando revisão'
+        elif self.aprovado:
+            return u'aprovado'
+        return u'rejeitado'
+
+    def status_email(self):
+        if self.confirmado:
+            return u'confirmado'
+        return u'aguardando confirmação'
 
     def geocode(self, request=None, verbose=False):
         '''Atribui automaticamente uma coordenada à entidade a partir de seu endereço usando o serviço do Google'''
@@ -396,6 +448,47 @@ class Entidade(models.Model):
                     break
 
         return status
+
+VINCULO_SALT = 'vinc'
+
+class VinculoEntidadeManager(models.Manager):
+
+    def from_hmac_key(self, key):
+        "Retorna um vínculo com base na sua chave hmac"
+        try:
+            max_age = (60 * 60 * 24 * allauth_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
+            pk = signing.loads(key, max_age=max_age, salt=VINCULO_SALT)
+            ret = VinculoEntidade.objects.get(pk=pk)
+        except (signing.SignatureExpired, signing.BadSignature, Entidade.DoesNotExist):
+            ret = None
+        return ret
+
+class VinculoEntidade(models.Model):
+    """Vínculo com entidade"""
+    usuario     = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    entidade    = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    data_inicio = models.DateTimeField(u'Data de início do vínculo', auto_now_add=True)
+    data_fim    = models.DateTimeField(u'Data de final do vínculo', null=True, blank=True)
+    # Quando a entidade é cadastrada pelo próprio usuário, confirmado já começa com o valor True
+    # Quando o usuário solicita vínculo com entidade já cadastrada, confirmado começa com False
+    # até que o usuário confirme via e-mail.
+    confirmado  = models.BooleanField(u'Confirmado', default=False)
+
+    objects = VinculoEntidadeManager()
+
+    class Meta:
+        verbose_name = u'Usuário vinculado'
+        verbose_name_plural = u'Usuários vinculados'
+        ordering = ('entidade', 'usuario',)
+
+    def __str__(self):
+        return str(self.usuario) + u' - ' + str(self.entidade)
+
+    def hmac_key(self):
+        "Retorna a chave hmac do vínculo"
+        if self.pk:
+            return signing.dumps(obj=self.pk, salt=VINCULO_SALT)
+        raise ValueError(u'Vínculo sem chave primária')
 
 class Necessidade(models.Model):
     """Necessidade de bem/serviço por parte de uma entidade"""

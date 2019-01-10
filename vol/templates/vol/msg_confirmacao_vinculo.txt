@@ -1,0 +1,8 @@
+Olá!
+
+Você está recebendo esta mensagem porque o(a) usuário(a) "{{ usuario }}" alega possuir vínculo com a entidade "{{ entidade }}" que está cadastrada no site voluntarios.com.br. Para confirmar o vínculo e permitir que esta pessoa consiga a partir de agora editar o cadastro da entidade no site, basta clicar no link abaixo:
+
+{{ scheme }}://{{ host }}{% url 'confirma_vinculo' %}?t={{ key }}
+
+Obrigado!
+Equipe voluntarios.com.br 

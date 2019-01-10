@@ -13,6 +13,7 @@ except ImportError:
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.template import engines
 
 from notification.models import Event
 
@@ -53,19 +54,27 @@ def notify_support(subject, msg, request=None, repeat_after=None):
             # TODO?
             pass
 
-def notify_user_msg(user, message, from_email=settings.NOTIFY_USER_FROM):
+def notify_user_msg(user, message, context={}, from_email=settings.NOTIFY_USER_FROM):
     """
     Generic funtion to send e-mail to users based on a message object.
     """
     subject = message.subject
     content = message.content
+    if len(context) > 0:
+        if 'django' not in engines:
+            msg = u"error: django engine unavailable!\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (subject, user.email, content)
+            notify_support(u'Notification failure', msg)
+            return
+        django_engine = engines['django']
+        template = django_engine.from_string(content)
+        content = template.render(context=context)
     try:
         user.email_user(subject, content, from_email)
         event = Event(rtype='U', user=user, message=message)
         event.save()
     except Exception as e:
-        erro = type(e).__name__ + str(e.args)
-        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, user.get_full_name(), content)
+        error = type(e).__name__ + str(e.args)
+        msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, user.email, content)
         notify_support(u'Notification failure', msg)
 
 def notify_user_template(user, subject_template, msg_template, from_email=settings.NOTIFY_USER_FROM, context={}):
@@ -79,8 +88,8 @@ def notify_user_template(user, subject_template, msg_template, from_email=settin
     try:
         user.email_user(subject, message, from_email)
     except Exception as e:
-        erro = type(e).__name__ + str(e.args)
-        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, user.get_full_name(), message)
+        error = type(e).__name__ + str(e.args)
+        msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, user.get_full_name(), message)
         notify_support(u'Notification failure', msg)
 
 def notify_email(to, subject, msg_template, context={}, from_email=settings.NOTIFY_USER_FROM, **kwargs):
@@ -91,6 +100,6 @@ def notify_email(to, subject, msg_template, context={}, from_email=settings.NOTI
     try:
         send_mail(subject, message, from_email, [to], **kwargs)
     except Exception as e:
-        erro = type(e).__name__ + str(e.args)
-        msg = u"erro: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (erro, subject, to, message)
+        error = type(e).__name__ + str(e.args)
+        msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, to, message)
         notify_support(u'Notification failure', msg)

@@ -35,13 +35,13 @@ urlpatterns = [
     url(r'^aut/', include('allauth.urls')),
 
     # Usuário
-    url(r'^usuario/?$', views.usuario_cadastro, name='usuario_cadastro'),
+    url(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
 
     # Voluntários
-    url(r'^voluntario/novo/?$', views.voluntario_novo, name='voluntario_novo'),
-    url(r'^voluntario.htm$', views.voluntario_novo),#old
+    url(r'^voluntario/novo/?$', views.link_voluntario_novo, name='link_voluntario_novo'),
+    url(r'^voluntario.htm$', views.link_voluntario_novo),#old
 
-    url(r'^voluntario/cadastro/?$', views.voluntario_cadastro, {'msg': None}, name='voluntario_cadastro'),
+    url(r'^voluntario/cadastro/?$', views.cadastro_voluntario, {'msg': None}, name='cadastro_voluntario'),
 
     url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
     url(r'^contato.htm$', views.busca_voluntarios),#old
@@ -54,11 +54,19 @@ urlpatterns = [
     url(r'^mural/?$', views.mural, name='mural'),
 
     # Entidades
-    url(r'^entidade/nova$', views.entidade_nova, name='entidade_nova'),
-    url(r'^banco_de_dados.htm$', views.entidade_nova),#old
+    url(r'^entidade/nova$', views.link_entidade_nova, name='link_entidade_nova'),
+    url(r'^banco_de_dados.htm$', views.link_entidade_nova),#old
 
-    url(r'^entidade/validacao/?$', views.valida_email_entidade, name='valida_email_entidade'),
-    url(r'^confirma-cadastro-entidade/?$', views.valida_email_entidade),#old
+    url(r'^entidade/confmail/(?P<id_entidade>\d+)/?$', views.reenvia_confirmacao_email_entidade, name='reenvia_confirmacao_email_entidade'),
+
+    url(r'^entidade/confvinc/(?P<id_entidade>\d+)/?$', views.envia_confirmacao_vinculo, name='envia_confirmacao_vinculo'),
+
+    url(r'^e/valida$', views.valida_email_entidade, name='valida_email_entidade'),
+
+    url(r'^e/vinculo$', views.confirma_vinculo, name='confirma_vinculo'),
+
+    url(r'^entidade/cadastro/(?P<id_entidade>\d+)/?$', views.cadastro_entidade, name='cadastro_entidade_id'),
+    url(r'^entidade/cadastro/?$', views.cadastro_entidade, {'id_entidade': None}, name='cadastro_entidade'),
 
     url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
     url(r'^pesquisa.htm$', views.busca_entidades),#old
@@ -113,9 +121,6 @@ urlpatterns = [
 
     # Interface adm
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
-
-    # Páginas temporárias
-    #url(r'^revisao/voluntarios/?$', views.revisao_voluntarios),
 ]
 
 if settings.DEBUG:

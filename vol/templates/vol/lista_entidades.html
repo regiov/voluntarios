@@ -1,0 +1,31 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load staticfiles %}
+
+{% block title %}Gerenciamento de Entidades{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Gerenciamento de Entidades</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% if entidades|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Nome</th><th>CNPJ</th><th>e-mail</th><th>confirmado</th><th>situação do cadastro</th></thead>
+  <tbody>
+  {% for entidade in entidades %}
+    <tr><td><a href="{% url 'cadastro_entidade_id' entidade.id %}">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td><td>{{ entidade.cnpj|default:"-" }}</td><td>{{ entidade.email|default:"-" }}</td><td>{% if entidade.confirmado %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="sim"/>{% else %}<img src="{% static 'images/misc/icon-deletelink.svg' %}" title="não"/>&nbsp;<a href="{% url 'reenvia_confirmacao_email_entidade' entidade.id %}" class="btn btn-primary btn-sm">reenviar</a>{% endif %}</td><td>{% if entidade.aprovado == None %}<img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando revisão"/>{% else %}{% if entidade.aprovado %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="aprovado"/>{% else %}<img src="{% static 'images/misc/icon-deletelink.svg' %}" title="rejeitado"/>{% endif %}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+
+{% else %}
+  <h2>Nenhuma entidade cadastrada.</h2>
+{% endif %}
+
+<a href="{% url 'cadastro_entidade' %}?nova" class="btn btn-primary">Cadastrar nova entidade</a>
+<a href="{% url 'busca_entidades' %}" class="btn btn-primary">Vincular-se a entidade já cadastrada</a>
+
+{% endblock content %}
