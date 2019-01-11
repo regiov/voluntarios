@@ -18,7 +18,7 @@
 <p>Este é seu cadastro de usuário. Para criar um Perfil de Voluntário, clique <a href="{% url 'link_voluntario_novo' %}">aqui</a>.</p>
 {% endif %}
 
-<form id="form-usuario" method="post" action="{% url 'usuario_cadastro' %}">
+<form id="form-usuario" method="post" action="{% url 'cadastro_usuario' %}">
   {% csrf_token %}
   {{ form|bootstrap }}
   <div class="form-actions">
