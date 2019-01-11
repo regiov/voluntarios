@@ -13,7 +13,7 @@
 <h1>Cadastro de usuário</h1>
 
 {% if request.user.is_voluntario %}
-<p>Este é seu cadastro de usuário. Para visualizar ou alterar seu Perfil de Voluntário, clique <a href="{% url 'voluntario_cadastro' %}">aqui</a>.</p>
+<p>Este é seu cadastro de usuário. Para visualizar ou alterar seu Perfil de Voluntário, clique <a href="{% url 'cadastro_voluntario' %}">aqui</a>.</p>
 {% else %}
 <p>Este é seu cadastro de usuário. Para criar um Perfil de Voluntário, clique <a href="{% url 'link_voluntario_novo' %}">aqui</a>.</p>
 {% endif %}
