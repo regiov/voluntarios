@@ -578,7 +578,7 @@ def cadastro_entidade(request, id_entidade=None):
                 msg = u'Entidade cadastrada com sucesso!'
 
                 # Se o email já existe no sistema e já foi confirmado por alguém anteriormente
-                if EmailAddress.objects.filter(email__iexact=entidade.email, verified=True).count() > 0 or Entidade.objects.filter(email__iexact=entidade.email, confirmado=True) > 0:
+                if EmailAddress.objects.filter(email__iexact=entidade.email, verified=True).count() > 0 or Entidade.objects.filter(email__iexact=entidade.email, confirmado=True).count() > 0:
 
                     entidade.confirmado = True
                     entidade.save(update_fields=['confirmado'])
