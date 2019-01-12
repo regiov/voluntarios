@@ -219,7 +219,7 @@ class FormEntidade(forms.ModelForm):
 
         if self.instance and self.instance.pk:
 
-            if self.instance.cnpj is not None and len(self.instance.cnpj) > 0:
+            if self.instance.cnpj is not None and len(self.instance.cnpj) > 0 and self.instance.aprovado:
                 self.fields['cnpj'].widget.attrs['readonly'] = True
                 self.fields['cnpj'].help_text = ''
 
