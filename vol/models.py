@@ -14,6 +14,7 @@ from django.utils.functional import cached_property
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core import signing
+from django.core.validators import validate_email
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -326,6 +327,14 @@ class Entidade(models.Model):
     @cached_property
     def gerenciada(self):
         return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True).count() > 0
+
+    @cached_property
+    def has_valid_email(self):
+        try:
+            validate_email(self.email)
+            return True
+        except Exception:
+            return False
 
     def menor_nome(self):
         '''Retorna o nome fantasia, se houver. Caso contrário retorna a razão social.'''

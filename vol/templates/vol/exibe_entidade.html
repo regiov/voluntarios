@@ -52,7 +52,7 @@
   <br/>
   <a href="{% url 'cadastro_entidade_id' entidade.id %}" class="btn btn-primary">Editar cadastro</a>
   {% else %}
-    {% if entidade.email and not entidade.gerenciada %}
+    {% if entidade.has_valid_email and not entidade.gerenciada %}
     <br/>
     <a href="{% url 'envia_confirmacao_vinculo' entidade.id %}" class="btn btn-primary">Gerenciar cadastro desta entidade</a>
     <br/>
