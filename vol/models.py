@@ -3,7 +3,7 @@
 import urllib.parse
 import urllib.request
 import json
-from datetime import date
+from datetime import date, datetime
 
 from django.db import models
 from django.conf import settings
@@ -197,6 +197,8 @@ class Voluntario(models.Model):
     data_cadastro         = models.DateTimeField(u'Data do cadastro', auto_now_add=True)
     importado             = models.BooleanField(u'Importado da base anterior', default=False)
     aprovado              = models.NullBooleanField(u'Aprovado')
+    qtde_visualiza        = models.IntegerField(u'Quantidade de visualizações do perfil (desde 12/01/2019)', default=0)
+    ultima_visualiza      = models.DateTimeField(u'Última visualização do voluntário (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao    = models.DateTimeField(u'Data de última atualização', auto_now_add=True, null=True, blank=True, db_index=True)
 
     class Meta:
@@ -205,6 +207,12 @@ class Voluntario(models.Model):
 
     def __str__(self):
         return self.usuario.nome
+
+    def hit(self):
+        '''Contabiliza mais uma visualização do registro'''
+        self.qtde_visualiza = self.qtde_visualiza + 1
+        self.ultima_visualiza = datetime.now()
+        self.save(update_fields=['qtde_visualiza', 'ultima_visualiza'])
 
     def iniciais(self):
         txt = ''
@@ -306,6 +314,8 @@ class Entidade(models.Model):
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
+    qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações da entidade (desde 12/01/2019)', default=0)
+    ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now=True, null=True, blank=True)
 
     objects = EntidadeManager()
@@ -335,6 +345,12 @@ class Entidade(models.Model):
             return True
         except Exception:
             return False
+
+    def hit(self):
+        '''Contabiliza mais uma visualização do registro'''
+        self.qtde_visualiza = self.qtde_visualiza + 1
+        self.ultima_visualiza = datetime.now()
+        self.save(update_fields=['qtde_visualiza', 'ultima_visualiza'])
 
     def menor_nome(self):
         '''Retorna o nome fantasia, se houver. Caso contrário retorna a razão social.'''

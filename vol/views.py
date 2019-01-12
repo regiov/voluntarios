@@ -337,6 +337,7 @@ def exibe_voluntario(request, id_voluntario):
     except Voluntario.DoesNotExist:
         #raise SuspiciousOperation('Voluntário inexistente ou cujo cadastro ainda não foi aprovado')
         raise Http404
+    voluntario.hit()
     areas_de_interesse = voluntario.areainteresse_set.all()
     now = datetime.datetime.now()
     context = {'voluntario': voluntario,
@@ -733,6 +734,7 @@ def exibe_entidade(request, id_entidade):
     except Entidade.DoesNotExist:
         #raise SuspiciousOperation('Entidade inexistente')
         raise Http404
+    entidade.hit()
     necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
     now = datetime.datetime.now()
     context = {'entidade': entidade,
