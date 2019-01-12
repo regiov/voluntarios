@@ -457,7 +457,7 @@ def envia_confirmacao_vinculo(request, id_entidade):
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
-    messages.info(request, u'Acabamos de enviar uma mensagem para o e-mail ' + entidade.email + '. Verifique a caixa postal e clique no link fornecido na mensagem para confirmar seu vínculo com ela.')
+    messages.info(request, u'Acabamos de enviar uma mensagem para o e-mail ' + entidade.email + '. Alguém com acesso à caixa postal da entidade deverá clicar no link fornecido na mensagem para confirmar a existência do seu vínculo com a entidade, permitindo que você possa editar os dados cadastrais da mesma. Entre em contato com a pessoa se necessário.')
     return mensagem(request, u'Solicitação de vínculo com entidade')
 
 def confirma_vinculo(request):
