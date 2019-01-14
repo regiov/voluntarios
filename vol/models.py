@@ -216,7 +216,7 @@ class Voluntario(models.Model):
 
     def iniciais(self):
         txt = ''
-        partes = self.nome.split(' ')
+        partes = self.usuario.nome.split(' ')
         for parte in partes:
             txt = txt + parte[:1].upper() + '.'
         return txt
