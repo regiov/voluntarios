@@ -95,7 +95,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     search_fields = ('usuario__nome', 'usuario__email', )
     list_filter = ('aprovado',)
     preserve_filters = True
-    readonly_fields = ('usuario', 'data_aniversario_orig', 'site', 'importado',)
+    readonly_fields = ('usuario', 'data_aniversario_orig', 'site', 'importado', 'qtde_visualiza', 'ultima_visualiza',)
     actions = ['aprovar']
     inlines = [
         AreaInteresseInline,
@@ -165,7 +165,7 @@ class EntidadeAdmin(GeoModelAdmin):
     list_filter = ('aprovado', 'confirmado', 'importado',)
     preserve_filters = True
     exclude = ('coordenadas',)
-    readonly_fields = ('geocode_status', 'importado', 'confirmado',)
+    readonly_fields = ('geocode_status', 'importado', 'confirmado', 'qtde_visualiza', 'ultima_visualiza',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
         NecessidadeInline, VinculoEntidadeInline
