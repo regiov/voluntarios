@@ -19,8 +19,8 @@ from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade,
 
 from vol.views import envia_confirmacao_email_entidade
 
-from allauth.account.models import EmailAddress, EmailConfirmation
-from allauth.account.adapter import get_adapter
+from allauth.account.models import EmailAddress
+from allauth.account.utils import send_email_confirmation
 
 class MyUserAdmin(UserAdmin):
     fieldsets = (
@@ -48,10 +48,9 @@ class MyUserAdmin(UserAdmin):
 
     def reenviar_confirmacao(self, request, queryset):
         num_messages = 0
-        account_adapter = get_adapter(request)
         for obj in queryset:
-            for emailconfirmation in EmailConfirmation.objects.filter(email_address__user_id=obj.id, email_address__verified=False):
-                account_adapter.send_confirmation_mail(request, emailconfirmation, False)
+            if not obj.verified:
+                send_email_confirmation(request, obj.user)
                 num_messages = num_messages + 1
         main_msg = ''
         if num_messages > 0:
@@ -59,7 +58,7 @@ class MyUserAdmin(UserAdmin):
         extra_msg = ''
         total_recs = len(queryset)
         if total_recs > num_messages:
-            extra_msg = u'%s usuário(s) não notificado(s) por já possuir(em) cadastro confirmado.' % (total_recs-num_messages)
+            extra_msg = u'%s usuário(s) não notificado(s) por já possuir(em) e-mail confirmado.' % (total_recs-num_messages)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     reenviar_confirmacao.short_description = "Reenviar mensagem de confirmação de email"
 
