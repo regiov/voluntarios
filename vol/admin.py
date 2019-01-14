@@ -49,8 +49,8 @@ class MyUserAdmin(UserAdmin):
     def reenviar_confirmacao(self, request, queryset):
         num_messages = 0
         for obj in queryset:
-            if not obj.verified:
-                send_email_confirmation(request, obj.user)
+            if not self.email_confirmado(obj):
+                send_email_confirmation(request, obj)
                 num_messages = num_messages + 1
         main_msg = ''
         if num_messages > 0:
