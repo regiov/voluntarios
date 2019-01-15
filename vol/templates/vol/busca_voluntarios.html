@@ -36,6 +36,12 @@
   </div>
 
   <div class="form-group">
+    <label for="id_fpalavras">Palavras-chave:</label>
+    <input id="id_fpalavras" type="text" class="form-control" name="fpalavras" size="30"{% if request.GET.fpalavras %} value="{{ request.GET.fpalavras }}"{% endif %}>
+    (busca feita nos campos "descrição" e "profissão")
+  </div>
+
+  <div class="form-group">
     <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
     <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
       <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Sem restrição --</option>

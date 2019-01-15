@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.contrib.postgres.search import SearchVector
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse
 
@@ -264,6 +265,11 @@ def busca_voluntarios(request):
         fareatrabalho = request.GET.get('fareatrabalho')
         if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
             voluntarios = voluntarios.filter(area_trabalho=fareatrabalho)
+
+        # Filtro por palavras-chave
+        fpalavras = request.GET.get('fpalavras')
+        if fpalavras is not None and len(fpalavras) > 0:
+            voluntarios = voluntarios.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras)
 
         # Filtro por última atualização cadastral
         atualiza = request.GET.get('atualiza')
