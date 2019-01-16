@@ -71,6 +71,17 @@ def mensagem(request, titulo=''):
     context = {'titulo': titulo}
     return HttpResponse(template.render(context, request))
 
+def escolha_cadastro(request):
+    '''Página para exibir tipo de cadastro a ser feito'''
+    if request.user.is_authenticated:
+        msg = u'Clique na opção desejada:'
+    else:
+        msg = u'Clique na opção desejada. Em ambos os casos será necessário cadastrar-se antes como usuário (pessoa física).'
+    messages.info(request, msg)
+    template = loader.get_template('vol/escolha_cadastro.html')
+    context = {}
+    return HttpResponse(template.render(context, request))
+
 @login_required
 @transaction.atomic
 def cadastro_usuario(request):

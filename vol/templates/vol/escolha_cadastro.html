@@ -1,0 +1,25 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block content %}
+
+<div class="text-center">
+
+<h1>Cadastramento</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% if request.user.is_authenticated and request.user.is_voluntario %}
+<a href="{% url 'cadastro_voluntario' %}" class="btn btn-primary" style="margin-bottom:10px;">Alterar cadastro de voluntário</a>
+{% else %}
+<a href="{% url 'link_voluntario_novo' %}" class="btn btn-primary" style="margin-bottom:10px;">Cadastro de voluntário</a>
+{% endif %}
+
+{% if request.user.is_authenticated and request.user.has_entidade %}
+<a href="{% url 'cadastro_entidade' %}" class="btn btn-success" style="margin-bottom:10px;">Gerenciar entidades</a>
+{% else %}
+<a href="{% url 'link_entidade_nova' %}" class="btn btn-success" style="margin-bottom:10px;">Cadastro de entidade</a>
+{% endif %}
+
+</div>
+
+{% endblock content %}

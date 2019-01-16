@@ -34,6 +34,8 @@ urlpatterns = [
 
     url(r'^aut/', include('allauth.urls')),
 
+    url(r'^cadastro/?$', views.escolha_cadastro, name='escolha_cadastro'),
+
     # Usuário
     url(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
 
