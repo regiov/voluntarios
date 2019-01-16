@@ -269,7 +269,7 @@ def busca_voluntarios(request):
         # Filtro por palavras-chave
         fpalavras = request.GET.get('fpalavras')
         if fpalavras is not None and len(fpalavras) > 0:
-            voluntarios = voluntarios.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras)
+            voluntarios = voluntarios.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct()
 
         # Filtro por última atualização cadastral
         atualiza = request.GET.get('atualiza')
@@ -286,10 +286,13 @@ def busca_voluntarios(request):
         #voluntarios = voluntarios.prefetch_related('areainteresse__area_atuacao')
 
         # Ordem dos resultados
-        if request.GET.get('ordem', 'interesse') == 'interesse':
-            voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
-        else:
+        ordem = request.GET.get('ordem', 'interesse')
+        if ordem == 'trabalho':
             voluntarios = voluntarios.order_by('area_trabalho__nome', 'usuario__nome')
+        elif ordem == 'nome':
+            voluntarios = voluntarios.order_by('usuario__nome', 'area_trabalho__nome')
+        else: # interesse
+            voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
 
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página
