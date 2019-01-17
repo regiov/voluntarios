@@ -964,7 +964,7 @@ def indicadores(request):
     ents = Entidade.objects.filter(aprovado=True, data_cadastro__isnull=False).annotate(cadastro=TruncMonth('data_cadastro')).values('cadastro').annotate(cnt=Count('id')).order_by('cadastro')
     ents_labels = ''
     ents_values = ''
-    total = 0
+    total = Entidade.objects.filter(aprovado=True, data_cadastro__isnull=True)count()
     n = 0
     for ent in ents:
         if n > 0:
