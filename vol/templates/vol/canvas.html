@@ -1,0 +1,28 @@
+{% autoescape off %}
+           <canvas id="{{ id }}"></canvas>
+           <script type="text/javascript">
+             var {{ id }}_ctx = document.getElementById('{{ id }}').getContext('2d');
+
+             var {{ id }}_data = { labels: [{{ labels }}],
+                               datasets: [
+                                     { label: '{{ title }}',
+                                       backgroundColor: '{{ bgcolor }}',
+                                       borderColor: '{{ bordercolor }}',
+                                       borderWidth: 1,
+                                       data: [{{ values }}],
+                                       labels: [{{ labels }}],
+                                     } ]
+                            };
+             var {{ id }}_options = { responsive: true,
+                                 maintainAspectRatio: true,
+                                 legend: { display: false },
+                                 title: { display: true, 
+                                          text: '{{ title }}', 
+                                          fontFamily: 'Helvetica', 
+                                          fontStyle: 'bold', 
+                                          fontColor: '{{ fontcolor }}' },
+                                 scales: { xAxes: [{ ticks: { minRotation: 45, maxRotation: 45 }, gridLines: { display: false } }], 
+                                           yAxes: [{ ticks: { min: 0 }, gridLines: { display: true } }] }
+                               };
+           </script>
+{% endautoescape %}

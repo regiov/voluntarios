@@ -121,6 +121,9 @@ urlpatterns = [
     #url(r'^executivo_porqueImportante.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-importante/'}),
     #url(r'^executivo_porqueservolunt.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-voluntario/'}),
 
+    # Páginas administrativas
+    url(r'^indicadores$', views.indicadores, name='indicadores'),
+
     # Interface adm
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
 ]

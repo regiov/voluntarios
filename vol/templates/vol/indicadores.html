@@ -1,0 +1,49 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block head %}
+    <link href="//fonts.googleapis.com/css?family=Roboto:500,400italic,300,700,500italic,400" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <style>
+    canvas { -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+          }
+    </style>
+{% endblock head %}
+
+{% block content %}
+
+<h1 class="text-center">Indicadores do site</h1>
+<br/>
+{% include "vol/mensagens.html" %}
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="chart-container" style="position: relative;">
+
+      {% include "vol/canvas.html" with id="ch1" title="Evolução do cadastro de voluntários" labels=vols_labels values=vols_values bgcolor="rgba(102, 153, 255, 0.5)" bordercolor="rgb(75, 192, 192)" fontcolor="#3c763d" %}
+
+      </div>
+    </div>
+  </div>
+  <br/>
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="chart-container" style="position: relative;">
+
+      {% include "vol/canvas.html" with id="ch2" title="Evolução do cadastro de entidades" labels=ents_labels values=ents_values bgcolor="rgba(153, 204, 153, 0.5)" bordercolor="rgb(153, 204, 153)" fontcolor="#3c763d" %}
+
+      </div>
+    </div>
+  </div>
+
+{% block post_footer %}
+<script>
+   window.onload = function() {
+     window.ch1 = new Chart(ch1_ctx, { type: 'line', data: ch1_data, options: ch1_options });
+     window.ch2 = new Chart(ch2_ctx, { type: 'line', data: ch2_data, options: ch2_options });
+   };
+</script>
+{% endblock post_footer %}
+
+{% endblock content %}

@@ -10,7 +10,8 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllo
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.conf import settings
@@ -231,13 +232,17 @@ def busca_voluntarios(request):
         messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar cadastrado no sistema como usuário, além de estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
         return mensagem(request, u'Busca de voluntários')
 
-    if not request.user.has_entidade:
-        messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
-        return mensagem(request, u'Busca de voluntários')
+    # Permite que membros da equipe façam consultas
+    if not request.user.is_staff:
 
-    if not request.user.has_entidade_aprovada:
-        messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Pedimos que aguarde a aprovação da entidade cadastrada.')
-        return mensagem(request, u'Busca de voluntários')
+        # Do contrário apenas usuários com entidades aprovadas
+        if not request.user.has_entidade:
+            messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
+            return mensagem(request, u'Busca de voluntários')
+
+        if not request.user.has_entidade_aprovada:
+            messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Pedimos que aguarde a aprovação da entidade cadastrada.')
+            return mensagem(request, u'Busca de voluntários')
 
     areas_de_trabalho = AreaTrabalho.objects.all().order_by('nome')
     areas_de_interesse = AreaAtuacao.objects.all().order_by('nome')
@@ -931,3 +936,50 @@ def anonymous_email_confirmation(request):
     # Sinal para omitir link de cadastro na página de login
     request.session['omit_reg_link'] = 1
     return redirect(reverse('redirlogin'))
+
+@login_required
+def indicadores(request):
+    '''Página para exibir indicadores do site'''
+    if not request.user.is_staff:
+        raise PermissionDenied
+    
+    # Histórico de voluntários cadastrados
+    vols = Voluntario.objects.filter(aprovado=True).annotate(cadastro=TruncMonth('data_cadastro')).values('cadastro').annotate(cnt=Count('id')).order_by('cadastro')
+    vols_labels = ''
+    vols_values = ''
+    total = 0
+    n = 0
+    for vol in vols:
+        if n > 0:
+            vols_labels = vols_labels + ','
+            vols_values = vols_values + ','
+        # label = mês / ano
+        vols_labels = vols_labels + "'" + str(vol['cadastro'].month) + '/' + str(vol['cadastro'].year) + "'"
+        # Acumula valores
+        total = total + vol['cnt']
+        vols_values = vols_values + str(total)
+        n = n + 1
+
+    # Histórico de entidades cadastradas
+    ents = Entidade.objects.filter(aprovado=True, data_cadastro__isnull=False).annotate(cadastro=TruncMonth('data_cadastro')).values('cadastro').annotate(cnt=Count('id')).order_by('cadastro')
+    ents_labels = ''
+    ents_values = ''
+    total = 0
+    n = 0
+    for ent in ents:
+        if n > 0:
+            ents_labels = ents_labels + ','
+            ents_values = ents_values + ','
+        # label = mês / ano
+        ents_labels = ents_labels + "'" + str(ent['cadastro'].month) + '/' + str(ent['cadastro'].year) + "'"
+        # Acumula valores
+        total = total + ent['cnt']
+        ents_values = ents_values + str(total)
+        n = n + 1
+
+    context = {'vols_labels': vols_labels,
+               'vols_values': vols_values,
+               'ents_labels': ents_labels,
+               'ents_values': ents_values}
+    template = loader.get_template('vol/indicadores.html')
+    return HttpResponse(template.render(context, request))
