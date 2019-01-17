@@ -22,7 +22,7 @@
                                           fontStyle: 'bold', 
                                           fontColor: '{{ fontcolor }}' },
                                  scales: { xAxes: [{ ticks: { minRotation: 45, maxRotation: 45 }, gridLines: { display: false } }], 
-                                           yAxes: [{ ticks: { min: 0 }, gridLines: { display: true } }] }
+                                           yAxes: [{ ticks: { min: {{ miny }} }, gridLines: { display: true } }] }
                                };
            </script>
 {% endautoescape %}
