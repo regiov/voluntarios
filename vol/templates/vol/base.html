@@ -68,7 +68,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             <div id="pre-navbar-container" class="container">
                    <div class="social-icons pull-right">
                         <ul class="nav nav-pills">
-                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></li>{% else %}<li><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
+                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></span></li>{% else %}<li><span style="white-space: nowrap;"><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
                         </ul>
                    </div>
             </div>
