@@ -23,6 +23,28 @@
   {{ form|bootstrap }}
   <div class="form-actions">
   <button class="btn btn-primary" type="submit">Gravar alterações</button>
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">Remover cadastro</button>
+  </div>
+
+  <div class="modal" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+       <div class="modal-content">
+            
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">Confirme a remoção</h4>
+          </div>
+            
+          <div class="modal-body">
+            <p>Tem certeza que deseja remover seu cadastro no site?</p>
+          </div>
+                
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
+            <input class="btn btn-danger btn-ok" type="submit" name="delete" value="Sim">
+          </div>
+       </div>
+    </div>
   </div>
 </form>
 

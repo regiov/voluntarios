@@ -18,7 +18,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
+from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse
@@ -88,7 +88,18 @@ def escolha_cadastro(request):
 def cadastro_usuario(request):
     template = loader.get_template('vol/formulario_usuario.html')
     if request.method == 'POST':
+
+        if 'delete' in request.POST:
+            notify_support(u'Remoção de usuário', request.user.email, request)
+            user = request.user
+            logout(request)
+            user.delete()
+            # Redireciona para página de exibição de mensagem
+            messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
+            return mensagem(request, u'Remoção de cadastro')
+        
         form = ChangeUserProfileForm(request=request, data=request.POST)
+        
         if form.is_valid():
             request.user.nome = form.cleaned_data['nome']
             confirm_email = False
@@ -121,6 +132,7 @@ def cadastro_usuario(request):
                     confirm_email = True
             if len(form.cleaned_data['password1']) > 0:
                 request.user.set_password(form.cleaned_data["password1"])
+                update_session_auth_hash(request, request.user)
             request.user.save()
             messages.info(request, u'Alterações gravadas com sucesso.')
             if confirm_email:
@@ -172,6 +184,14 @@ def cadastro_voluntario(request, msg=None):
     if request.method == 'POST':
         agradece_cadastro = False
         if request.user.is_voluntario:
+
+            if 'delete' in request.POST:
+                notify_support(u'Remoção de perfil de voluntário', request.user.email, request)
+                request.user.voluntario.delete()
+                # Redireciona para página de exibição de mensagem
+                messages.info(request, u'Seu perfil de voluntário foi removido. Note que isto não remove seu cadastro de usuário, ou seja, você continuará podendo entrar no site, podendo inclusive cadastrar um novo perfil de voluntário quando desejar. Se a intenção for remover também seu cadastro de usuário, basta acessar sua <a href="' + reverse('cadastro_usuario') + '">página de dados pessoais</a>. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
+                return mensagem(request, u'Remoção de Perfil de Voluntário')
+            
             form = FormVoluntario(request.POST, instance=request.user.voluntario)
         else:
             agradece_cadastro = True
@@ -553,6 +573,13 @@ def cadastro_entidade(request, id_entidade=None):
         # Entidade já cadastrada no banco
         if entidade is not None:
 
+            if 'delete' in request.POST:
+                notify_support(u'Remoção de entidade', entidade.razao_social, request)
+                entidade.delete()
+                # Redireciona para gerenciamento de entidades
+                messages.info(request, u'Entidade removida!')
+                return redirect('/entidade/cadastro')
+
             # ATENÇÃO: instanciar um formulário especificando o parâmetro instance
             # automaticamente atribui os valores do form à instância em questão!
             # Portanto o armazenamento de valores originais deve permanecer aqui,
@@ -587,8 +614,8 @@ def cadastro_entidade(request, id_entidade=None):
                     messages.info(request, u'Verifique a caixa postal da entidade para efetuar a validação do novo e-mail.')
 
                 # Força reaprovação de cadastro caso dados importantes tenham mudado
-                if nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower():
-                    entidade.aprovado = False
+                if entidade.aprovado and (nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower()):
+                    entidade.aprovado = None
                     entidade.save(update_fields=['aprovado'])
                     messages.warning(request, u'Atenção: a alteração no nome dá início a uma nova etapa de revisão/aprovação do cadastro da entidade. Aguarde a aprovação para que a entidade volte a aparecer nas buscas.')
 
