@@ -4,5 +4,9 @@ Você está recebendo esta mensagem porque o(a) usuário(a) "{{ usuario }}" aleg
 
 {{ scheme }}://{{ host }}{% url 'confirma_vinculo' %}?t={{ key }}
 
+Se esta pessoa não possui nenhum vínculo com a entidade, você pode simplesmente ignorar esta mensagem. O ideal, no entanto, seria que alguém responsável pela entidade fizesse o cadastro de usuário no site voluntarios.com.br, em seguida buscasse sua própria entidade (menu "Voluntários" / "Encontre uma entidade"), visualizasse os dados dela, clicasse no botão "Gerenciar cadastro desta entidade" para finalmente confirmar o vínculo com a entidade ao receber uma mensagem como esta e clicar no link. Só assim, quando a entidade possui pelo menos uma pessoa responsável por ela no sistema, o botão "Gerenciar cadastro desta entidade" deixa de aparecer para as outras pessoas.
+
+Qualquer dúvida entre em contato conosco.
+
 Obrigado!
 Equipe voluntarios.com.br 
