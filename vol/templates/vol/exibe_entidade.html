@@ -54,9 +54,30 @@
   {% else %}
     {% if entidade.has_valid_email and not entidade.gerenciada %}
     <br/>
-    <a href="{% url 'envia_confirmacao_vinculo' entidade.id %}" class="btn btn-primary">Gerenciar cadastro desta entidade</a>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirm-action">Gerenciar cadastro desta entidade</button>
     <br/>
     <span class="dica">(será necessário ter acesso ao e-mail da entidade para comprovar vínculo com ela)</span>
+
+    <div class="modal" id="confirm-action" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Atenção</h4>
+            </div>
+            
+            <div class="modal-body">
+                <p>Tem certeza que deseja enviar uma mensagem para esta entidade solicitando a confirmação do seu vínculo com ela?</p>
+            </div>
+                
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
+                <a href="{% url 'envia_confirmacao_vinculo' entidade.id %}" class="btn btn-primary btn-ok">Sim</a>
+            </div>
+         </div>
+      </div>
+    </div>
     {% endif %}
   {% endif %}
 {% endif %}
