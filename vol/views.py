@@ -153,6 +153,7 @@ def link_voluntario_novo(request):
         return redirect('/voluntario/cadastro')
     # Indica que usuário quer se cadastrar como voluntário e redireciona para cadastro básico
     request.session['link'] = 'voluntario_novo'
+    messages.info(request, u'<strong>Para cadastrar um perfil de voluntário, é preciso antes possuir um cadastro de usuário (pessoa física).</strong>')
     return redirect('/aut/signup')
 
 @login_required
