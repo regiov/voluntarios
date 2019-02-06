@@ -478,7 +478,7 @@ class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
     entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     anotacao = models.TextField(u'Anotação')
-    usuario  = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario  = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     momento  = models.DateTimeField(u'Momento', auto_now_add=True, null=True, blank=True)
     req_acao = models.BooleanField(u'Requer alteração', default=False)
 
