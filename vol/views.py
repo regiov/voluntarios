@@ -93,9 +93,13 @@ def cadastro_usuario(request):
             notify_support(u'Remoção de usuário', request.user.email, request)
             user = request.user
             logout(request)
-            user.delete()
+            try:
+                user.delete()
+                messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
+            except Exception as e:
+                messages.warning(request, u'Não foi possível remover o seu cadastro. Caso em algum momento você tenha auxiliado na parte administrativa do site, é possível que haja referências importantes a você no histórico de nosso banco de dados. Neste caso entre em contato conosco se realmente deseja remover seu cadastro. Caso nunca tenha trabalhado na parte administrativa do site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> para verificarmos o que houve.')
+
             # Redireciona para página de exibição de mensagem
-            messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
             return mensagem(request, u'Remoção de cadastro')
         
         form = ChangeUserProfileForm(request=request, data=request.POST)
