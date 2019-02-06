@@ -309,7 +309,6 @@ class Entidade(models.Model):
     agencia            = models.CharField(u'Agência', max_length=14, null=True, blank=True) 
     conta              = models.CharField(u'Conta', max_length=26, null=True, blank=True) 
 
-    obs                = models.TextField(u'Observações', null=True, blank=True)
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
