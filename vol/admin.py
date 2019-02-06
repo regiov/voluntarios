@@ -216,10 +216,11 @@ class EntidadeAdmin(GeoModelAdmin):
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
 class ValidacaoEntidade(Entidade):
+    """Modelo criado para realizar validação do cadastro de entidades via interface administrativa"""
     class Meta:
         proxy = True
-        verbose_name = u'Validação de entidade'
-        verbose_name_plural = u'Validação de entidades'
+        verbose_name = u'Entidade aprovada'
+        verbose_name_plural = u'Entidades aprovadas'
 
 class ValidacaoEntidadeAdmin(admin.ModelAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
