@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
-from django.db.models import Count, Q
+from django.db.models import Count, Q, TextField
+from django.forms import Textarea
 
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
@@ -15,7 +16,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -158,6 +159,15 @@ class NecessidadeInline(admin.TabularInline):
     readonly_fields = ['data_solicitacao']
     extra = 0
 
+class AnotacaoEntidadeInline(admin.TabularInline):
+    model = AnotacaoEntidade
+    fields = ['anotacao', 'req_acao', 'usuario', 'momento']
+    readonly_fields = ['usuario', 'momento']
+    extra = 0
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
+    } 
+
 class EntidadeAdmin(GeoModelAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
@@ -168,7 +178,7 @@ class EntidadeAdmin(GeoModelAdmin):
     readonly_fields = ('geocode_status', 'importado', 'confirmado', 'qtde_visualiza', 'ultima_visualiza',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        NecessidadeInline, VinculoEntidadeInline
+        NecessidadeInline, VinculoEntidadeInline, AnotacaoEntidadeInline
     ]
 
     @transaction.atomic
@@ -205,6 +215,49 @@ class EntidadeAdmin(GeoModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
+class ValidacaoEntidade(Entidade):
+    class Meta:
+        proxy = True
+        verbose_name = u'Validação de entidade'
+        verbose_name_plural = u'Validação de entidades'
+
+class ValidacaoEntidadeAdmin(admin.ModelAdmin):
+    list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
+    search_fields = ('razao_social', 'cnpj', 'email', 'cidade',)
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao']
+    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
+    inlines = [
+        AnotacaoEntidadeInline,
+    ]
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super(ValidacaoEntidadeAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # Exibe apenas entidades aprovadas e com o email confirmado
+    def get_queryset(self, request):
+        return self.model.objects.filter(aprovado=True, confirmado=True)
+
+    # Grava usuário corrente em anotações
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            if isinstance(instance, AnotacaoEntidade):
+                if instance.usuario_id is None:
+                    instance.usuario = request.user
+                instance.save()
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -212,4 +265,5 @@ admin.site.register(AreaTrabalho, AreaTrabalhoAdmin)
 admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
 admin.site.register(Voluntario, VoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
+admin.site.register(ValidacaoEntidade, ValidacaoEntidadeAdmin)
 

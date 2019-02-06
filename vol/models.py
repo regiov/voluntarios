@@ -317,6 +317,7 @@ class Entidade(models.Model):
     qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações da entidade (desde 12/01/2019)', default=0)
     ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now=True, null=True, blank=True)
+    ultima_revisao     = models.DateTimeField(u'Última revisão', null=True, blank=True)
 
     objects = EntidadeManager()
 
@@ -473,6 +474,22 @@ class Entidade(models.Model):
                     break
 
         return status
+
+class AnotacaoEntidade(models.Model):
+    """Anotação sobre entidade"""
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    anotacao = models.TextField(u'Anotação')
+    usuario  = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    momento  = models.DateTimeField(u'Momento', auto_now_add=True, null=True, blank=True)
+    req_acao = models.BooleanField(u'Requer alteração', default=False)
+
+    class Meta:
+        verbose_name = u'Anotação'
+        verbose_name_plural = u'Anotações'
+        ordering = ('momento',)
+
+    def __str__(self):
+        return self.anotacao
 
 VINCULO_SALT = 'vinc'
 
