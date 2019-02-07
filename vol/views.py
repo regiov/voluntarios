@@ -673,7 +673,7 @@ def busca_entidades(request):
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
 
-    areas_de_atuacao = AreaAtuacao.objects.all().order_by('id')
+    areas_de_atuacao = AreaAtuacao.objects.all().order_by('indice')
 
     buscar = False
     fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = None

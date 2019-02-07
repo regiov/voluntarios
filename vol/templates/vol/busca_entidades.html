@@ -34,7 +34,7 @@ Se você não souber o nome da entidade deixe em branco e apenas digite sua cida
     <label for="id_fasocial">Área de atuação:</label>
     <select id="id_fasocial" name="fasocial" class="form-control">
       <option value="0"{% if not request.GET.fasocial %} selected{% endif %}>-- Todas as áreas de atuação --</option>
-      {% for area_atuacao in areas_de_atuacao %}{% if area_atuacao.nome|slice:"0:7" != 'Outros/' %}<option value="{{ area_atuacao.id }}"{% if request.GET.fasocial|add:"0" == area_atuacao.id %} selected{% endif %}>{{ area_atuacao.nome }}</option>{% endif %}{% endfor %}
+      {% for area_atuacao in areas_de_atuacao %}<option value="{{ area_atuacao.id }}"{% if request.GET.fasocial|add:"0" == area_atuacao.id %} selected{% endif %}>{% if '.' in area_atuacao.indice %}&nbsp;&nbsp;&nbsp;&#9702;{% else %}&#8226;{% endif %} {{ area_atuacao.nome }}</option>{% endfor %}
     </select>
     <p class="dica">* Nem toda Área de Atuação existirá em sua cidade ou bairro. Para obter todas as entidades na sua cidade ou bairro, independente da área de atuação, deixe a opção em: "Todas as áreas de atuação".</p>
   </div>
