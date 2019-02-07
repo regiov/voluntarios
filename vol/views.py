@@ -270,7 +270,7 @@ def busca_voluntarios(request):
             return mensagem(request, u'Busca de voluntários')
 
     areas_de_trabalho = AreaTrabalho.objects.all().order_by('nome')
-    areas_de_interesse = AreaAtuacao.objects.all().order_by('nome')
+    areas_de_interesse = AreaAtuacao.objects.all().order_by('indice')
     voluntarios = None
     get_params = ''
     pagina_inicial = pagina_final = None

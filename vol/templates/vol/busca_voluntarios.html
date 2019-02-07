@@ -31,7 +31,7 @@
     <label for="id_fasocial">Área de interesse:</label>
     <select id="id_fasocial" name="fasocial" class="form-control">
       <option value="0"{% if not request.GET.fasocial %} selected{% endif %}>-- Todas as áreas de interesse --</option>
-      {% for area_interesse in areas_de_interesse %}{% if area_interesse.nome|slice:"0:7" != 'Outros/' %}<option value="{{ area_interesse.id }}"{% if request.GET.fasocial|add:"0" == area_interesse.id %} selected{% endif %}>{{ area_interesse.nome }}</option>{% endif %}{% endfor %}
+      {% for area_interesse in areas_de_interesse %}<option value="{{ area_interesse.id }}"{% if request.GET.fasocial|add:"0" == area_interesse.id %} selected{% endif %}>{% if '.' in area_interesse.indice %}&nbsp;&nbsp;&nbsp;&#9702;{% else %}&#8226;{% endif %} {{ area_interesse.nome }}</option>{% endfor %}
     </select>
   </div>
 
