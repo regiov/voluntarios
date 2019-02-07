@@ -462,7 +462,8 @@ def valida_email_entidade(request):
         messages.error(request, u'Não foi possível validar o e-mail. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
         return mensagem(request, u'Validação de e-mail de entidade')
     entidade.confirmado = True
-    entidade.save(update_fields=['confirmado'])
+    entidade.confirmado_em = datetime.datetime.now()
+    entidade.save(update_fields=['confirmado', 'confirmado_em'])
     msg = u'E-mail confirmado com sucesso!'
     if not entidade.aprovado:
         msg = msg + ' Agora basta aguardar a aprovação do cadastro para que a entidade apareça nas buscas.'

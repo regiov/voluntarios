@@ -163,7 +163,7 @@ class AreaAtuacao(models.Model):
     """obs: id INcompatível com banco anterior"""
     categoria = models.CharField(u'Categoria', max_length=100)
     nome      = models.CharField(u'Nome', max_length=200)
-    indice    = models.CharField(u'Índice numerado', max_length=20, unique=True)
+    indice    = models.CharField(u'Índice para ordenação', max_length=20, unique=True)
     id_antigo = models.CharField(u'Id antigo', max_length=10, unique=True)
 
     class Meta:
@@ -311,6 +311,7 @@ class Entidade(models.Model):
 
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
+    confirmado_em      = models.DateTimeField(u'Data da confirmação do e-mail', null=True, blank=True)
     aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
     qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações da entidade (desde 12/01/2019)', default=0)
