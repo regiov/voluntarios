@@ -169,10 +169,20 @@ class AreaAtuacao(models.Model):
     class Meta:
         verbose_name = u'Área de Atuação'
         verbose_name_plural = u'Áreas de Atuação'
-        ordering = ('id',)
+        ordering = ('indice',)
 
     def __str__(self):
         return self.nome
+
+class AreaAtuacaoHierarquica(AreaAtuacao):
+    """Área de atuação com nome formatado para exibição hierárquica"""
+    class Meta:
+        proxy = True
+
+    def __str__(self):
+        if '.' in self.indice:
+            return u"\u00A0\u00A0\u00A0\u25E6 " + self.nome
+        return u"\u2022 " + self.nome
 
 class Voluntario(models.Model):
     """Voluntário"""

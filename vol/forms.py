@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from django import forms
 
-from vol.models import AreaTrabalho, AreaAtuacao, Voluntario, Entidade, UFS_SIGLA, AreaInteresse
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
@@ -60,7 +60,7 @@ class FormVoluntario(forms.ModelForm):
                                           required=False)
     area_interesse = forms.ModelChoiceField(label=u'Área de Interesse',
                                             empty_label=u'-- Escolha a área de atuação --',
-                                            queryset=AreaAtuacao.objects.all().order_by('nome'),
+                                            queryset=AreaAtuacaoHierarquica.objects.all().order_by('indice'),
                                             widget=forms.Select(attrs={'class':'form-control'}),
                                             help_text="",
                                             required=False)
@@ -132,7 +132,7 @@ class FormEntidade(forms.ModelForm):
                            widget=forms.TextInput(attrs={'class':'form-control', 'size':18}))
     area_atuacao = forms.ModelChoiceField(label=u'Área de Atuação',
                                           empty_label=u'-- Escolha a área de atuação --',
-                                          queryset=AreaAtuacao.objects.all().order_by('nome'),
+                                          queryset=AreaAtuacaoHierarquica.objects.all().order_by('indice'),
                                           widget=forms.Select(attrs={'class':'form-control'}),
                                           help_text="")
     descricao = forms.CharField(label=u'Descrição',
@@ -274,7 +274,7 @@ class FormAreaInteresse(forms.ModelForm):
     "Formulário de áreas de interesse de voluntário"
     area_atuacao = forms.ModelChoiceField(label=u'Área de Interesse',
                                           empty_label=u'-- Escolha uma opção --',
-                                          queryset=AreaAtuacao.objects.all().order_by('nome'),
+                                          queryset=AreaAtuacaoHierarquica.objects.all().order_by('indice'),
                                           widget=forms.Select(attrs={'class':'form-control combo-area-interesse'}),
                                           help_text="")
 
