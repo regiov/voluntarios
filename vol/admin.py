@@ -215,6 +215,16 @@ class EntidadeAdmin(GeoModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
+    # Grava usuário corrente em anotações
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            if isinstance(instance, AnotacaoEntidade):
+                if instance.usuario_id is None:
+                    instance.usuario = request.user
+                instance.save()
+
 class ValidacaoEntidade(Entidade):
     """Modelo criado para realizar validação do cadastro de entidades via interface administrativa"""
     class Meta:
