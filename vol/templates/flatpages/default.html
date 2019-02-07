@@ -7,6 +7,11 @@
 <div class="text-justify">
 {{ flatpage.content }}
 </div>
+{% if flatpage.url == '/quem-somos/' and request.user.is_authenticated %}
+<map name="hiddenlink">
+    <area shape="rect" coords="29,16,36,30" href="/mural">
+</map>
+{% endif %}
 {% block postcontent %}{% endblock postcontent %}
 {% endblock content %}
 

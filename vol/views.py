@@ -915,12 +915,15 @@ def mapa_entidades(request):
     template = loader.get_template('vol/mapa_entidades.html')
     return HttpResponse(template.render(context, request))
 
+@login_required
 def mural(request):
     '''Página para exibir frases de voluntários'''
+    notify_support(u'Acesso ao mural!!', request.user.email, request)
     context = {}
     template = loader.get_template('vol/mural.html')
     return HttpResponse(template.render(context, request))
 
+@login_required
 def frase_mural(request):
     '''Retorna descrição aleatória de voluntário'''
     from django.db.models import TextField
