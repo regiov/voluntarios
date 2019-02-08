@@ -16,9 +16,10 @@ Including another URLconf
 import os
 
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
-from django.views import static
+from django.views import static as views_static
 from django.contrib.flatpages import views as flatpages
 
 from vol import views
@@ -129,12 +130,8 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += [
-        url(r'^imagens/(?P<path>.*)$', static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
-]
-
-if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         url('__debug__/', include(debug_toolbar.urls)),
-] + urlpatterns
+        url(r'^imagens/(?P<path>.*)$', views_static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + urlpatterns

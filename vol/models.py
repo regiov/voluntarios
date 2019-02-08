@@ -1,5 +1,6 @@
 # coding=UTF-8
 
+import os
 import urllib.parse
 import urllib.request
 import json
@@ -15,6 +16,7 @@ from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core import signing
 from django.core.validators import validate_email
+from django.dispatch import receiver
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -557,3 +559,68 @@ class Necessidade(models.Model):
         if self.qtde_orig is None:
             return self.descricao
         return self.qtde_orig + u' ' + self.descricao
+
+class TipoDocumento(models.Model):
+    """Tipo de documento"""
+    nome   = models.CharField(u'Nome', max_length=50, unique=True)
+    codigo = models.CharField(u'Código', max_length=10, unique=True)
+
+    class Meta:
+        verbose_name = u'Tipo de documento'
+        verbose_name_plural = u'Tipos de documento'
+        ordering = ('nome',)
+
+    def __str__(self):
+        return self.nome
+
+def caminho_do_documento(instance, filename):
+    # MEDIA_ROOT/e/d1/d2/d3/d4/dn/doc_tipodoc_<filename>
+    digitos = [i for i in str(instance.entidade.id)]
+    padrao = 'e/'
+    for i in range(0, len(digitos)):
+        padrao = padrao + '{0[' + str(i) + ']}/'
+    padrao = padrao + 'doc_{1}_{2}'
+    return padrao.format(digitos, instance.tipodoc.codigo, filename)
+
+class Documento(models.Model):
+    """Documento"""
+    tipodoc       = models.ForeignKey(TipoDocumento, verbose_name=u'Tipo de documento', on_delete=models.PROTECT)
+    entidade      = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    doc           = models.FileField(u'Arquivo', upload_to=caminho_do_documento)
+    data_cadastro = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    usuario       = models.ForeignKey(Usuario, on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        verbose_name = u'Documento'
+        verbose_name_plural = u'Documentos'
+        ordering = ('entidade', 'data_cadastro',)
+
+    def __str__(self):
+        return str(self.tipodoc) + u' ' + str(self.entidade) + u' ' + str(self.id)
+
+@receiver(models.signals.post_delete, sender=Documento)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Remove arquivo do sistema de arquivos quando um objecto 'Documento' é deletado.
+    """
+    if instance.doc:
+        if os.path.isfile(instance.doc.path):
+            os.remove(instance.doc.path)
+
+@receiver(models.signals.pre_save, sender=Documento)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    """
+    Remove arquivo antigo do sistema de arquivos quando um objecto 'Documento' é atualizado.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = Documento.objects.get(pk=instance.pk).doc
+    except Documento.DoesNotExist:
+        return False
+
+    new_file = instance.doc
+    if not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)

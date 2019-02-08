@@ -160,6 +160,10 @@ STATIC_ROOT = 'SET IN LOCAL SETTINGS'
 
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = 'SET IN LOCAL SETTINGS'
+
+MEDIA_URL = '/media/'
+
 CSRF_FAILURE_VIEW = 'vol.views.csrf_failure'
 
 # Sites app

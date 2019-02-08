@@ -16,7 +16,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -159,6 +159,12 @@ class NecessidadeInline(admin.TabularInline):
     readonly_fields = ['data_solicitacao']
     extra = 0
 
+class DocumentoInline(admin.TabularInline):
+    model = Documento
+    fields = ['tipodoc', 'doc', 'data_cadastro', 'usuario']
+    readonly_fields = ['data_cadastro', 'usuario']
+    extra = 0
+
 class AnotacaoEntidadeInline(admin.TabularInline):
     model = AnotacaoEntidade
     fields = ['anotacao', 'req_acao', 'usuario', 'momento']
@@ -178,7 +184,7 @@ class EntidadeAdmin(GeoModelAdmin):
     readonly_fields = ('geocode_status', 'importado', 'confirmado', 'qtde_visualiza', 'ultima_visualiza',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        NecessidadeInline, VinculoEntidadeInline, AnotacaoEntidadeInline
+        NecessidadeInline, VinculoEntidadeInline, DocumentoInline, AnotacaoEntidadeInline
     ]
 
     @transaction.atomic
@@ -218,19 +224,21 @@ class EntidadeAdmin(GeoModelAdmin):
     # Grava usuário corrente em anotações
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
-
+        for obj in formset.deleted_objects:
+            obj.delete()
         for instance in instances:
-            if isinstance(instance, AnotacaoEntidade):
+            if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
                 if instance.usuario_id is None:
                     instance.usuario = request.user
-                instance.save()
+            instance.save()
+        formset.save_m2m()
 
 class ValidacaoEntidade(Entidade):
     """Modelo criado para realizar validação do cadastro de entidades via interface administrativa"""
     class Meta:
         proxy = True
-        verbose_name = u'Entidade aprovada'
-        verbose_name_plural = u'Entidades aprovadas'
+        verbose_name = u'Entidade para revisão'
+        verbose_name_plural = u'Entidades para revisão'
 
 class ValidacaoEntidadeAdmin(admin.ModelAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
@@ -238,7 +246,7 @@ class ValidacaoEntidadeAdmin(admin.ModelAdmin):
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        AnotacaoEntidadeInline,
+        DocumentoInline, AnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
@@ -262,12 +270,17 @@ class ValidacaoEntidadeAdmin(admin.ModelAdmin):
     # Grava usuário corrente em anotações
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
-
+        for obj in formset.deleted_objects:
+            obj.delete()
         for instance in instances:
-            if isinstance(instance, AnotacaoEntidade):
+            if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
                 if instance.usuario_id is None:
                     instance.usuario = request.user
-                instance.save()
+            instance.save()
+        formset.save_m2m()
+
+class TipoDocumentoAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
@@ -277,4 +290,5 @@ admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
 admin.site.register(Voluntario, VoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(ValidacaoEntidade, ValidacaoEntidadeAdmin)
+admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 
