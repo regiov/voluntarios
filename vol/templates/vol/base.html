@@ -110,6 +110,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                         <li class="dropdown"><a href="#">Entidades <i class="fa fa-angle-down"></i></a>
                             <ul role="menu" class="sub-menu">
                                 <li>{% if user.is_authenticated and user.has_entidade %}<a href="{% url 'cadastro_entidade' %}" rel="nofollow">Gerencie suas entidades</a>{% else %}<a href="{% url 'link_entidade_nova' %}" rel="nofollow">Cadastre sua entidade</a>{% endif %}</li>
+                                <li><a href="{% url 'busca_entidades' %}">Busca de entidades</a></li>
                                 <li><a href="{% url 'busca_voluntarios' %}" rel="nofollow">Encontre voluntários</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='leis/' %}">Leis</a></li>
                             </ul>
