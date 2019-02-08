@@ -214,7 +214,9 @@ class Voluntario(models.Model):
     class Meta:
         verbose_name = u'Voluntário'
         verbose_name_plural = u'Voluntários'
-
+        permissions = (
+            ('search_volunteers', u'Can search Voluntário'),
+        )
     def __str__(self):
         return self.usuario.nome
 

@@ -258,7 +258,7 @@ def busca_voluntarios(request):
         return mensagem(request, u'Busca de voluntários')
 
     # Permite que membros da equipe façam consultas
-    if not request.user.is_staff:
+    if not (request.user.is_staff or request.user.has_perm('vol.search_volunteers')):
 
         # Do contrário apenas usuários com entidades aprovadas
         if not request.user.has_entidade:
