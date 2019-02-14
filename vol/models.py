@@ -638,12 +638,15 @@ class Telefone(models.Model):
     tipo               = models.CharField(u'Tipo', max_length=1, choices=TIPO_TEL, null=True, blank=True)
     prefixo            = models.CharField(u'Prefixo', max_length=4, null=True, blank=True)
     numero             = models.CharField(u'Número', max_length=15)
+    contato            = models.CharField(u'Contato', max_length=50, null=True, blank=True)
     confirmado         = models.BooleanField(u'Confirmado', default=False)
     data_confirmacao   = models.DateTimeField(u'Data da confirmação', null=True, blank=True)
     confirmado_por     = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.PROTECT)
 
     def __str__(self):
-        return u'(' + self.prefixo + u') ' + self.numero
+        if self.prefixo:
+            return u'(' + self.prefixo + u') ' + self.numero
+        return self.numero
 
     def save(self, *args, **kwargs):
         # Trata campos mutuamente exclusivos. Se colocar isso no "clean", fica
