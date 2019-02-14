@@ -300,8 +300,6 @@ class Entidade(models.Model):
     estado             = models.CharField(u'Estado', max_length=4, null=True, blank=True) 
     coordenadas        = models.PointField(u'Coordenadas', null=True, blank=True)
     geocode_status     = models.CharField(u'Situação do georreferenciamento', choices=GEOCODE_STATUS, max_length=20, null=True, blank=True) 
-    ddd                = models.CharField(u'DDD', max_length=4, null=True, blank=True)
-    telefone           = models.CharField(u'Telefone', max_length=100, null=True, blank=True) 
     email              = models.CharField(u'E-mail', max_length=90, null=True, blank=True) 
     website            = models.CharField(u'Website', max_length=110, null=True, blank=True) 
     despesas           = models.CharField(u'Despesas', max_length=100, null=True, blank=True) 
