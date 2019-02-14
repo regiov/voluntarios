@@ -149,7 +149,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
 
 class TelEntidadeInline(admin.TabularInline):
     model = Telefone
-    fields = ['tipo', 'prefixo', 'numero', 'confirmado', 'data_confirmacao', 'confirmado_por']
+    fields = ['tipo', 'prefixo', 'numero', 'contato', 'confirmado', 'data_confirmacao', 'confirmado_por']
     readonly_fields = ['data_confirmacao', 'confirmado_por']
     extra = 0
 
