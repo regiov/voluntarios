@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from django import forms
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
@@ -183,16 +183,6 @@ class FormEntidade(forms.ModelForm):
                                choices=UFS_SIGLA,
                                widget=forms.Select(attrs={'class':'form-control'}),
                                help_text="")
-    ddd = forms.CharField(label=u'Telefone (ddd)',
-                          max_length=4,
-                          widget=forms.TextInput(attrs={'class':'form-control', 'size':4}),
-                          help_text="",
-                          required=False)
-    telefone = forms.CharField(label=u'número',
-                               max_length=60,
-                               widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
-                               help_text="",
-                               required=False)
     email = forms.EmailField(label=u'E-mail',
                              widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
                              error_messages={'invalid': u'Digite um e-mail válido.'})
@@ -209,9 +199,9 @@ class FormEntidade(forms.ModelForm):
 
     class Meta:
         model = Entidade
-        fields = ("nome_fantasia", "razao_social", "cnpj", "area_atuacao", "descricao", "num_vol", "num_vol_ano",
-                  "nome_resp", "sobrenome_resp", "cargo_resp", "cep", "logradouro", "bairro",
-                  "cidade", "estado", "ddd", "telefone", "email", "nome_contato", "website")
+        fields = ('nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'num_vol', 'num_vol_ano',
+                  'nome_resp', 'sobrenome_resp', 'cargo_resp', 'cep', 'logradouro', 'bairro',
+                  'cidade', 'estado', 'email', 'nome_contato', 'website')
 
     def __init__(self, *args, **kwargs):
 
@@ -256,12 +246,6 @@ class FormEntidade(forms.ModelForm):
 
     def clean_cidade(self):
         return self.cleaned_data['cidade'].strip()
-
-    def clean_ddd(self):
-        return self.cleaned_data['ddd'].strip()
-
-    def clean_telefone(self):
-        return self.cleaned_data['telefone'].strip()
 
     def clean(self):
         cleaned_data = super(FormEntidade, self).clean()
@@ -308,3 +292,57 @@ class ExtendedSignupForm(forms.Form):
     def signup(self, request, user):
         user.nome = self.cleaned_data['nome']
         user.save()
+
+class FormTelefone(forms.ModelForm):
+    "Formulário para telefone"
+    # Atenção, todos os campos são required = False para poder ignorar registros em branco no formulário
+    tipo = forms.ChoiceField(label=u'Tipo',
+                             choices=TIPO_TEL,
+                             initial=u'1', # celular
+                             widget=forms.Select(attrs={'class':'form-control'}),
+                             help_text="",
+                             required=False)
+    prefixo = forms.CharField(label=u'Prefixo',
+                              max_length=2,
+                              widget=forms.TextInput(attrs={'class':'form-control input-prefixo', 'size':2}),
+                              help_text="",
+                              required=False)
+    numero = forms.CharField(label=u'Número',
+                             max_length=15,
+                             widget=forms.TextInput(attrs={'class':'form-control input-numero', 'size':10}),
+                             help_text="",
+                             required=False)
+
+    class Meta:
+        model = Telefone
+        fields = ('tipo', 'prefixo', 'numero',)
+
+    def clean_tipo(self):
+        val = self.cleaned_data['tipo'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o tipo de telefone')
+        tipos = []
+        for tipo in TIPO_TEL:
+            tipos.append(tipo[0])
+        if val not in tipos:
+            raise forms.ValidationError(u'Verifique o tipo de telefone')
+        return val
+
+    def clean_prefixo(self):
+        # Pode não haver prefixo (há casos de 0800)
+        val = self.cleaned_data['prefixo'].strip()
+        if len(val) > 0:
+            if not val.isdigit():
+                raise forms.ValidationError(u'Utilize apenas números no prefixo')
+            if len(val) != 2:
+                raise forms.ValidationError(u'Utilize 2 dígitos no prefixo')
+        return val
+
+    def clean_numero(self):
+        val = self.cleaned_data['numero'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o número do telefone')
+        num_digitos = sum(c.isdigit() for c in val)
+        if num_digitos < 8:
+            raise forms.ValidationError(u'O número do telefone deve conter pelo menos 8 dígitos')
+        return val

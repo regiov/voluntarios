@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Count, Q, TextField
 from django.forms import Textarea
+from datetime import datetime
 
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
@@ -16,7 +17,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -146,6 +147,12 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
+class TelEntidadeInline(admin.TabularInline):
+    model = Telefone
+    fields = ['tipo', 'prefixo', 'numero', 'confirmado', 'data_confirmacao', 'confirmado_por']
+    readonly_fields = ['data_confirmacao', 'confirmado_por']
+    extra = 0
+
 class VinculoEntidadeInline(admin.TabularInline):
     model = VinculoEntidade
     fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
@@ -174,17 +181,42 @@ class AnotacaoEntidadeInline(admin.TabularInline):
         TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
     } 
 
-class EntidadeAdmin(GeoModelAdmin):
+class BaseEntidadeAdmin(admin.ModelAdmin):
+    # Grava alterações automáticas
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
+                if instance.usuario_id is None:
+                    # Grava usuário corrente em anotações e documentos
+                    instance.usuario = request.user
+            if isinstance(instance, Telefone):
+                # Atualiza status de confirmação de telefone
+                if instance.confirmado:
+                    if instance.confirmado_por is None:
+                        instance.confirmado_por = request.user
+                    if instance.data_confirmacao is None:
+                        instance.data_confirmacao = timezone.now
+                else:
+                    if instance.confirmado_por is not None:
+                        instance.confirmado_por = None
+                    instance.data_confirmacao = None
+            instance.save()
+        formset.save_m2m()
+
+class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
     search_fields = ('razao_social', 'cnpj', 'email',)
     list_filter = ('aprovado', 'confirmado', 'importado',)
     preserve_filters = True
-    exclude = ('coordenadas',)
-    readonly_fields = ('geocode_status', 'importado', 'confirmado', 'qtde_visualiza', 'ultima_visualiza',)
+    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza',)
+    readonly_fields = ('geocode_status', 'importado', 'confirmado', 'confirmado_em',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        NecessidadeInline, VinculoEntidadeInline, DocumentoInline, AnotacaoEntidadeInline
+        TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeInline, AnotacaoEntidadeInline
     ]
 
     @transaction.atomic
@@ -221,18 +253,6 @@ class EntidadeAdmin(GeoModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
-    # Grava usuário corrente em anotações
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for obj in formset.deleted_objects:
-            obj.delete()
-        for instance in instances:
-            if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
-                if instance.usuario_id is None:
-                    instance.usuario = request.user
-            instance.save()
-        formset.save_m2m()
-
 class ValidacaoEntidade(Entidade):
     """Modelo criado para realizar validação do cadastro de entidades via interface administrativa"""
     class Meta:
@@ -240,13 +260,13 @@ class ValidacaoEntidade(Entidade):
         verbose_name = u'Entidade para revisão'
         verbose_name_plural = u'Entidades para revisão'
 
-class ValidacaoEntidadeAdmin(admin.ModelAdmin):
+class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
     search_fields = ('razao_social', 'cnpj', 'email', 'cidade',)
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        DocumentoInline, AnotacaoEntidadeInline,
+        TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
@@ -266,18 +286,6 @@ class ValidacaoEntidadeAdmin(admin.ModelAdmin):
     # Exibe apenas entidades aprovadas e com o email confirmado
     def get_queryset(self, request):
         return self.model.objects.filter(aprovado=True, confirmado=True)
-
-    # Grava usuário corrente em anotações
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for obj in formset.deleted_objects:
-            obj.delete()
-        for instance in instances:
-            if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
-                if instance.usuario_id is None:
-                    instance.usuario = request.user
-            instance.save()
-        formset.save_m2m()
 
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass

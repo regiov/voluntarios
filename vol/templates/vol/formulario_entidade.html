@@ -1,6 +1,19 @@
 {% extends "vol/base_nosidebar.html" %}
+{% load staticfiles %}
 
 {% block title %}Cadastro de Entidade{% endblock title %}
+
+{% block head %}
+
+<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
+
+<script type="text/javascript">
+    $(function() {
+        $('.formset').formset({prefix: 'tel_set', deleteText: 'remover', addText: 'incluir outro'});
+    })
+</script>
+
+{% endblock head %}
 
 {% block content %}
 
@@ -9,6 +22,14 @@
 {% include "vol/mensagens.html" %}
 
 {% include "vol/erros.html" %}
+
+{% spaceless %}
+ {% for error in telformset.errors %}
+  {% for msg in error.values %}
+  <p><font face="Verdana" size="2" color="red">{{ msg }}</font></p>
+  {% endfor %}
+ {% endfor %}
+{% endspaceless %}
 
 <form id="form-entidade" method="POST" action="">{% csrf_token %}
 
@@ -40,16 +61,25 @@
 
 <fieldset>
 <legend>Contato</legend>
-<table width="100%">
+
+<label>Telefones</label>
+{{ telformset.management_form }}
+<div class="table-responsive form-group required{% if telformset.errors %} has-error{% endif %}">
+<table width="100%" class="table table-condensed" style="margin-bottom:15px;">
  <tr> 
-  <td width="10%">
-   {% include "vol/campo_formulario.html" with campo=form.ddd %}
-  </td>
-  <td width="90%" style="padding-left: 10px;">
-   {% include "vol/campo_formulario.html" with campo=form.telefone %}
-  </td>
+  <th width="10%">{{ telformset.forms.0.fields.tipo.label }}</th>
+  <th width="10%">{{ telformset.forms.0.fields.prefixo.label }}</th>
+  <th width="80%">{{ telformset.forms.0.fields.numero.label }}</th>
  </tr>
+ {% for telform in telformset %}
+ <tr class="formset">
+  <td>{{ telform.id }}{{ telform.tipo }}</td>
+  <td>{{ telform.prefixo }}</td>
+  <td>{{ telform.numero }}{{ telform.DELETE }}</td>
+ </tr>
+ {% endfor %}
 </table>
+</div>
 
 {% include "vol/campo_formulario.html" with campo=form.email %}
 {% include "vol/campo_formulario.html" with campo=form.nome_contato %}

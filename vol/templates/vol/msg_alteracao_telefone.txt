@@ -1,0 +1,8 @@
+Notificação de alteração de telefone confirmado:
+
+Entidade: {{ entidade.razao_social }}
+CNPJ: {{ entidade.cnpj }}
+
+Telefone anterior: {% for tel in telefones_anteriores %}{{ tel }}{% if not forloop.last %} / {% endif %}{% endfor %}
+
+Telefone atual: {% for tel in telefones_atuais %}{{ tel }}{% if not forloop.last %} / {% endif %}{% endfor %}

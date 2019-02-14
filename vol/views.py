@@ -14,6 +14,7 @@ from django.db.models import Q, Count
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
+from django.forms import inlineformset_factory
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
@@ -21,11 +22,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone
 
 from allauth.account.models import EmailAddress
 
-from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse
+from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone
 from vol.util import ChangeUserProfileForm
 
 from notification.utils import notify_support, notify_email
@@ -208,6 +209,7 @@ def cadastro_voluntario(request, msg=None):
         else:
             agradece_cadastro = True
             form = FormVoluntario(request.POST)
+
         if form.is_valid():
             voluntario = form.save(commit=False)
             areas_preexistentes = []
@@ -550,6 +552,8 @@ def cadastro_entidade(request, id_entidade=None):
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
 
+    FormSetTelefone = inlineformset_factory(Entidade, Telefone, fields=('tipo', 'prefixo', 'numero',), form=FormTelefone, min_num=1, max_num=5, extra=0, validate_min=True)
+
     entidade = None
 
     # Entidades gerenciadas pelo usuário
@@ -571,11 +575,14 @@ def cadastro_entidade(request, id_entidade=None):
         if entidade is not None:
             
             form = FormEntidade(instance=entidade)
+            telformset = FormSetTelefone(instance=entidade)
+
         else:
             
             if 'nova' in request.GET:
                 
                 form = FormEntidade()
+                telformset = FormSetTelefone()
             else:
                 
                 # Exibe lista de entidades
@@ -599,16 +606,21 @@ def cadastro_entidade(request, id_entidade=None):
             # antes de criar o formulário.
             
             # Armazena alguns valores originais pra ver se mudaram
-            email_anterior = entidade.email.lower()
-            nome_fantasia_anterior = entidade.nome_fantasia.lower()
-            razao_social_anterior = entidade.razao_social.lower()
+            email_anterior = entidade.email.lower() if entidade.email else ''
+            nome_fantasia_anterior = entidade.nome_fantasia.lower() if entidade.nome_fantasia else ''
+            razao_social_anterior = entidade.razao_social.lower() if entidade.razao_social else ''
             endereco_original = entidade.endereco()
+            telefones_anteriores = list(entidade.tel_set.all().order_by('id')) # força busca
 
             form = FormEntidade(request.POST, instance=entidade)
+            telformset = FormSetTelefone(request.POST, request.FILES, instance=entidade)
+
         else:
+
             form = FormEntidade(request.POST)
-        
-        if form.is_valid():
+            telformset = FormSetTelefone(request.POST, request.FILES)
+
+        if form.is_valid() and telformset.is_valid():
 
             # Entidade já cadastrada no banco
             if entidade is not None:
@@ -616,6 +628,7 @@ def cadastro_entidade(request, id_entidade=None):
                 entidade = form.save(commit=False)
                 entidade.ultima_atualizacao = datetime.datetime.now()
                 entidade.save()
+                telformset.save()
                 messages.info(request, u'Alterações gravadas com sucesso!')
 
                 if email_anterior != request.POST['email'].lower():
@@ -636,10 +649,29 @@ def cadastro_entidade(request, id_entidade=None):
                 if endereco_original != entidade.endereco():
                     entidade.geocode()
 
+                # Caso tenha alterado telefone aprovado, notifica alteração
+                houve_mudanca = False
+                telefones_atuais = entidade.tel_set.all().order_by('id')
+                for tel in telefones_atuais:
+                    if tel.confirmado:
+                        for tel_orig in telefones_anteriores:
+                            if tel_orig.id == tel.id:
+                                if tel.mudou_numero(tel_orig):
+                                    houve_mudanca = True
+                                    tel.confirmado = False
+                                    tel.confirmado_por = None
+                                    tel.data_confirmacao = None
+                                    tel.save(update_fields=['confirmado', 'confirmado_por', 'data_confirmacao'])
+                                break
+                if houve_mudanca:
+                    notify_email(settings.NOTIFY_USER_FROM, u'Alteração de telefone', 'vol/msg_alteracao_telefone.txt', from_email=settings.NOREPLY_EMAIL, context={'entidade': entidade, 'telefones_anteriores': telefones_anteriores, 'telefones_atuais': telefones_atuais})
+
             # Nova entidade
             else:
 
                 entidade = form.save(commit=True)
+                telformset.instance = entidade
+                telformset.save()
 
                 msg = u'Entidade cadastrada com sucesso!'
 
@@ -669,7 +701,8 @@ def cadastro_entidade(request, id_entidade=None):
             return redirect('/entidade/cadastro')
 
     # Exibe formulário de cadastro de entidade
-    context = {'form': form}
+    context = {'form': form,
+               'telformset': telformset}
     template = loader.get_template('vol/formulario_entidade.html')
     return HttpResponse(template.render(context, request))
 

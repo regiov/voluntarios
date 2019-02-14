@@ -624,3 +624,42 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
     if not old_file == new_file:
         if os.path.isfile(old_file.path):
             os.remove(old_file.path)
+
+TIPO_TEL = (
+    ( u'1', u'cel' ),
+    ( u'2', u'com' ),
+    ( u'3', u'res' ),
+)
+
+class Telefone(models.Model):
+    """Telefone de um voluntário ou de uma entidade"""
+    entidade           = models.ForeignKey(Entidade, on_delete=models.CASCADE, null=True, related_name='tel_set')
+    voluntario         = models.ForeignKey(Voluntario, on_delete=models.CASCADE, null=True, related_name='tel_set')
+    tipo               = models.CharField(u'Tipo', max_length=1, choices=TIPO_TEL, null=True, blank=True)
+    prefixo            = models.CharField(u'Prefixo', max_length=4, null=True, blank=True)
+    numero             = models.CharField(u'Número', max_length=15)
+    confirmado         = models.BooleanField(u'Confirmado', default=False)
+    data_confirmacao   = models.DateTimeField(u'Data da confirmação', null=True, blank=True)
+    confirmado_por     = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return u'(' + self.prefixo + u') ' + self.numero
+
+    def save(self, *args, **kwargs):
+        # Trata campos mutuamente exclusivos. Se colocar isso no "clean", fica
+        # complicado lidar com formulários que têm campos das classes pai e filho
+        # ao mesmo tempo, pois telefones de novos voluntarios só poderiam ser
+        # validados depois da inclusão do voluntario. Se colocar no pre-save, dá
+        # outro erro maluco em novos telefones
+        # (self.voluntario e self.entidade apontam para objetos temporários do tipo lazy)
+        if self.voluntario is None and self.entidade is None:
+            raise ValidationError(u'Dono do telefone não especificado')
+        else:
+            if self.voluntario is not None and self.entidade is not None:
+                raise ValidationError(u'Mais de um dono especificado para o mesmo telefone '+str(self.voluntario) + u' ' + str(self.entidade))
+        super(Telefone, self).save(*args, **kwargs)
+
+    def mudou_numero(self, obj):
+        if obj.numero and self.numero:
+            return self.numero.strip().replace(' ', '').replace('-', '') != obj.numero.strip().replace(' ', '').replace('-', '')
+        return None
