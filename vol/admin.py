@@ -212,7 +212,7 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     search_fields = ('razao_social', 'cnpj', 'email',)
     list_filter = ('aprovado', 'confirmado', 'importado',)
     preserve_filters = True
-    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza',)
+    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza', 'mytags',)
     readonly_fields = ('geocode_status', 'importado', 'confirmado', 'confirmado_em',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
@@ -263,7 +263,7 @@ class ValidacaoEntidade(Entidade):
 class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
     search_fields = ('razao_social', 'cnpj', 'email', 'cidade',)
-    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao']
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao', 'mytags']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
         TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,

@@ -14,21 +14,21 @@
         ]]></text>
       </BalloonStyle>{% endcomment %}
     </Style>
-{% for entidade in entidades %}{% with telefone=entidade.numero_telefone %}    <Placemark>
+{% for entidade in entidades %}    <Placemark>
       <name>{{ entidade.razao_social|escape }}</name>
       <description><![CDATA[
-        <h2><a href="{% url 'exibe_entidade' entidade.id %}">{% if entidade.nome_fantasia %}{{ entidade.nome_fantasia|escape }}{% else %}{{ entidade.razao_social|escape }}{% endif %}</a></h2><p>{{ entidade.endereco|escape }}</p>{% if telefone %}<p>{{ telefone|escape }}</p>{% endif %}<p>{{ entidade.email }}</p>
+        <h2><a href="{% url 'exibe_entidade' entidade.id %}">{% if entidade.nome_fantasia %}{{ entidade.nome_fantasia|escape }}{% else %}{{ entidade.razao_social|escape }}{% endif %}</a></h2><p>{{ entidade.endereco|escape }}</p>{% if entidade.telefones %}<p>{{ entidade.telefones|escape }}</p>{% endif %}<p>{{ entidade.email }}</p>
         ]]></description>
       <styleUrl>#mystyle</styleUrl>{% comment %}
       <ExtendedData>
-        <Data name="endereco"><value>{{ entidade.endereco|escape }}</value></Data>{% if telefone %}
-        <Data name="telefone"><value>{{ telefone|escape }}</value></Data>{% endif %}
+        <Data name="endereco"><value>{{ entidade.endereco|escape }}</value></Data>{% if entidade.telefones %}
+        <Data name="telefone"><value>{{ entidade.telefones|escape }}</value></Data>{% endif %}
         <Data name="email"><value>{{ entidade.email }}</value></Data>
       </ExtendedData>{% endcomment %}
       <Point>
         <coordinates>{% localize off %}{{ entidade.coordenadas.x }},{{ entidade.coordenadas.y }},0{% endlocalize %}</coordinates>
       </Point>
     </Placemark>
-{% endwith %}{% endfor %}
+{% endfor %}
   </Document>
 </kml>

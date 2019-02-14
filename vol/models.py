@@ -321,6 +321,8 @@ class Entidade(models.Model):
     agencia            = models.CharField(u'Agência', max_length=14, null=True, blank=True) 
     conta              = models.CharField(u'Conta', max_length=26, null=True, blank=True) 
 
+    mytags             = models.CharField(u'Tags (sep. por vírgula)', max_length=100, null=True, blank=True) 
+
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     confirmado_em      = models.DateTimeField(u'Data da confirmação do e-mail', null=True, blank=True)
@@ -387,11 +389,17 @@ class Entidade(models.Model):
             endereco = endereco + self.estado
         return endereco
 
-    def numero_telefone(self):
-        '''Retorna número completo do telefone: (ddd) número'''
-        if self.ddd:
-            return '(' + self.ddd + ') ' + self.telefone
-        return self.telefone
+    @cached_property
+    def telefones(self):
+        '''Retorna número completo dos telefones: (ddd) número'''
+        telefones = ''
+        i = 0
+        for tel in self.tel_set.all().order_by('id'):
+            if i > 0:
+                telefones = telefones + u' ou '
+            telefones = telefones + str(tel)
+            i = i + 1
+        return telefones
 
     def status(self):
         if self.aprovado is None:
