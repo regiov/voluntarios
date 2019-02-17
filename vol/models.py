@@ -225,7 +225,7 @@ class Voluntario(models.Model):
     def hit(self):
         '''Contabiliza mais uma visualização do registro'''
         self.qtde_visualiza = self.qtde_visualiza + 1
-        self.ultima_visualiza = datetime.now()
+        self.ultima_visualiza = timezone.now()
         self.save(update_fields=['qtde_visualiza', 'ultima_visualiza'])
 
     def iniciais(self):
@@ -364,7 +364,7 @@ class Entidade(models.Model):
     def hit(self):
         '''Contabiliza mais uma visualização do registro'''
         self.qtde_visualiza = self.qtde_visualiza + 1
-        self.ultima_visualiza = datetime.now()
+        self.ultima_visualiza = timezone.now()
         self.save(update_fields=['qtde_visualiza', 'ultima_visualiza'])
 
     def menor_nome(self):
