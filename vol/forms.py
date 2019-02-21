@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from django import forms
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
@@ -183,9 +183,6 @@ class FormEntidade(forms.ModelForm):
                                choices=UFS_SIGLA,
                                widget=forms.Select(attrs={'class':'form-control'}),
                                help_text="")
-    email = forms.EmailField(label=u'E-mail',
-                             widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
-                             error_messages={'invalid': u'Digite um e-mail válido.'})
     nome_contato = forms.CharField(label=u'Falar com',
                                    max_length=100,
                                    widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
@@ -201,7 +198,7 @@ class FormEntidade(forms.ModelForm):
         model = Entidade
         fields = ('nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'num_vol', 'num_vol_ano',
                   'nome_resp', 'sobrenome_resp', 'cargo_resp', 'cep', 'logradouro', 'bairro',
-                  'cidade', 'estado', 'email', 'nome_contato', 'website')
+                  'cidade', 'estado', 'nome_contato', 'website')
 
     def __init__(self, *args, **kwargs):
 
@@ -219,11 +216,6 @@ class FormEntidade(forms.ModelForm):
         if instance and instance.pk and instance.cnpj and len(instance.cnpj) > 0:
             return instance.cnpj
         return self.cleaned_data['cnpj']
-        
-    def clean_email(self):
-        # Deixar e-mail em caixa baixa para padronização
-        val = self.cleaned_data['email'].strip().lower()
-        return val
 
     def clean_num_vol(self):
         val = self.cleaned_data['num_vol'].strip()
@@ -301,17 +293,17 @@ class FormTelefone(forms.ModelForm):
                              initial=u'1', # celular
                              widget=forms.Select(attrs={'class':'form-control'}),
                              help_text="",
-                             required=False)
+                             required=False) # melhor a msg de erro do clean
     prefixo = forms.CharField(label=u'Prefixo',
                               max_length=2,
                               widget=forms.TextInput(attrs={'class':'form-control input-prefixo', 'size':2}),
                               help_text="",
-                              required=False)
+                              required=False) # melhor a msg de erro do clean
     numero = forms.CharField(label=u'Número',
                              max_length=15,
                              widget=forms.TextInput(attrs={'class':'form-control input-numero', 'size':10}),
                              help_text="",
-                             required=False)
+                             required=False) # melhor a msg de erro do clean
 
     class Meta:
         model = Telefone
@@ -331,7 +323,9 @@ class FormTelefone(forms.ModelForm):
     def clean_prefixo(self):
         # Pode não haver prefixo (há casos de 0800)
         val = self.cleaned_data['prefixo'].strip()
-        if len(val) > 0:
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o prefixo do telefone')
+        else:
             if not val.isdigit():
                 raise forms.ValidationError(u'Utilize apenas números no prefixo')
             if len(val) != 2:
@@ -345,4 +339,28 @@ class FormTelefone(forms.ModelForm):
         num_digitos = sum(c.isdigit() for c in val)
         if num_digitos < 8:
             raise forms.ValidationError(u'O número do telefone deve conter pelo menos 8 dígitos')
+        return val
+
+class FormEmail(forms.ModelForm):
+    "Formulário para e-mail"
+    # Atenção, todos os campos são required = False para poder ignorar registros em branco no formulário
+    endereco = forms.EmailField(label=u'',
+                                widget=forms.TextInput(attrs={'class':'form-control input-endereco', 'size':30}),
+                                error_messages={'invalid': u'Digite um e-mail válido.'},
+                                required=False) # melhor a msg de erro do clean)
+    principal = forms.BooleanField(label=u'Principal',
+                                   initial=True,
+                                   widget=forms.CheckboxInput(attrs={'class':'input-principal'}),
+                                   help_text="",
+                                   required=False)
+
+    class Meta:
+        model = Email
+        fields = ('endereco', 'principal',)
+        
+    def clean_endereco(self):
+        # Deixar e-mail em caixa baixa para padronização
+        val = self.cleaned_data['endereco'].strip().lower()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o e-mail')
         return val

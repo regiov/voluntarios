@@ -2,7 +2,7 @@ Olá!
 
 Você está recebendo esta mensagem porque a entidade "{{ nome }}" foi cadastrada ou teve seu e-mail atualizado no site voluntarios.com.br. Para confirmar o e-mail basta clicar no link abaixo:
 
-{{ scheme }}://{{ host }}{% url 'valida_email_entidade' %}?t={{ key }}
+{{ scheme }}://{{ host }}{% url 'valida_email_entidade' %}?o={{ key }}
 
 Obrigado!
 Equipe voluntarios.com.br 

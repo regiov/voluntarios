@@ -354,12 +354,64 @@ class Entidade(models.Model):
         return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True).count() > 0
 
     @cached_property
+    def email_principal_obj(self):
+        '''Retorna o endereço de e-mail principal como objeto'''
+        try:
+            return self.email_set.filter(principal=True)[0]
+        except Exception:
+            return None
+
+    @cached_property
+    def email_principal(self):
+        '''Retorna o endereço de e-mail principal'''
+        email = self.email_principal_obj
+        if email:
+            return email.endereco
+        return None
+
+    @cached_property
+    def email_principal_confirmado(self):
+        '''Indica se o endereço de e-mail principal foi confirmado'''
+        email = self.email_principal_obj
+        if email:
+            return email.confirmado
+        return False
+
+    @cached_property
+    def emails(self):
+        '''Retorna os endereços de e-mail'''
+        emails = ''
+        i = 0
+        for email in self.email_set.all().order_by('id'):
+            if i > 0:
+                emails = emails + u' ou '
+            emails = emails + email.html()
+            i = i + 1
+        return emails
+
+    @cached_property
     def has_valid_email(self):
         try:
-            validate_email(self.email)
+            validate_email(self.email_principal)
             return True
         except Exception:
             return False
+
+    def verifica_email_principal(self):
+        '''Garante apenas um e-mail principal por entidade'''
+        tem_principal = False
+        emails = self.email_set.all()
+        for email in emails:
+            if email.principal:
+                if tem_principal:
+                    # Se já tem e-mail principal, fica apenas com ele
+                    email.principal = False
+                    email.save(update_fields=['principal'])
+                tem_principal = True
+        if len(emails) > 0 and not tem_principal:
+            # Se não houver e-mail principal, marca o primeiro como sendo
+            emails[0].principal = True
+            emails[0].save(update_fields=['principal'])
 
     def hit(self):
         '''Contabiliza mais uma visualização do registro'''
@@ -672,3 +724,46 @@ class Telefone(models.Model):
         if obj.numero and self.numero:
             return self.numero.strip().replace(' ', '').replace('-', '') != obj.numero.strip().replace(' ', '').replace('-', '')
         return None
+
+EMAIL_SALT = 'email'
+
+class EmailManager(models.Manager):
+
+    def from_hmac_key(self, key):
+        "Retorna um email com base na sua chave hmac"
+        try:
+            max_age = (60 * 60 * 24 * allauth_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
+            pk = signing.loads(key, max_age=max_age, salt=EMAIL_SALT)
+            ret = Email.objects.get(pk=pk)
+        except (signing.SignatureExpired, signing.BadSignature, Email.DoesNotExist):
+            ret = None
+        return ret
+
+class Email(models.Model):
+    '''E-mail. Obs: Na verdade o mesmo e-mail pode ser usado por mais de uma entidade, portanto
+    o correto seria uma relação m2m.'''
+    entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='email_set')
+    endereco         = models.CharField(u'E-mail', max_length=90)
+    principal        = models.BooleanField(u'Principal', default=True)
+    confirmado       = models.BooleanField(u'Confirmado', default=False)
+    data_confirmacao = models.DateTimeField(u'Data da última confirmação', null=True, blank=True)
+
+    objects = EmailManager()
+
+    class Meta:
+        verbose_name = u'E-mail'
+        verbose_name_plural = u'E-mails'
+        unique_together = ('entidade', 'endereco')
+
+    def __str__(self):
+        return self.endereco
+
+    def hmac_key(self):
+        "Retorna a chave hmac do email"
+        if self.pk:
+            return signing.dumps(obj=self.pk, salt=EMAIL_SALT)
+        raise ValueError(u'Email sem chave primária')
+
+    def html(self):
+        '''Retorna o endereço com link'''
+        return '<a href="mailto:' + self.endereco + '">' + self.endereco + '</a>'

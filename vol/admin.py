@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
+from django.utils import timezone
 from django.db.models import Count, Q, TextField
 from django.forms import Textarea
 from datetime import datetime
@@ -17,7 +18,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -147,6 +148,23 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
+class EmailEntidadeInline(admin.TabularInline):
+    model = Email
+    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
+    extra = 0
+
+class ReadOnlyEmailEntidadeInline(admin.TabularInline):
+    model = Email
+    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
+    readonly_fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 class TelEntidadeInline(admin.TabularInline):
     model = Telefone
     fields = ['tipo', 'prefixo', 'numero', 'contato', 'confirmado', 'data_confirmacao', 'confirmado_por']
@@ -198,25 +216,32 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
                     if instance.confirmado_por is None:
                         instance.confirmado_por = request.user
                     if instance.data_confirmacao is None:
-                        instance.data_confirmacao = timezone.now
+                        instance.data_confirmacao = timezone.now()
                 else:
                     if instance.confirmado_por is not None:
                         instance.confirmado_por = None
                     instance.data_confirmacao = None
             instance.save()
         formset.save_m2m()
+        # Neste ponto já gravou alterações nos e-mails, então pode verificar unicidade do principal
+        form.instance.verifica_email_principal()
+
+    def email_confirmado(self, instance):
+        return instance.email_principal_confirmado
+    email_confirmado.boolean = True
+    email_confirmado.short_description = u'E-mail confirmado'
 
 class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
-    list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'importado', 'confirmado', 'aprovado',)
+    list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'email_confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
-    search_fields = ('razao_social', 'cnpj', 'email',)
-    list_filter = ('aprovado', 'confirmado', 'importado',)
+    search_fields = ('razao_social', 'cnpj', 'email_set__endereco',)
+    list_filter = ('aprovado', 'importado',)
     preserve_filters = True
     exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza', 'mytags',)
-    readonly_fields = ('geocode_status', 'importado', 'confirmado', 'confirmado_em',)
+    readonly_fields = ('geocode_status', 'importado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeInline, AnotacaoEntidadeInline
+        EmailEntidadeInline, TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeInline, AnotacaoEntidadeInline
     ]
 
     @transaction.atomic
@@ -261,12 +286,12 @@ class ValidacaoEntidade(Entidade):
         verbose_name_plural = u'Entidades para revisão'
 
 class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
-    list_display = ('razao_social', 'cnpj', 'email', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
-    search_fields = ('razao_social', 'cnpj', 'email', 'cidade',)
-    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao', 'mytags']
-    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'email', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
+    list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
+    search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao', 'mytags']
+    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
+        ReadOnlyEmailEntidadeInline, TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
@@ -283,9 +308,9 @@ class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
             del actions['delete_selected']
         return actions
 
-    # Exibe apenas entidades aprovadas e com o email confirmado
+    # Exibe apenas entidades aprovadas
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True, confirmado=True)
+        return self.model.objects.filter(aprovado=True)
 
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass

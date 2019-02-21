@@ -9,8 +9,9 @@
 
 <script type="text/javascript">
     $(function() {
-        $('.formset').formset({prefix: 'tel_set', deleteText: 'remover', addText: 'incluir outro'});
-    })
+        $('.telformset').formset({formCssClass: 'telformset', prefix: 'tel_set', deleteText: 'remover', addText: 'incluir outro'});
+        $('.emailformset').formset({formCssClass: 'emailformset', prefix: 'email_set', deleteCssClass: 'delete-row-distinct', addCssClass: 'add-row-distinct', deleteText: 'remover', addText: 'incluir outro'});
+    });
 </script>
 
 {% endblock head %}
@@ -25,9 +26,10 @@
 
 {% spaceless %}
  {% for error in telformset.errors %}
-  {% for msg in error.values %}
-  <p><font face="Verdana" size="2" color="red">{{ msg }}</font></p>
-  {% endfor %}
+  {% for msg in error.values %}<p><font face="Verdana" size="2" color="red">{{ msg }}</font></p>{% endfor %}
+ {% endfor %}
+ {% for error in emailformset.errors %}
+  {% for msg in error.values %}<p><font face="Verdana" size="2" color="red">{{ msg }}</font></p>{% endfor %}
  {% endfor %}
 {% endspaceless %}
 
@@ -65,14 +67,14 @@
 <label>Telefones</label>
 {{ telformset.management_form }}
 <div class="table-responsive form-group required{% if telformset.errors %} has-error{% endif %}">
-<table width="100%" class="table table-condensed" style="margin-bottom:15px;">
+<table width="100%" class="table table-condensed">
  <tr> 
   <th width="10%">{{ telformset.forms.0.fields.tipo.label }}</th>
   <th width="10%">{{ telformset.forms.0.fields.prefixo.label }}</th>
   <th width="80%">{{ telformset.forms.0.fields.numero.label }}</th>
  </tr>
  {% for telform in telformset %}
- <tr class="formset">
+ <tr class="telformset">
   <td>{{ telform.id }}{{ telform.tipo }}</td>
   <td>{{ telform.prefixo }}</td>
   <td>{{ telform.numero }}{{ telform.DELETE }}</td>
@@ -81,7 +83,23 @@
 </table>
 </div>
 
-{% include "vol/campo_formulario.html" with campo=form.email %}
+<label>E-mails</label>
+{{ emailformset.management_form }}
+<div class="table-responsive form-group required{% if emailformset.errors %} has-error{% endif %}">
+<table width="100%" class="table table-condensed">
+ <tr> 
+  <th>{{ emailformset.forms.0.fields.endereco.label }}</th>
+  <th width="100px">{{ emailformset.forms.0.fields.principal.label }}</th>
+ </tr>
+ {% for emailform in emailformset %}
+ <tr class="emailformset">
+  <td>{{ emailform.id }}{{ emailform.endereco }}</td>
+  <td>{{ emailform.principal }}{{ emailform.DELETE }}</td>
+ </tr>
+ {% endfor %}
+</table>
+</div>
+
 {% include "vol/campo_formulario.html" with campo=form.nome_contato %}
 </fieldset>
 
@@ -116,5 +134,16 @@
 {% endif %}
 
 </form>
+
+<script type="text/javascript">
+    $("input.input-principal").click(function() {
+        var selected_id = $(this).attr('id');
+        $("input.input-principal").each(function( index ) {
+            if ($(this).attr('id') !== selected_id) {
+                $(this).prop('checked', false);
+            }
+        });
+    });
+</script> 
 
 {% endblock content %}

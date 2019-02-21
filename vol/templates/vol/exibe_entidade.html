@@ -18,7 +18,7 @@
 <p><label>Endereço:</label> {% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}{{ entidade.cep }} {% endif %}{{ entidade.cidade }}-{{ entidade.estado }}</p>
 {% if entidade.contato %}<p><label>Contato:</label> {{ entidade.contato|default:"-" }}</p>{% endif %}
 <p><label>Telefone:</label> {% for tel in entidade.tel_set.all %}{{ tel }}{% if not forloop.last %} ou {% endif %}{% empty %}-{% endfor %}
-{% if entidade.email %}<p><label>E-mail:</label> <a href="mailto:{{ entidade.email }}">{{ entidade.email }}</a></p>{% endif %}
+{% if entidade.emails %}<p><label>E-mail:</label> {{ entidade.emails|safe }}</a></p>{% endif %}
 {% if entidade.website %}<p><label>Home page:</label> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
 </div>
 <br>

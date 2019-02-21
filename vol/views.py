@@ -22,11 +22,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email
 
 from allauth.account.models import EmailAddress
 
-from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone
+from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
 from vol.util import ChangeUserProfileForm
 
 from notification.utils import notify_support, notify_email
@@ -422,13 +422,13 @@ def link_entidade_nova(request):
     messages.info(request, u'<strong>Para cadastrar uma entidade, é preciso antes possuir um cadastro de usuário (pessoa física).</strong>')
     return redirect('/aut/signup')
 
-def envia_confirmacao_email_entidade(request, entidade):
-    context = {'nome': entidade.menor_nome(),
+def envia_confirmacao_email_entidade(request, email):
+    context = {'nome': email.entidade.menor_nome(),
                'scheme': 'https' if request.is_secure() else 'http',
                'host': request.get_host(),
-               'key': entidade.hmac_key()}
+               'key': email.hmac_key()}
     try:
-        notify_email(entidade.email, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email(email.endereco, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
     except Exception as e:
         # Se houver erro o próprio notify_email já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
@@ -453,8 +453,12 @@ def reenvia_confirmacao_email_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         messages.error(request, u'Não é permitido enviar confirmação para esta entidade!')
         return lista_entidades_vinculadas(request)
-    envia_confirmacao_email_entidade(request, entidade)
-    messages.info(request, u'Mensagem de confirmação reenviada. Verifique a caixa postal do e-mail da entidade e clique no link fornecido na mensagem.')
+    # Verifica se email já foi confirmado
+    if entidade.email_principal_confirmado:
+        messages.error(request, u'O e-mail principal da entidade já consta como confirmado!')
+        return lista_entidades_vinculadas(request)
+    envia_confirmacao_email_entidade(request, entidade.email_principal_obj)
+    messages.info(request, u'Mensagem de confirmação reenviada para ' + entidade.email_principal + '. Verifique a caixa postal do e-mail da entidade e clique no link fornecido na mensagem.')
     # Melhor redirecionar para evitar link recarregável indesejado
     return redirect('/entidade/cadastro')
 
@@ -464,15 +468,33 @@ def valida_email_entidade(request):
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
-    if 't' not in request.GET:
-        return HttpResponseBadRequest('Ausência do parâmetro t')
-    entidade = Entidade.objects.from_hmac_key(request.GET['t'])
-    if entidade is None:
-        messages.error(request, u'Não foi possível validar o e-mail. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
-        return mensagem(request, u'Validação de e-mail de entidade')
-    entidade.confirmado = True
-    entidade.confirmado_em = datetime.datetime.now()
-    entidade.save(update_fields=['confirmado', 'confirmado_em'])
+    if 't' in request.GET:
+        # Validação antiga, quando só havia um e-mail por entidade
+        # OBS: REMOVER depois que não houver mais nenhuma entidade com
+        #      validação de e-mail pendente antes de 16/02/2019
+        entidade = Entidade.objects.from_hmac_key(request.GET['t'])
+        if entidade is None:
+            messages.error(request, u'Não foi possível validar o e-mail. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+            return mensagem(request, u'Validação de e-mail de entidade')
+        email_principal = entidade.email_principal_obj
+        if not email_principal:
+            messages.error(request, u'Não foi possível validar o e-mail principal desta entidade. Nossa equipe de suporte já foi notificada para verificar a situação do cadastro desta entidade.')
+            notify_support(u'Entidade sem e-mail principal', str(entidade.id) + u': ' + entidade.razao_social, request)
+            return mensagem(request, u'Validação de e-mail de entidade')
+        email_principal.confirmado = True
+        email_principal.data_confirmacao = datetime.datetime.now()
+        email_principal.save(update_fields=['confirmado', 'data_confirmacao'])
+    elif 'o' in request.GET:
+        email = Email.objects.from_hmac_key(request.GET['o'])
+        if email is None:
+            messages.error(request, u'Não foi possível validar o e-mail. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+            return mensagem(request, u'Validação de e-mail de entidade')
+        email.confirmado = True
+        # obs: caso já tenha sido confirmado anteriormente, atualiza data de confirmação
+        email.data_confirmacao = datetime.datetime.now()
+        email.save(update_fields=['confirmado', 'data_confirmacao'])
+    else:
+        return HttpResponseBadRequest('Ausência do parâmetro token')
     msg = u'E-mail confirmado com sucesso!'
     if not entidade.aprovado:
         msg = msg + ' Agora basta aguardar a aprovação do cadastro para que a entidade apareça nas buscas.'
@@ -489,7 +511,7 @@ def envia_confirmacao_vinculo(request, id_entidade):
         return mensagem(request, u'Solicitação de vínculo com entidade')
 
     # Verifica se a entidade possui e-mail
-    if not entidade.email:
+    if not entidade.email_principal:
         messages.error(request, u'Esta entidade não possui e-mail. Entre em contato conosco para resolver isso.')
         return mensagem(request, u'Solicitação de vínculo com entidade')
 
@@ -512,13 +534,13 @@ def envia_confirmacao_vinculo(request, id_entidade):
                'host': request.get_host(),
                'key': vinculo.hmac_key()}
     try:
-        notify_email(entidade.email, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email(entidade.email_principal, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
     except Exception as e:
         # Se houver erro o próprio notify_email já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
-    messages.info(request, u'Acabamos de enviar uma mensagem para o e-mail ' + entidade.email + '. Alguém com acesso à caixa postal da entidade deverá clicar no link fornecido na mensagem para confirmar a existência do seu vínculo com a entidade, permitindo que você possa editar os dados cadastrais da mesma. Entre em contato com a pessoa se necessário.')
+    messages.info(request, u'Acabamos de enviar uma mensagem para o e-mail ' + entidade.email_principal + '. Alguém com acesso à caixa postal da entidade deverá clicar no link fornecido na mensagem para confirmar a existência do seu vínculo com a entidade, permitindo que você possa editar os dados cadastrais da mesma. Entre em contato com a pessoa se necessário.')
     return mensagem(request, u'Solicitação de vínculo com entidade')
 
 def confirma_vinculo(request):
@@ -535,7 +557,7 @@ def confirma_vinculo(request):
     vinculo.confirmado = True
     vinculo.save(update_fields=['confirmado'])
     # Se houver outras entidades com o mesmo e-mail sem ninguém vinculado a elas, já cria outros vínculos com o mesmo usuário
-    entidades_com_mesmo_email = Entidade.objects.filter(email=vinculo.entidade.email).exclude(pk=vinculo.entidade.pk)
+    entidades_com_mesmo_email = Entidade.objects.filter(email_set__endereco=vinculo.entidade.email_principal).exclude(pk=vinculo.entidade.pk)
     for entidade_irma in entidades_com_mesmo_email:
         if VinculoEntidade.objects.filter(entidade=entidade_irma).count() == 0:
             novo_vinculo = VinculoEntidade(entidade=entidade_irma, usuario=request.user, confirmado=True)
@@ -553,6 +575,8 @@ def cadastro_entidade(request, id_entidade=None):
         return HttpResponseNotAllowed(metodos)
 
     FormSetTelefone = inlineformset_factory(Entidade, Telefone, fields=('tipo', 'prefixo', 'numero',), form=FormTelefone, min_num=1, max_num=5, extra=0, validate_min=True)
+
+    FormSetEmail = inlineformset_factory(Entidade, Email, fields=('endereco', 'principal',), form=FormEmail, min_num=1, max_num=5, extra=0, validate_min=True)
 
     entidade = None
 
@@ -576,6 +600,7 @@ def cadastro_entidade(request, id_entidade=None):
             
             form = FormEntidade(instance=entidade)
             telformset = FormSetTelefone(instance=entidade)
+            emailformset = FormSetEmail(instance=entidade)
 
         else:
             
@@ -583,6 +608,7 @@ def cadastro_entidade(request, id_entidade=None):
                 
                 form = FormEntidade()
                 telformset = FormSetTelefone()
+                emailformset = FormSetEmail()
             else:
                 
                 # Exibe lista de entidades
@@ -606,21 +632,23 @@ def cadastro_entidade(request, id_entidade=None):
             # antes de criar o formulário.
             
             # Armazena alguns valores originais pra ver se mudaram
-            email_anterior = entidade.email.lower() if entidade.email else ''
             nome_fantasia_anterior = entidade.nome_fantasia.lower() if entidade.nome_fantasia else ''
             razao_social_anterior = entidade.razao_social.lower() if entidade.razao_social else ''
             endereco_original = entidade.endereco()
             telefones_anteriores = list(entidade.tel_set.all().order_by('id')) # força busca
+            emails_anteriores = list(entidade.email_set.all().order_by('id'))  # força busca
 
             form = FormEntidade(request.POST, instance=entidade)
             telformset = FormSetTelefone(request.POST, request.FILES, instance=entidade)
+            emailformset = FormSetEmail(request.POST, request.FILES, instance=entidade)
 
         else:
 
             form = FormEntidade(request.POST)
             telformset = FormSetTelefone(request.POST, request.FILES)
+            emailformset = FormSetEmail(request.POST, request.FILES)
 
-        if form.is_valid() and telformset.is_valid():
+        if form.is_valid() and telformset.is_valid() and emailformset.is_valid():
 
             # Entidade já cadastrada no banco
             if entidade is not None:
@@ -629,15 +657,42 @@ def cadastro_entidade(request, id_entidade=None):
                 entidade.ultima_atualizacao = datetime.datetime.now()
                 entidade.save()
                 telformset.save()
+                emailformset.save()
+
                 messages.info(request, u'Alterações gravadas com sucesso!')
 
-                if email_anterior != request.POST['email'].lower():
-                    # Se alterou o email, força nova confirmação
-                    entidade.confirmado = False
-                    entidade.save(update_fields=['confirmado'])
-                    # Envia mensagem com link de confirmação
-                    envia_confirmacao_email_entidade(request, entidade)
-                    messages.info(request, u'Verifique a caixa postal da entidade para efetuar a validação do novo e-mail.')
+                num_confirmacoes = 0
+
+                # Envia confirmação de e-mail para os novos e-mails cadastrados
+                for email in emailformset.new_objects:
+                    # Se o email já existe no sistema e já foi confirmado por alguém anteriormente
+                    if EmailAddress.objects.filter(email__iexact=email.endereco, verified=True).count() > 0 or Email.objects.filter(endereco__iexact=email.endereco, confirmado=True).count() > 0:
+                        # Confirma automaticamente
+                        email.confirmado = True
+                        # obs: não especifica data de confirmação quando o e-mail é confirmado "por tabela"
+                        email.save(update_fields=['confirmado'])
+                    else:
+                        # Do contrário dispara nova confirmação de e-mail
+                        envia_confirmacao_email_entidade(request, email)
+                        num_confirmacoes = num_confirmacoes + 1
+
+                # Verifica se algum email que já havia sido confirmado foi alterado
+                for obj_tuple in emailformset.changed_objects:
+                    if obj_tuple[0].confirmado:
+                        for email_anterior in emails_anteriores:
+                            if email_anterior.id == obj_tuple[0].id:
+                                if email_anterior.endereco != obj_tuple[0].endereco:
+                                    obj_tuple[0].confirmado = False
+                                    obj_tuple[0].data_confirmacao = None
+                                    obj_tuple[0].save(update_fields=['confirmado', 'data_confirmacao'])
+                                    envia_confirmacao_email_entidade(request, obj_tuple[0])
+                                    num_confirmacoes = num_confirmacoes + 1
+                                break
+
+                if num_confirmacoes > 1:
+                    messages.info(request, u'Foram enviadas mensagens de confirmação para e-mails novos ou alterados. Verifique a caixa postal para efetuar a validação deles.')
+                elif num_confirmacoes > 0:
+                    messages.info(request, u'Foi enviada uma mensagem de confirmação para o e-mail novo ou alterado. Verifique a caixa postal para efetuar a validação do mesmo.')
 
                 # Força reaprovação de cadastro caso dados importantes tenham mudado
                 if entidade.aprovado and (nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower()):
@@ -672,21 +727,35 @@ def cadastro_entidade(request, id_entidade=None):
                 entidade = form.save(commit=True)
                 telformset.instance = entidade
                 telformset.save()
+                emailformset.instance = entidade
+                emailformset.save()
 
                 msg = u'Entidade cadastrada com sucesso!'
 
-                # Se o email já existe no sistema e já foi confirmado por alguém anteriormente
-                if EmailAddress.objects.filter(email__iexact=entidade.email, verified=True).count() > 0 or Entidade.objects.filter(email__iexact=entidade.email, confirmado=True).count() > 0:
+                num_confirmacoes = 0
 
-                    entidade.confirmado = True
-                    entidade.save(update_fields=['confirmado'])
-                    msg = msg + u' Aguarde a aprovação do cadastro para que ela comece a aparecer nas buscas.'
-                    
-                else:
+                # Trata novos e-mails
+                for email in emailformset.new_objects:
+                    # Se o email já existe no sistema e já foi confirmado por alguém anteriormente
+                    if EmailAddress.objects.filter(email__iexact=email.endereco, verified=True).count() > 0 or Email.objects.filter(endereco__iexact=email.endereco, confirmado=True).count() > 0:
+                        # Confirma automaticamente
+                        email.confirmado = True
+                        # obs: não especifica data de confirmação quando o e-mail é confirmado "por tabela"
+                        email.save(update_fields=['confirmado'])
+
+                    else:
                 
-                    # Do contrário dispara nova confirmação de e-mail
-                    envia_confirmacao_email_entidade(request, entidade)
-                    msg = msg + u' Como o e-mail da entidade é novo, acesse a caixa postal dele para validá-lo. Caso não tenha recebido, verifique a pasta de spam ou clique no botão "reenviar" abaixo.'
+                        # Do contrário dispara nova confirmação de e-mail
+                        envia_confirmacao_email_entidade(request, email)
+                        num_confirmacoes = num_confirmacoes + 1
+
+                if num_confirmacoes > 0:
+                    if num_confirmacoes > 1:
+                        msg = msg + u' Foram enviadas mensagens de confirmação para os e-mails cadastrados. Acesse a caixa postal deles para validá-los. Caso não tenha recebido, verifique a pasta de spam ou clique no botão "reenviar" abaixo em se tratando do e-mail principal.'
+                    else:
+                        msg = msg + u' Foi enviada uma mensagem de confirmação para o e-mail cadastrado. Acesse a caixa postal dele para validá-lo. Caso não tenha recebido, verifique a pasta de spam ou clique no botão "reenviar" abaixo.'
+                else:
+                    msg = msg + u' Aguarde a aprovação do cadastro para que ela comece a aparecer nas buscas.'
 
                 messages.info(request, msg)
 
@@ -697,12 +766,16 @@ def cadastro_entidade(request, id_entidade=None):
                 vinculo = VinculoEntidade(usuario=request.user, entidade=entidade, confirmado=True)
                 vinculo.save()
 
+            # Garante apenas um e-mail principal por entidade
+            entidade.verifica_email_principal()
+
             # Exibe lista de entidades
             return redirect('/entidade/cadastro')
 
     # Exibe formulário de cadastro de entidade
     context = {'form': form,
-               'telformset': telformset}
+               'telformset': telformset,
+               'emailformset': emailformset}
     template = loader.get_template('vol/formulario_entidade.html')
     return HttpResponse(template.render(context, request))
 
