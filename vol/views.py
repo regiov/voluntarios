@@ -256,15 +256,11 @@ def cadastro_voluntario(request, msg=None):
     template = loader.get_template('vol/formulario_voluntario.html')
     return HttpResponse(template.render(context, request))
 
-def busca_voluntarios(request):
-    '''Página para busca de voluntários'''
-    metodos = ['GET']
-    if request.method not in (metodos):
-        return HttpResponseNotAllowed(metodos)
-
+def tem_acesso_a_voluntarios(request):
+    '''Lógica de controle de acesso a busca e visualização de voluntários'''
     if not request.user.is_authenticated:
         messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar cadastrado no sistema como usuário, além de estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
-        return mensagem(request, u'Busca de voluntários')
+        return False
 
     # Permite que membros da equipe façam consultas
     if not (request.user.is_staff or request.user.has_perm('vol.search_volunteers')):
@@ -272,11 +268,21 @@ def busca_voluntarios(request):
         # Do contrário apenas usuários com entidades aprovadas
         if not request.user.has_entidade:
             messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
-            return mensagem(request, u'Busca de voluntários')
+            return False
 
         if not request.user.has_entidade_aprovada:
             messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar vinculado a pelo menos uma entidade com cadastro aprovado. Pedimos que aguarde a aprovação da entidade cadastrada.')
-            return mensagem(request, u'Busca de voluntários')
+            return False
+    return True
+
+def busca_voluntarios(request):
+    '''Página para busca de voluntários'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    if not tem_acesso_a_voluntarios(request):
+        return mensagem(request, u'Busca de voluntários')
 
     areas_de_trabalho = AreaTrabalho.objects.all().order_by('nome')
     areas_de_interesse = AreaAtuacao.objects.all().order_by('indice')
@@ -389,6 +395,8 @@ def exibe_voluntario(request, id_voluntario):
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
+    if not tem_acesso_a_voluntarios(request):
+        return mensagem(request, u'Busca de voluntários')
     if not id_voluntario.isdigit():
         raise SuspiciousOperation('Parâmetro id inválido')
     try:
