@@ -12,6 +12,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core import signing
@@ -632,13 +633,26 @@ class TipoDocumento(models.Model):
         return self.nome
 
 def caminho_do_documento(instance, filename):
-    # MEDIA_ROOT/e/d1/d2/d3/d4/dn/doc_tipodoc_<filename>
+    # MEDIA_ROOT/e/d1/d2/d3/d4/dn/XYZ_doc_tipodoc.extensão
+    # Pega extensão do arquivo e padroniza como caixa baixa
+    ext = ''
+    pos = filename.rfind('.')
+    if pos != -1:
+        ext = filename[pos:].lower()
+    # Pega os dígitos do id da entidade e define o formato em função disso
     digitos = [i for i in str(instance.entidade.id)]
     padrao = 'e/'
     for i in range(0, len(digitos)):
         padrao = padrao + '{0[' + str(i) + ']}/'
-    padrao = padrao + 'doc_{1}_{2}'
-    return padrao.format(digitos, instance.tipodoc.codigo, filename)
+    padrao = padrao + '{1}_doc_{2}{3}'
+    # Acrescenta string aleatória para evitar dedução fácil de links
+    codigo = get_random_string(7)
+    path = padrao.format(digitos, codigo, instance.tipodoc.codigo, ext)
+    # Enquanto já existir um arquivo assim, gera outro código
+    while os.path.isfile(os.path.join(settings.MEDIA_ROOT, path)):
+        codigo = get_random_string(7)
+        path = padrao.format(digitos, codigo, instance.tipodoc.codigo, ext)
+    return path
 
 class Documento(models.Model):
     """Documento"""
