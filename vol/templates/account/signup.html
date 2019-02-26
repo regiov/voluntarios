@@ -3,7 +3,7 @@
 {% load bootstrap %}
 {% load i18n %}
 
-{% block head_title %}{% trans "Signup" context "page title" %}{% endblock %}
+{% block title %}{% trans "Signup" context "page title" %}{% endblock %}
 
 {% block account_content %}
 
@@ -18,8 +18,18 @@
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
   <div class="form-actions">
-  <button class="btn btn-primary" type="submit">{% trans "Sign Up" context "submit button" %}</button>
+  <button id="signup-btn" class="btn btn-primary" type="submit">{% trans "Sign Up" context "submit button" %}</button>
   </div>
 </form>
+{% comment %}
+Garante que o form seja submetido apenas uma vez, 
+evitando problemas com o duplo clique 
+(duplicate key value violates unique constraint vol_usuario_email_key).
+{% endcomment %}
+<script>
+$("#signup_form").one("submit", function() {
+    $("#signup-btn").prop("disabled", true);
+});
+</script>
 
 {% endblock %}
