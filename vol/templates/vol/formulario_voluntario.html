@@ -71,7 +71,7 @@
   </div>
 
   <div class="form-group">
-   <input class="btn btn-primary" type="submit" name="save" value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
+   <input id="save" class="btn btn-primary" type="submit" name="save" value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
 
    {% if request.user.is_voluntario %} 
     <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">Remover</button>
@@ -101,5 +101,16 @@
   </div>
 
 </form>
+{% comment %}
+Garante que o form seja submetido apenas uma vez, 
+evitando problemas com o duplo clique 
+{% endcomment %}
+<script type="text/javascript">
+
+    $("#form-voluntario").one("submit", function() {
+        $("#save").prop("disabled", true);
+    });
+
+</script>
 
 {% endblock content %}

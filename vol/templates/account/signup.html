@@ -27,9 +27,11 @@ evitando problemas com o duplo clique
 (duplicate key value violates unique constraint vol_usuario_email_key).
 {% endcomment %}
 <script>
-$("#signup_form").one("submit", function() {
-    $("#signup-btn").prop("disabled", true);
-});
+
+    $("#signup_form").one("submit", function() {
+        $("#signup-btn").prop("disabled", true);
+    });
+
 </script>
 
 {% endblock %}

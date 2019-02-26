@@ -104,7 +104,7 @@
 </fieldset>
 
 <div class="form-group">
-  <input class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
+  <input id="save" class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
   {% if form.instance.id %}
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">Remover</button>
   {% endif %}
@@ -136,6 +136,11 @@
 </form>
 
 <script type="text/javascript">
+
+    {% comment %}
+    Simula "input radio" com checkbox dos e-mails.
+    {% endcomment %}
+
     $("input.input-principal").click(function() {
         var selected_id = $(this).attr('id');
         $("input.input-principal").each(function( index ) {
@@ -144,6 +149,16 @@
             }
         });
     });
+
+    {% comment %}
+    Garante que o form seja submetido apenas uma vez, 
+    evitando problemas com o duplo clique 
+    {% endcomment %}
+
+    $("#form-entidade").one("submit", function() {
+        $("#save").prop("disabled", true);
+    });
+
 </script> 
 
 {% endblock content %}
