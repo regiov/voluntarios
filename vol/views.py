@@ -501,6 +501,7 @@ def valida_email_entidade(request):
         # obs: caso já tenha sido confirmado anteriormente, atualiza data de confirmação
         email.data_confirmacao = datetime.datetime.now()
         email.save(update_fields=['confirmado', 'data_confirmacao'])
+        entidade = email.entidade
     else:
         return HttpResponseBadRequest('Ausência do parâmetro token')
     msg = u'E-mail confirmado com sucesso!'
