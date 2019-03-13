@@ -12,11 +12,13 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
     <meta name="author" content="Stephen Kanitz">
 
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet" -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/solid.css" integrity="sha384-r/k8YTFqmlOaqRkZuSiE9trsrDXkh07mRaoGBMoDcmA58OHILZPsk29i2BsFng1B" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css" integrity="sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+" crossorigin="anonymous">
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 
-    <link href="{% static 'css/vol-2.2.css' %}" rel="stylesheet">
+    <link href="{% static 'css/vol-2.3.css' %}" rel="stylesheet">
 
     <!--[if lt IE 9]>
       {% comment %}This script is the defacto way to enable use 
@@ -68,7 +70,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             <div id="pre-navbar-container" class="container">
                    <div class="social-icons pull-right">
                         <ul class="nav nav-pills">
-                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fa fa-sign-out"></i></a></span></li>{% else %}<li><span style="white-space: nowrap;"><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fa fa-sign-in" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
+                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fas fa-sign-out-alt"></i></a></span></li>{% else %}<li><span style="white-space: nowrap;"><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fas fa-sign-in-alt" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
                         </ul>
                    </div>
             </div>

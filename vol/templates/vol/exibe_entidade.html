@@ -7,7 +7,7 @@
 {% if user.is_authenticated and entidade in user.entidades %}
 <a href="{% url 'cadastro_entidade_id' entidade.id %}"><h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2></a>
 {% else %}
-<h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2>
+<h2 class="nome-entidade"><span>{{ entidade.nome_fantasia|default:entidade.razao_social }}</span></h2>
 {% endif %}
 <div class="registro">
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
@@ -15,11 +15,15 @@
 {% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
 {% if entidade.descricao %}<p><label>Descrição:</label> {{ entidade.descricao }}</p>{% endif %}
 {% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
-<p><label>Endereço:</label> {% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}{{ entidade.cep }} {% endif %}{{ entidade.cidade }}-{{ entidade.estado }}</p>
-{% if entidade.contato %}<p><label>Contato:</label> {{ entidade.contato|default:"-" }}</p>{% endif %}
-<p><label>Telefone:</label> {% for tel in entidade.tel_set.all %}{{ tel }}{% if not forloop.last %} ou {% endif %}{% empty %}-{% endfor %}
-{% if entidade.emails %}<p><label>E-mail:</label> {{ entidade.emails|safe }}</a></p>{% endif %}
-{% if entidade.website %}<p><label>Home page:</label> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
+<h3 class="secao-entidade"><span>Mais informações & contato</span></h3>
+<p><i class="fas fa-home" style="vertical-align: top;" title="endereço"></i>
+<span style="display: inline-block;">{% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{% if entidade.logradouro and entidade.bairro %}<br>{% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}CEP {{ entidade.cep }}<br>{% endif %}{{ entidade.cidade }}{% if entidade.cidade and entidade.estado %} - {% endif %}{{ entidade.estado }}</span>
+</p>
+
+{% if entidade.nome_contato %}<p><i class="fas fa-user" title="contato"></i> {{ entidade.nome_contato|default:"-" }}</p>{% endif %}
+{% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
+{% if entidade.emails %}<p><i class="fas fa-envelope" title="e-mail"></i> {{ entidade.emails|safe }}</a></p>{% endif %}
+{% if entidade.website %}<p><i class="fas fa-globe" title="website"></i> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
 </div>
 <br>
 {% if necessidades %}
