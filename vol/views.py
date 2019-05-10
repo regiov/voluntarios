@@ -873,7 +873,7 @@ def busca_entidades(request):
             entidades = paginador.page(1)
         except EmptyPage:
             # Se a página está fora dos limites (ex 9999), exibe a última
-            entidades = paginador.page(paginator.num_pages)
+            entidades = paginador.page(paginador.num_pages)
         pagina_atual = entidades.number
         max_links_visiveis = 10
         intervalo = 10/2
