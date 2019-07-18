@@ -1,5 +1,7 @@
 # coding=UTF-8
 
+import re
+
 from datetime import date, timedelta
 
 from django import forms
@@ -260,9 +262,8 @@ class FormAreaInteresse(forms.ModelForm):
 
 class ExtendedSignupForm(forms.Form):
     "Formulário com campos adicionais para a página de cadastro de usuário"
-    nome = forms.RegexField(regex=r'^[^\s]+\s[^\s]+',
+    nome = forms.CharField(label=u'Nome completo',
                             max_length=100,
-                            label=u'Nome completo',
                             error_messages={'invalid': u'Favor digitar nome e sobrenome.'},
                             help_text="(não utilize abreviações)",
                             widget=forms.TextInput(attrs={'class':'form-control', 'size':35}))
@@ -271,15 +272,19 @@ class ExtendedSignupForm(forms.Form):
     def clean_nome(self):
         """
         Garante apenas caracteres alfanuméricos e pelo menos duas palavras.
-        
+        Remove espaços no início e no fim.
+        Remove espaços seguidos.
         """
-        nome = self.cleaned_data['nome']
+        nome = self.cleaned_data['nome'].strip()
+        
+        nome = re.sub(' +', ' ', nome)
+        
         partes = nome.split(' ')
         
         if len(partes) < 2:
             raise forms.ValidationError(u'Favor digitar nome e sobrenome.')
-        else:
-            return self.cleaned_data['nome']
+
+        return nome
 
     def signup(self, request, user):
         user.nome = self.cleaned_data['nome']
