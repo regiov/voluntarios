@@ -1141,3 +1141,107 @@ def indicadores(request):
                'ents_values': ents_values}
     template = loader.get_template('vol/indicadores.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+@transaction.atomic
+def aprovacao_voluntarios(request):
+    '''Página para revisar novos cadastros de voluntários'''
+    error = None
+    gravou = False
+
+    # Primeiro grava alterações se necessário
+    if request.method == 'POST':
+
+        myvol = Voluntario.objects.get(pk=int(request.POST.get('id')))
+
+        vol_update_fields = ['aprovado']
+        usuario_update_fields = []
+
+        if 'aprovar' in request.POST:
+
+            campos = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
+
+            for campo in campos:
+                if getattr(myvol, campo) != request.POST.get(campo):
+                    vol_update_fields.append(campo)
+                    setattr(myvol, campo, request.POST.get(campo))
+
+            if myvol.usuario.nome != request.POST.get('nome'):
+                usuario_update_fields.append('nome')
+                myvol.usuario.nome = request.POST.get('nome')
+
+            if myvol.usuario.email != request.POST.get('email'):
+                usuario_update_fields.append('email')
+                myvol.usuario.email = request.POST.get('email')
+
+            form = FormVoluntario(request.POST, instance=myvol)
+
+            if form.is_valid():
+
+                myvol.aprovado = True
+                if len(usuario_update_fields) > 0:
+                    myvol.usuario.save(update_fields=usuario_update_fields)
+                myvol.save(update_fields=vol_update_fields)
+                gravou = True
+
+            else:
+                error = ''
+                for field in form:
+                    for e in field.errors:
+                        error = error + '<br/>' + e
+
+        elif 'rejeitar' in request.POST:
+
+            myvol.aprovado = False
+            myvol.save(update_fields=vol_update_fields)
+            gravou = True
+
+    # Total de voluntários que confirmaram o email e estão aguardando aprovação
+    queue = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).order_by('data_cadastro')
+    total = queue.count()
+
+    rec = None
+    new_rec = None
+    i = None
+
+    if total > 0:
+
+        if request.method == 'GET':
+
+            i = int(request.GET.get('i', 0))
+
+        else:
+
+            i = int(request.POST.get('i', 0))
+
+            if 'pular' in request.POST:
+
+                i = i + 1
+            else:
+
+                if gravou:
+
+                    i = i + 1
+                else:
+
+                    i = int(request.GET.get('i', 0))
+
+        if i >= total:
+
+            i = total - 1
+
+        rec = queue[i]
+        # Pega outra cópia do registro
+        new_rec = Voluntario.objects.get(pk=rec.id)
+        new_rec.normalizar()
+
+    context = {'total': total,
+               'rec': rec,
+               'new_rec': new_rec,
+               'i': i,
+               'last': (i == total-1),
+               'error': error}
+    template = loader.get_template('vol/aprovacao_voluntarios.html')
+    return HttpResponse(template.render(context, request))
+
+

@@ -254,6 +254,32 @@ class Voluntario(models.Model):
             cnt = cnt + 1
         return areas
 
+    def normalizar(self):
+        if self.telefone:
+            par = self.telefone.find(')')
+            if par > 0:
+                # Extrai prefixo se necessário
+                self.telefone = self.telefone[par+1:].strip()
+                if not self.ddd:
+                    # Move para DDD
+                    self.ddd = self.telefone[:par+1].strip()
+        if self.ddd:
+            # Remove eventual parentesis
+            self.ddd = self.ddd.replace(')', '').replace('(', '')
+            if len(self.ddd) > 2 and self.ddd[:1] == '0':
+                # Remove eventual zero inicial
+                self.ddd = self.ddd[1:]
+        if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
+            self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ')
+        if self.usuario.email == self.usuario.email.upper():
+            self.usuario.email = self.usuario.email.lower()
+        if self.cidade and self.cidade == self.cidade.upper():
+            self.cidade = self.cidade.title()
+        if self.empresa and self.empresa.lower() == 'desempregado':
+            self.empresa = ''
+        if self.entidade_que_ajudou and self.entidade_que_ajudou.lower() == 'nenhuma':
+            self.entidade_que_ajudou = ''
+
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
     voluntario   = models.ForeignKey(Voluntario, on_delete=models.CASCADE)

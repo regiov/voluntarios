@@ -1,0 +1,101 @@
+{% extends "vol/base.html" %}
+
+{% block title %}Revisão de voluntários{% endblock title %}
+
+{% block body %}
+
+<h2>Interface para revisão expressa de voluntários</h2>
+<h3>Total de voluntários aguardando revisão: {{ total }}</h3>
+
+{% if rec %}
+
+{% if error %}<p><font face="Verdana" size="2" color="red">{{ error }}</font></p>{% endif %}
+
+<form action="" method="POST">{% csrf_token %}
+
+<input type="hidden" name="id" value="{{ rec.id }}">
+<input type="hidden" name="i" value="{{ i }}">
+
+<table class="table table-striped" style="margin-top:30px;">
+<thead>
+<tr>
+<th>&nbsp;</th>
+<th>original</th>
+<th>revisado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td width="20%"><b>Nome:</b></td>
+<td width="40%">{{ rec.usuario.nome }}</td>
+<td width="40%"><input type="text" name="nome" value="{% if error %}{{ request.POST.nome }}{% else %}{{ new_rec.usuario.nome }}{% endif %}" size="50"></td>
+</tr>
+<tr>
+<td><b>E-mail:</b></td>
+<td>{{ rec.usuario.email}}</td>
+<td><input type="text" name="email" value="{% if error %}{{ request.POST.email }}{% else %}{{ new_rec.usuario.email }}{% endif %}" size="50"></td>
+</tr>
+<td><b>Nascimento:</b></td>
+<td>{{ rec.data_aniversario|default:"" }}</td>
+<td>(não editável)</td>
+</tr>
+<tr>
+<td><b>Profissão:</b></td>
+<td>{{ rec.profissao|default:""}}</td>
+<td>{% if rec.profissao %}<input type="text" name="profissao" value="{% if error %}{{ request.POST.profissao }}{% else %}{{ new_rec.profissao }}{% endif %}" size="50">{% endif %}</td>
+</tr>
+<tr>
+<td><b>Telefone:</b></td>
+<td>{% if rec.ddd %}({{ rec.ddd}}){% endif %} {{ rec.telefone|default:""}}</td>
+<td>{% if rec.ddd or rec.telefone %}<input type="text" name="ddd" value="{% if error %}{{ request.POST.ddd }}{% else %}{{ new_rec.ddd }}{% endif %}" size="5"> <input type="text" name="telefone" value="{% if error %}{{ request.POST.telefone }}{% else %}{{ new_rec.telefone }}{% endif %}">{% endif %}</td>
+</tr>
+<tr>
+<td><b>Cidade:</b></td>
+<td>{{ rec.cidade}}</td>
+<td><input type="text" name="cidade" value="{% if error %}{{ request.POST.cidade }}{% else %}{{ new_rec.cidade }}{% endif %}" size="50"></td>
+</tr>
+<tr>
+<td><b>Estado:</b></td>
+<td>{{ rec.estado}}</td>
+<td><input type="text" name="estado" value="{% if error %}{{ request.POST.estado }}{% else %}{{ new_rec.estado }}{% endif %}" size="5"></td>
+</tr>
+<tr>
+<td><b>Empresa:</b></td>
+<td>{{ rec.empresa|default:""}}</td>
+<td>{% if rec.empresa %}<input type="text" name="empresa" value="{% if error %}{{ request.POST.empresa }}{% else %}{{ new_rec.empresa }}{% endif %}" size="50">{% endif %}</td>
+</tr>
+<tr>
+<td><b>Foi voluntario:</b></td>
+<td>{%if rec.foi_voluntario %}sim{% else %}não{% endif %}</td>
+<td>(não editável);</td>
+</tr>
+<tr>
+<td><b>Entidade que ajudou:</b></td>
+<td>{{ rec.entidade_que_ajudou|default:""}}</td>
+<td>{% if rec.entidade_que_ajudou %}<input type="text" name="entidade_que_ajudou" value="{% if error %}{{ request.POST.entidade_que_ajudou }}{% else %}{{ new_rec.entidade_que_ajudou }}{% endif %}" size="50">{% endif %}</td>
+</tr>
+<tr>
+<td><b>Área de trabalho:</b></td>
+<td>{{ rec.area_trabalho|default:""}}</td>
+<td>(não editável)</td>
+</tr>
+<tr>
+<td><b>Descrição:</b></td>
+<td>{{ rec.descricao|default:""}}</td>
+<td>{% if rec.descricao %}<textarea name="descricao" rows="4" cols="50">{% if error %}{{ request.POST.descricao }}{% else %}{{ new_rec.descricao }}{% endif %}{% endif %}</textarea></td>
+</tr>
+</tbody>
+</table>
+
+<center><b><input type="submit" name="rejeitar" value="Rejeitar" style="margin: 0 20px;"><input type="submit" name="aprovar" value="Aprovar" style="margin: 0 20px;">{% if not last %}<input type="submit" name="pular" value="Pular" style="margin: 0 20px;">{% endif %}</b></center>
+
+</form>
+
+{% else %}
+
+  <h3>{% if request.method == 'POST' %}Parabéns, missão cumprida!{% else %}Nada a fazer aqui no momento ;-){% endif %}</h3>
+
+{% endif %}
+
+{% endblock body %}
+
