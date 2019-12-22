@@ -1162,7 +1162,7 @@ def aprovacao_voluntarios(request):
             campos = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
 
             for campo in campos:
-                if getattr(myvol, campo) != request.POST.get(campo):
+                if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
                     vol_update_fields.append(campo)
                     setattr(myvol, campo, request.POST.get(campo))
 
