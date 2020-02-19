@@ -1,0 +1,17 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block title %}{{ flatpage.title }}{% endblock title %}
+
+{% block content %}
+<h1 class="margin-bottom">{{ flatpage.title }}</h1>
+<div class="text-justify">
+{{ flatpage.content }}
+</div>
+{% if flatpage.url == '/quem-somos/' and request.user.is_authenticated %}
+<map name="hiddenlink">
+    <area shape="rect" coords="29,16,36,30" href="/mural">
+</map>
+{% endif %}
+{% block postcontent %}{% endblock postcontent %}
+{% endblock content %}
+
