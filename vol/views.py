@@ -565,11 +565,12 @@ def confirma_vinculo(request):
         return mensagem(request, u'Solicitação de vínculo com entidade')
     vinculo.confirmado = True
     vinculo.save(update_fields=['confirmado'])
+    usuario = vinculo.usuario
     # Se houver outras entidades com o mesmo e-mail sem ninguém vinculado a elas, já cria outros vínculos com o mesmo usuário
     entidades_com_mesmo_email = Entidade.objects.filter(email_set__endereco=vinculo.entidade.email_principal).exclude(pk=vinculo.entidade.pk)
     for entidade_irma in entidades_com_mesmo_email:
         if VinculoEntidade.objects.filter(entidade=entidade_irma).count() == 0:
-            novo_vinculo = VinculoEntidade(entidade=entidade_irma, usuario=request.user, confirmado=True)
+            novo_vinculo = VinculoEntidade(entidade=entidade_irma, usuario=usuario, confirmado=True)
             novo_vinculo.save()
     messages.info(request, u'Vínculo confirmado com sucesso! Para gerenciar o cadastro de suas entidades clique <a href="' + reverse('cadastro_entidade') + '">aqui</a>')
     return mensagem(request, u'Confirmação de vínculo com entidade')
