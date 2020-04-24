@@ -5,6 +5,7 @@ import re
 from datetime import date, timedelta
 
 from django import forms
+from django.utils.safestring import mark_safe
 
 from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email
 
@@ -267,7 +268,10 @@ class ExtendedSignupForm(forms.Form):
                             error_messages={'invalid': u'Favor digitar nome e sobrenome.'},
                             help_text="(não utilize abreviações)",
                             widget=forms.TextInput(attrs={'class':'form-control', 'size':35}))
-    field_order = ['nome', 'email', 'password1', 'password2']
+    aceitacao = forms.BooleanField(label=mark_safe(u'Sim, estou de acordo com os <a href="/p/termos-de-uso/" target="_blank">termos de uso</a> e a <a href="/p/politica-de-privacidade/" target="_blank">política de privacidade</a> do site'),
+                                   widget=forms.CheckboxInput(attrs={}),
+                                   initial=False)
+    field_order = ['nome', 'email', 'password1', 'password2', 'aceitacao']
 
     def clean_nome(self):
         """
@@ -285,6 +289,12 @@ class ExtendedSignupForm(forms.Form):
             raise forms.ValidationError(u'Favor digitar nome e sobrenome.')
 
         return nome
+
+    def clean_aceitacao(self):
+        aceitou = self.cleaned_data['aceitacao']
+        if not aceitou:
+            raise forms.ValidationError(u'Para se cadastrar é preciso aceitar os termos de uso e a politica de privacidade')
+        return aceitou
 
     def signup(self, request, user):
         user.nome = self.cleaned_data['nome']
