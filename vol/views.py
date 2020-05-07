@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario
 
 from allauth.account.models import EmailAddress
 
@@ -99,6 +99,8 @@ def cadastro_usuario(request):
                 user.delete()
                 messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
                 try:
+                    registro_remocao = RemocaoUsuario()
+                    registro_remocao.save()
                     notify_email(user_email, u'Remoção de cadastro :-(', 'vol/msg_remocao_usuario.txt', from_email=settings.NOTIFY_USER_FROM)
                 except Exception as e:
                     # Se houver erro o próprio notify_email já tenta notificar o suporte,
@@ -199,7 +201,6 @@ def cadastro_voluntario(request, msg=None):
         if request.user.is_voluntario:
 
             if 'delete' in request.POST:
-                notify_support(u'Remoção de perfil de voluntário', request.user.email, request)
                 request.user.voluntario.delete()
                 # Redireciona para página de exibição de mensagem
                 messages.info(request, u'Seu perfil de voluntário foi removido. Note que isto não remove seu cadastro de usuário, ou seja, você continuará podendo entrar no site, podendo inclusive cadastrar um novo perfil de voluntário quando desejar. Se a intenção for remover também seu cadastro de usuário, basta acessar sua <a href="' + reverse('cadastro_usuario') + '">página de dados pessoais</a>. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')

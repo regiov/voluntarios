@@ -148,6 +148,13 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def entidades(self):
         return Entidade.objects.filter(vinculoentidade__usuario=self, vinculoentidade__data_fim__isnull=True, vinculoentidade__confirmado=True)
 
+class RemocaoUsuario(models.Model):
+    """Registro de remoção de usuário"""
+    momento = models.DateTimeField(u'Momento', default=timezone.now)
+
+    def __str__(self):
+        return str(self.id) + ': ' + str(self.momento)
+
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
     """obs: id compatível com banco anterior"""
