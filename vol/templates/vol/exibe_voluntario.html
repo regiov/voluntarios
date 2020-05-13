@@ -18,8 +18,8 @@
 {% if voluntario.descricao %}
 <p><label>Comentário:</label> {{ voluntario.descricao }}</p>
 {% endif %}
+<p><label>Última atualização no cadastro:</label> {{ voluntario.ultima_atualizacao|date:"F" }}/{{ voluntario.ultima_atualizacao|date:"Y" }}</p>
 </div>
-<p><label>Última atualização de cadastro:</label> {{ voluntario.ultima_atualizacao|date:"F" }}/{{ voluntario.ultima_atualizacao|date:"Y" }}</p>
 <br>
 <p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p>
 
