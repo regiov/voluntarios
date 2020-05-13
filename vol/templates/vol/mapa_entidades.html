@@ -17,10 +17,10 @@ function initMap() {
       mapTypeControl: false,
     });
 
-    {% comment %}Utiliza o id da última entidade cadastrada como parâmetro para controlar cache remoto do google{% endcomment %}
+    {% comment %}Utiliza o id da última entidade cadastrada como parâmetro para controlar cache remoto do google. Obs: entidades_recentes é passada por um context_processor.{% endcomment %}
     var src = 'https://voluntarios.com.br{% url 'entidades_kml' %}?last={% if entidades_recentes.count > 0 %}{{ entidades_recentes.0.id }}{% else %}0{% endif %}';
 
-    var kmlLayer = new google.maps.KmlLayer(src + '&ts={{ agora.timestamp|floatformat:"0" }}', {
+    var kmlLayer = new google.maps.KmlLayer(src, {
       suppressInfoWindows: true,
       preserveViewport: true,
       map: map

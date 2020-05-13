@@ -1034,8 +1034,7 @@ def mapa_entidades(request):
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
-    now = datetime.datetime.now()
-    context = {'agora': now, 'GOOGLE_MAPS_API_KEY':settings.GOOGLE_MAPS_API_KEY}
+    context = {'GOOGLE_MAPS_API_KEY':settings.GOOGLE_MAPS_API_KEY}
     template = loader.get_template('vol/mapa_entidades.html')
     return HttpResponse(template.render(context, request))
 
