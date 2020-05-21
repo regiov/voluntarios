@@ -171,6 +171,18 @@ class TelEntidadeInline(admin.TabularInline):
     readonly_fields = ['data_confirmacao', 'confirmado_por']
     extra = 0
 
+class ReadOnlyTelEntidadeInline(admin.TabularInline):
+    model = Telefone
+    fields = ['tipo', 'prefixo', 'numero', 'contato', 'confirmado', 'data_confirmacao', 'confirmado_por']
+    readonly_fields = ['tipo', 'prefixo', 'numero', 'contato', 'data_confirmacao', 'confirmado_por']
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 class VinculoEntidadeInline(admin.TabularInline):
     model = VinculoEntidade
     fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
@@ -287,11 +299,12 @@ class ValidacaoEntidade(Entidade):
 
 class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
+    ordering = ('-data_cadastro', '-ultima_revisao',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao', 'mytags']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        ReadOnlyEmailEntidadeInline, TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
+        ReadOnlyEmailEntidadeInline, ReadOnlyTelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
