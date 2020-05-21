@@ -92,7 +92,6 @@ def cadastro_usuario(request):
 
         if 'delete' in request.POST:
             user_email = request.user.email
-            notify_support(u'Remoção de usuário', user_email, request)
             user = request.user
             logout(request)
             try:
@@ -103,8 +102,8 @@ def cadastro_usuario(request):
                     registro_remocao.save()
                     notify_email(user_email, u'Remoção de cadastro :-(', 'vol/msg_remocao_usuario.txt', from_email=settings.NOTIFY_USER_FROM)
                 except Exception as e:
-                    # Se houver erro o próprio notify_email já tenta notificar o suporte,
-                    # portanto só cairá aqui se houver erro na notificação ao suporte
+                    # Se houver erro no envio da notificação, o próprio notify_email já tenta avisar o suporte,
+                    # portanto só cairá aqui se houver erro nas outras ações
                     pass
             except Exception as e:
                 messages.warning(request, u'Não foi possível remover o seu cadastro. Caso em algum momento você tenha auxiliado na parte administrativa do site, é possível que haja referências importantes a você no histórico de nosso banco de dados. Neste caso entre em contato conosco se realmente deseja remover seu cadastro. Caso nunca tenha trabalhado na parte administrativa do site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> para verificarmos o que houve.')
