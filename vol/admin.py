@@ -148,6 +148,58 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
+
+class AnaliseVoluntario(Voluntario):
+    """Modelo criado para avaliar as análises de cadastro de voluntários via interface administrativa"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Análise de voluntário'
+        verbose_name_plural = u'Análises de voluntários'
+
+class AnaliseVoluntarioAdmin(admin.ModelAdmin):
+    list_select_related = ('usuario', 'resp_analise',)
+    list_display = ('nome_voluntario', 'data_cadastro', 'nome_responsavel', 'data_analise', 'aprovado',)
+    ordering = ('-data_analise',)
+    search_fields = ('usuario__nome', 'usuario__email', )
+    list_filter = ('aprovado', ('resp_analise', admin.RelatedOnlyFieldListFilter),)
+    preserve_filters = True
+    readonly_fields = ('usuario', 'resp_analise', 'data_analise', 'aprovado', 'dif_analise',)
+    fields = ('usuario', 'resp_analise', 'data_analise', 'aprovado', 'dif_analise',)
+
+    # Exibe apenas cadastros em que há um responsável pela análise
+    def get_queryset(self, request):
+        qs = super(AnaliseVoluntarioAdmin, self).get_queryset(request)
+        return qs.filter(resp_analise__isnull=False)
+
+    def nome_voluntario(self, instance):
+        if instance.usuario:
+            return instance.usuario.nome
+        return '(vazio)'
+    nome_voluntario.short_description = u'Nome do voluntário'
+    nome_voluntario.admin_order_field = 'usuario__nome'
+
+    def nome_responsavel(self, instance):
+        if instance.resp_analise:
+            return instance.resp_analise.nome
+        return '(vazio)'
+    nome_responsavel.short_description = u'Responsável pela análise'
+    nome_responsavel.admin_order_field = 'resp_analise__nome'
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(AnaliseVoluntarioAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 class EmailEntidadeInline(admin.TabularInline):
     model = Email
     fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
@@ -315,6 +367,7 @@ class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    # Remove opção de deleção das ações
     def get_actions(self, request):
         actions = super(ValidacaoEntidadeAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
@@ -334,6 +387,7 @@ admin.site.register(FlatPage, MyFlatPageAdmin)
 admin.site.register(AreaTrabalho, AreaTrabalhoAdmin)
 admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
 admin.site.register(Voluntario, VoluntarioAdmin)
+admin.site.register(AnaliseVoluntario, AnaliseVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(ValidacaoEntidade, ValidacaoEntidadeAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)

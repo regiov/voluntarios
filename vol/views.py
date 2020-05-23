@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario
 
@@ -1155,30 +1156,40 @@ def aprovacao_voluntarios(request):
     if request.method == 'POST':
 
         myvol = Voluntario.objects.get(pk=int(request.POST.get('id')))
+        myvol.resp_analise = request.user
+        myvol.data_analise = timezone.now()
+        dif = ''
 
-        vol_update_fields = ['aprovado']
+        vol_update_fields = ['aprovado', 'resp_analise', 'data_analise']
         usuario_update_fields = []
 
         if 'aprovar' in request.POST:
+
+            vol_update_fields.append('dif_analise')
+
+            if myvol.usuario.nome != request.POST.get('nome'):
+                dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
+                usuario_update_fields.append('nome')
+                myvol.usuario.nome = request.POST.get('nome')
+
+            if myvol.usuario.email != request.POST.get('email'):
+                dif = dif + 'E-mail: ' + myvol.usuario.email + ' -> ' + request.POST.get('email') + "\n"
+                usuario_update_fields.append('email')
+                myvol.usuario.email = request.POST.get('email')
 
             campos = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
 
             for campo in campos:
                 if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
+                    dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
                     vol_update_fields.append(campo)
                     setattr(myvol, campo, request.POST.get(campo))
-
-            if myvol.usuario.nome != request.POST.get('nome'):
-                usuario_update_fields.append('nome')
-                myvol.usuario.nome = request.POST.get('nome')
-
-            if myvol.usuario.email != request.POST.get('email'):
-                usuario_update_fields.append('email')
-                myvol.usuario.email = request.POST.get('email')
 
             form = FormVoluntario(request.POST, instance=myvol)
 
             if form.is_valid():
+
+                myvol.dif_analise = dif
 
                 myvol.aprovado = True
                 if len(usuario_update_fields) > 0:
