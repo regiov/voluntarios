@@ -293,6 +293,8 @@ class Voluntario(models.Model):
             self.empresa = ''
         if self.entidade_que_ajudou and self.entidade_que_ajudou.lower() == 'nenhuma':
             self.entidade_que_ajudou = ''
+        if self.profissao and self.profissao == self.profissao.upper():
+            self.profissao = self.profissao.title()
 
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
