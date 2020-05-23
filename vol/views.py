@@ -21,6 +21,7 @@ from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
+from django.contrib.admin.views.decorators import staff_member_required
 
 from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario
 
@@ -1143,6 +1144,7 @@ def indicadores(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
+@staff_member_required
 @transaction.atomic
 def aprovacao_voluntarios(request):
     '''Página para revisar novos cadastros de voluntários'''
