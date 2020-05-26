@@ -1,0 +1,12 @@
+{% extends "vol/base_admin.html" %}
+
+{% block title %}{{ flatpage.title }}{% endblock title %}
+
+{% block content %}
+<h1 class="margin-bottom">{{ flatpage.title }}</h1>
+<div class="text-justify">
+{{ flatpage.content }}
+</div>
+{% block postcontent %}{% endblock postcontent %}
+{% endblock content %}
+
