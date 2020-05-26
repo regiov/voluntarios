@@ -124,7 +124,6 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                         <li class="dropdown"><a href="#">Mais <i class="fa fa-angle-down"></i></a>
                             <ul role="menu" class="sub-menu">
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='estatisticas/' %}">Estatísticas do setor</a></li>
-                                {% if request.user.is_staff %}<li><a href="{% url 'indicadores' %}">Indicadores do site</a></li>{% endif %}
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='personalidades/' %}">Personalidades voluntárias</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='livros-voluntariado/' %}">Livros sobre voluntariado</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='livros-terceiro-setor/' %}">Livros sobre Terceiro Setor</a></li>
