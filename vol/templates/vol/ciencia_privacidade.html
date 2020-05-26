@@ -1,0 +1,33 @@
+{% extends "vol/base_admin.html" %}
+
+{% block title %}Compromisso de privacidade{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Compromisso de privacidade</h1>
+
+<form action="{% url 'aprovacao_voluntarios' %}" method="POST">{% csrf_token %}
+  <input type="hidden" name="ciente" value="1" />
+  
+  <h2>Olá, {{ user.get_short_name }}!</h2>
+  <div class="text-justify">
+    <p>Esta é a sua primeira vez nesta parte administrativa do site &ndash; receba nossas boas-vindas!</p>
+    <p>Neste trabalho você terá acesso a dados pessoais de outros usuários. Para que possamos honrar nosso compromisso de zelar pela privacidade de quem utiliza o site, é importante que você também se comprometa a:</p>
+
+   <ol>
+      <li>Não armazenar dados pessoais de usuários.</li>
+      <li>Não compartilhar dados pessoais de usuários.</li>
+      <li>Não entrar em contato com usuários.</li>
+    </ol>
+
+    <p>Tudo isso a não ser em situações relacionadas à rotina para manter o bom funcionamento do site.</p>
+
+    <h3>Combinado?</h3>
+    <br/>
+    
+    <button class="btn btn-primary" type="submit">OK, estou ciente</button>
+  </div>
+</form>
+
+{% endblock content %}
+

@@ -822,3 +822,9 @@ class Email(models.Model):
     def html(self):
         '''Retorna o endereço com link'''
         return '<a href="mailto:' + self.endereco + '">' + self.endereco + '</a>'
+
+class AtividadeAdmin(models.Model):
+    """Dados sobre atividades administrativas feitas pelo usuário como parte da equipe do site"""
+    usuario             = models.OneToOneField(Usuario, on_delete=models.PROTECT)
+    ciencia_privacidade = models.DateTimeField(u'Data da ciência sobre o compromisso de privacidade', null=True, blank=True)
+    viu_instrucoes_vol  = models.DateTimeField(u'Data da visualização das instruções sobre aprovação de voluntários', null=True, blank=True)

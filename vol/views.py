@@ -7,7 +7,7 @@ import random
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseBadRequest
-from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied
+from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Q, Count
@@ -24,7 +24,7 @@ from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin
 
 from allauth.account.models import EmailAddress
 
@@ -1149,6 +1149,34 @@ def indicadores(request):
 @transaction.atomic
 def aprovacao_voluntarios(request):
     '''Página para revisar novos cadastros de voluntários'''
+
+    # Controle de exibição da página sobre o compromisso de privacidade
+    try:
+        atividade_admin = request.user.atividadeadmin
+    except ObjectDoesNotExist:
+        atividade_admin = AtividadeAdmin(usuario=request.user)
+        atividade_admin.save()
+
+    if atividade_admin.ciencia_privacidade is None:
+        
+        if request.method == 'POST' and 'ciente' in request.POST:
+
+            atividade_admin.ciencia_privacidade = timezone.now()
+            atividade_admin.save(update_fields=['ciencia_privacidade'])
+        else:
+            
+            template = loader.get_template('vol/ciencia_privacidade.html')
+            return HttpResponse(template.render({}, request))
+
+    # Controle de exibição das orientações
+    if atividade_admin.viu_instrucoes_vol is None:
+        
+        atividade_admin.viu_instrucoes_vol = timezone.now()
+        atividade_admin.save(update_fields=['viu_instrucoes_vol'])
+
+        return redirect('/p/orientacoes-aprovacao-voluntarios/')
+
+    # Lógica da aprovação de voluntários propriamente dita
     error = None
     gravou = False
 

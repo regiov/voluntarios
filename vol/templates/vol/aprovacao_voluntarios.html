@@ -1,10 +1,10 @@
-{% extends "vol/base.html" %}
+{% extends "vol/base_admin.html" %}
 
 {% block title %}Revisão de voluntários{% endblock title %}
 
-{% block body %}
+{% block content %}
 
-<h2>Interface para revisão expressa de voluntários</h2>
+<h1 class="margin-bottom">Voluntários aguardando aprovação</h1>
 <h3>Total de voluntários aguardando revisão: {{ total }}</h3>
 
 {% if rec %}
@@ -87,7 +87,7 @@
 </tbody>
 </table>
 
-<center><b><input type="submit" name="rejeitar" value="Rejeitar" style="margin: 0 20px; padding: 5px 15px; border-radius: 5px; -webkit-border-radius: 5px; background-color: lightsalmon;"><input type="submit" name="aprovar" value="Aprovar" style="margin: 0 20px; padding: 5px 15px; border-radius: 5px; -webkit-border-radius: 5px; background-color: lightgreen;">{% if not last %}<input type="submit" name="pular" value="Pular" style="margin: 0 20px; padding: 5px 15px; border-radius: 5px; -webkit-border-radius: 5px; background-color: lightgrey;">{% endif %}</b></center>
+<input type="submit" name="rejeitar" value="Rejeitar" class="btn btn-primary" style="margin: 0 20px; background-color: lightsalmon; color: black;"><input type="submit" name="aprovar" value="Aprovar" class="btn btn-primary" style="margin: 0 20px; background-color: lightgreen; color: black;">{% if not last %}<input type="submit" name="pular" value="Pular" class="btn btn-primary" style="margin: 0 20px; background-color: lightgrey; color: black;">{% endif %}
 
 </form>
 
@@ -97,5 +97,5 @@
 
 {% endif %}
 
-{% endblock body %}
+{% endblock content %}
 
