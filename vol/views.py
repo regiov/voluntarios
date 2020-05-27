@@ -24,7 +24,7 @@ from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario
 
 from allauth.account.models import EmailAddress
 
@@ -1178,22 +1178,26 @@ def aprovacao_voluntarios(request):
 
     # Lógica da aprovação de voluntários propriamente dita
     error = None
-    gravou = False
+    proximo = False
 
     # Primeiro grava alterações se necessário
     if request.method == 'POST':
 
-        myvol = Voluntario.objects.get(pk=int(request.POST.get('id')))
+        concurrency_error_msg = 'Sua análise não foi gravada, pois o mesmo cadastro acaba de ser analisado por outra pessoa. Pule alguns registros para evitar concorrência.'
+        
+        vol_id = int(request.POST.get('id'))
+
+        alteracoes_vol = {'resp_analise': request.user,
+                          'data_analise': timezone.now()}
+
+        myvol = Voluntario.objects.get(pk=vol_id)
         myvol.resp_analise = request.user
         myvol.data_analise = timezone.now()
         dif = ''
 
-        vol_update_fields = ['aprovado', 'resp_analise', 'data_analise']
         usuario_update_fields = []
 
         if 'aprovar' in request.POST:
-
-            vol_update_fields.append('dif_analise')
 
             if myvol.usuario.nome != request.POST.get('nome'):
                 dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
@@ -1205,37 +1209,78 @@ def aprovacao_voluntarios(request):
                 usuario_update_fields.append('email')
                 myvol.usuario.email = request.POST.get('email')
 
-            campos = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
+            campos_editaveis = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
 
-            for campo in campos:
+            for campo in campos_editaveis:
                 if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
                     dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
-                    vol_update_fields.append(campo)
+                    alteracoes_vol[campo] = request.POST.get(campo)
                     setattr(myvol, campo, request.POST.get(campo))
 
             form = FormVoluntario(request.POST, instance=myvol)
 
-            if form.is_valid():
+            email_repetido = Usuario.objects.filter(email=request.POST.get('email')).exclude(id=myvol.usuario.id).count() > 0
 
-                myvol.dif_analise = dif
+            if form.is_valid() and len(request.POST.get('nome')) > 0 and len(request.POST.get('email')) > 0 and not email_repetido:
 
-                myvol.aprovado = True
-                if len(usuario_update_fields) > 0:
-                    myvol.usuario.save(update_fields=usuario_update_fields)
-                myvol.save(update_fields=vol_update_fields)
-                gravou = True
+                alteracoes_vol['aprovado'] = True
+                alteracoes_vol['dif_analise'] = dif
+
+                # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente.
+                # Importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+                updated = Voluntario.objects.filter(
+                    id=vol_id,
+                    data_analise__isnull=True,
+                ).update(**alteracoes_vol)
+
+                if updated > 0:
+
+                    # Assume que se conseguiu alterar os dados de voluntário, então não haverá mais problema
+                    # de concorrência na alteração de dados de usuário na sequência. Porém é preciso verificar
+                    # algum outro erro de gravação (unicidade de e-mail, campo vazio, etc).
+                    if len(usuario_update_fields) > 0:
+                        try:
+                            myvol.usuario.save(update_fields=usuario_update_fields)
+                        except Exception as e:
+                            notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
+                            error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
+ 
+                else:
+                    error = concurrency_error_msg
+
+                proximo = True
 
             else:
                 error = ''
+
+                if len(request.POST.get('nome')) == 0:
+                    error = "O campo 'nome' deve ser preenchido!\n"
+
+                if len(request.POST.get('email')) == 0:
+                    error = error + "O campo 'email' deve ser preenchido!\n"
+                else:
+                    if email_repetido:
+                        error = error + "O campo 'email' foi preenchido com um valor que já existe no banco de dados!\n"
+
                 for field in form:
                     for e in field.errors:
-                        error = error + '<br/>' + e
+                        error = error + "Erro de preenchimento no campo '" + field.label + "'.\n"
 
         elif 'rejeitar' in request.POST:
 
-            myvol.aprovado = False
-            myvol.save(update_fields=vol_update_fields)
-            gravou = True
+            alteracoes_vol['aprovado'] = False
+
+            # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente
+            # importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+            updated = Voluntario.objects.filter(
+                id=vol_id,
+                data_analise__isnull=True,
+            ).update(**alteracoes_vol)
+
+            if updated == 0:
+                error = concurrency_error_msg
+            
+            proximo = True
 
     # Total de voluntários que confirmaram o email e estão aguardando aprovação
     queue = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).order_by('data_cadastro')
@@ -1243,38 +1288,45 @@ def aprovacao_voluntarios(request):
 
     rec = None
     new_rec = None
-    i = None
+    i = None # i controla a posição na fila, ou seja, é um offset! só deve ser alterado no pular
 
     if total > 0:
 
         if request.method == 'GET':
 
-            i = int(request.GET.get('i', 0))
+            i = int(request.GET.get('i', 0)) # ou o parâmetro i, ou 0
 
-        else:
+        else: # POST
 
-            i = int(request.POST.get('i', 0))
+            i = int(request.POST.get('i', 0)) # ou o parâmetro i, ou 0
 
             if 'pular' in request.POST:
 
                 i = i + 1
             else:
 
-                if gravou:
+                if proximo:
 
-                    i = i + 1
+                    # Mantem a mesma posição na fila, pois o registro aprovado/rejeitado saiu da fila
+                    pass
+                
                 else:
 
-                    i = int(request.GET.get('i', 0))
+                    # Se caiu aqui, houve erro, então vamos manter o mesmo registro sendo editado
+                    new_rec = myvol
 
         if i >= total:
 
             i = total - 1
 
-        rec = queue[i]
-        # Pega outra cópia do registro
-        new_rec = Voluntario.objects.get(pk=rec.id)
-        new_rec.normalizar()
+        if new_rec is None:
+            rec = queue[i]
+            # Pega outra cópia do registro para normalizar os dados
+            new_rec = Voluntario.objects.get(pk=rec.id)
+            new_rec.normalizar()
+        else:
+            # Pega os dados originais do registro sendo editado
+            rec = Voluntario.objects.get(pk=new_rec.id)
 
     context = {'total': total,
                'rec': rec,
