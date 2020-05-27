@@ -287,13 +287,15 @@ class Voluntario(models.Model):
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ')
         if self.usuario.email == self.usuario.email.upper():
             self.usuario.email = self.usuario.email.lower()
-        if self.cidade and self.cidade == self.cidade.upper():
+        if self.cidade and (self.cidade == self.cidade.upper() or self.cidade == self.cidade.lower()):
             self.cidade = self.cidade.title()
         if self.empresa and self.empresa.lower() == 'desempregado':
             self.empresa = ''
         if self.entidade_que_ajudou and self.entidade_que_ajudou.lower() == 'nenhuma':
             self.entidade_que_ajudou = ''
-        if self.profissao and self.profissao == self.profissao.upper():
+        if self.profissao.lower() == 'desempregado':
+            self.profissao = ''
+        if self.profissao and (self.profissao == self.profissao.upper() or self.profissao == self.profissao.lower()):
             self.profissao = self.profissao.title()
 
 class AreaInteresse(models.Model):
