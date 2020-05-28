@@ -95,7 +95,10 @@ class FormVoluntario(forms.ModelForm):
         return self.cleaned_data['cidade'].strip()
 
     def clean_profissao(self):
-        return self.cleaned_data['profissao'].strip()
+        val = self.cleaned_data['profissao'].strip()
+        if val.lower() in ['desempregado', 'desempregada']:
+            raise forms.ValidationError(u'"Desempregado" não é uma profissão. Exemplos de conteúdo válido: engenheiro, pedreiro, advogado, dona de cas, estudante, etc.')
+        return val
 
     def clean_ddd(self):
         return self.cleaned_data['ddd'].strip()
