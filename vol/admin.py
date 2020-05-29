@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
@@ -120,7 +121,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
 
     def email_usuario(self, instance):
         if instance.usuario:
-            return instance.usuario.email
+            return format_html('<a href="../usuario/' + str(instance.usuario.id) + '/change/">' + instance.usuario.email + '</a>')
         return '(vazio)'
     email_usuario.short_description = u'E-mail'
     email_usuario.admin_order_field = 'usuario__email'
@@ -174,7 +175,7 @@ class AnaliseVoluntarioAdmin(admin.ModelAdmin):
 
     def nome_voluntario(self, instance):
         if instance.usuario:
-            return format_html('<a href="../usuario/' + str(instance.usuario.id) + '/change/">' + instance.usuario.nome + '</a>')
+            return format_html('<a href="../usuario/' + str(instance.usuario.id) + '/change/"><img src="' + static('images/misc/user.svg') + '" alt="True" title="editar usuário" style="margin-right:5px;"></a>' + '<a href="../voluntario/' + str(instance.id) + '/change/"><img src="' + static('images/misc/profile.svg') + '" alt="True" title="editar voluntário" style="margin-right:5px;"></a>' + instance.usuario.nome)
         return '(vazio)'
     nome_voluntario.short_description = u'Nome do voluntário'
     nome_voluntario.admin_order_field = 'usuario__nome'
