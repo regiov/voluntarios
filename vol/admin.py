@@ -5,6 +5,7 @@ from django.contrib.gis.admin import GeoModelAdmin
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
+from django.utils.html import format_html
 from django.db.models import Count, Q, TextField
 from django.forms import Textarea
 from datetime import datetime
@@ -158,7 +159,7 @@ class AnaliseVoluntario(Voluntario):
 
 class AnaliseVoluntarioAdmin(admin.ModelAdmin):
     list_select_related = ('usuario', 'resp_analise',)
-    list_display = ('nome_voluntario', 'data_cadastro', 'nome_responsavel', 'data_analise', 'aprovado',)
+    list_display = ('data_analise', 'nome_responsavel', 'nome_voluntario', 'aprovado',)
     ordering = ('-data_analise',)
     search_fields = ('usuario__nome', 'usuario__email', )
     list_filter = ('aprovado', ('resp_analise', admin.RelatedOnlyFieldListFilter),)
@@ -173,7 +174,7 @@ class AnaliseVoluntarioAdmin(admin.ModelAdmin):
 
     def nome_voluntario(self, instance):
         if instance.usuario:
-            return instance.usuario.nome
+            return format_html('<a href="../usuario/' + str(instance.usuario.id) + '/change/">' + instance.usuario.nome + '</a>')
         return '(vazio)'
     nome_voluntario.short_description = u'Nome do voluntário'
     nome_voluntario.admin_order_field = 'usuario__nome'
