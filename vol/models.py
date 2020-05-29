@@ -284,11 +284,11 @@ class Voluntario(models.Model):
                 # Remove eventual zero inicial
                 self.ddd = self.ddd[1:]
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
-            self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ')
+            self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
         if self.usuario.email == self.usuario.email.upper():
             self.usuario.email = self.usuario.email.lower()
         if self.cidade and (self.cidade == self.cidade.upper() or self.cidade == self.cidade.lower()):
-            self.cidade = self.cidade.title()
+            self.cidade = self.cidade.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
         if self.empresa and self.empresa.lower() == 'desempregado':
             self.empresa = ''
         if self.entidade_que_ajudou and self.entidade_que_ajudou.lower() == 'nenhuma':
