@@ -1190,6 +1190,8 @@ def aprovacao_voluntarios(request):
         alteracoes_vol = {'resp_analise': request.user,
                           'data_analise': timezone.now()}
 
+        # Este objeto não é mais usado na gravação, porém é usado na validação do formulário e como
+        # referência no template em caso de erro de preenchimento de dados
         myvol = Voluntario.objects.get(pk=vol_id)
         myvol.resp_analise = request.user
         myvol.data_analise = timezone.now()
