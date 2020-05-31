@@ -1,0 +1,26 @@
+{% extends "vol/base_admin.html" %}
+
+{% block title %}Revisão de voluntários{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Panorama atual</h1>
+
+<h2>Voluntários</h2>
+<hr style="margin:0;"/>
+
+<h3>Aguardando revisão: <span style="margin-left:20px;"><a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a></span></h3>
+
+<h3>Tempo médio para revisão<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
+
+<br/>
+
+<h2>Histórico pessoal de atividades</h2>
+<hr style="margin:0;"/>
+
+<h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ total_vol_pessoal }}</span> <span style="margin-left:20px;">({{ indice_aprovacao_vol_pessoal }}% de aprovação)</span></h3>
+
+<br/>
+<p class="dica">[1] calculado desde 23/05/2020</p>
+
+{% endblock content %}

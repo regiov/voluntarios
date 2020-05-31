@@ -129,6 +129,9 @@ urlpatterns = [
 
     # Interface adm
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
+
+    # Painel de controle
+    url(r'^painel$', views.painel, name='painel'),
 ]
 
 if settings.DEBUG:

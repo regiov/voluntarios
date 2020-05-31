@@ -33,6 +33,7 @@
                 </div>
                 <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown"><a href="{% url 'painel' %}">Painel</a></li>                  
                         <li class="dropdown"><a href="#">Voluntários <i class="fa fa-angle-down"></i></a>
                             <ul role="menu" class="sub-menu">
                                 <li><a href="{% url 'aprovacao_voluntarios' %}">Aprovação de voluntários</a></li>
@@ -59,7 +60,7 @@
     <section id="content">
         <div class="container">
             <div class="row">
-                <div class="{% block container_class %}col-md-9 col-sm-8{% endblock container_class %}">
+                <div class="col-sm-12">
 <!--/#inicio-conteudo-->{% block content %}
 {% endblock content %}<!--/#fim-conteudo-->
                 </div>

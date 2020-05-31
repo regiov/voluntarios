@@ -10,7 +10,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllo
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q, F, Count, Avg
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
@@ -1293,8 +1293,6 @@ def aprovacao_voluntarios(request):
     i = None # i controla a posição na fila, ou seja, é um offset! só deve ser alterado no pular
     frase = None
 
-    total = 0
-
     if total > 0:
 
         if request.method == 'GET':
@@ -1354,4 +1352,32 @@ def aprovacao_voluntarios(request):
     template = loader.get_template('vol/aprovacao_voluntarios.html')
     return HttpResponse(template.render(context, request))
 
+@login_required
+@staff_member_required
+def painel(request):
+    '''Painel de controle administrativo'''
+
+    # Total de voluntários que confirmaram o email e estão aguardando aprovação
+    total_vol = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).count()
+
+    # Tempo médio para revisão de cadastro de voluntários
+    avg = Voluntario.objects.filter(data_analise__isnull=False).aggregate(duration=Avg(F('data_analise') - F('data_cadastro')))
+
+    tempo_vol = int(avg['duration'].total_seconds()/3600)
+
+    # Total de voluntários revisados pelo usuário
+    total_vol_pessoal = Voluntario.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
+
+    # Total de voluntários aprovados pelo usuário
+    total_vol_pessoal_aprovado = Voluntario.objects.filter(aprovado=True, resp_analise=request.user).count()
+
+    # Percentual de aprovção
+    indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
+
+    context = {'total_vol': total_vol,
+               'tempo_vol': tempo_vol,
+               'total_vol_pessoal': total_vol_pessoal,
+               'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal}
+    template = loader.get_template('vol/painel.html')
+    return HttpResponse(template.render(context, request))
 
