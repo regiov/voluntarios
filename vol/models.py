@@ -830,3 +830,15 @@ class AtividadeAdmin(models.Model):
     usuario             = models.OneToOneField(Usuario, on_delete=models.PROTECT)
     ciencia_privacidade = models.DateTimeField(u'Data da ciência sobre o compromisso de privacidade', null=True, blank=True)
     viu_instrucoes_vol  = models.DateTimeField(u'Data da visualização das instruções sobre aprovação de voluntários', null=True, blank=True)
+
+class FraseMotivacional(models.Model):
+    """Frase motivacional"""
+    frase = models.TextField(u'Frase')
+    autor = models.TextField(u'Autor')
+
+    class Meta:
+        verbose_name = u'Frase motivacional'
+        verbose_name_plural = u'Frases motivacionais'
+
+    def __str__(self):
+        return '"' + self.frase + '" (' + self.autor + ')'

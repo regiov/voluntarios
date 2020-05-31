@@ -24,7 +24,7 @@ from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional
 
 from allauth.account.models import EmailAddress
 
@@ -1291,6 +1291,9 @@ def aprovacao_voluntarios(request):
     rec = None
     new_rec = None
     i = None # i controla a posição na fila, ou seja, é um offset! só deve ser alterado no pular
+    frase = None
+
+    total = 0
 
     if total > 0:
 
@@ -1329,13 +1332,25 @@ def aprovacao_voluntarios(request):
         else:
             # Pega os dados originais do registro sendo editado
             rec = Voluntario.objects.get(pk=new_rec.id)
+            
+    else: # total == 0
+
+        # Lógica de mostrar frase motivacional, uma por dia ao logo do ano
+        num_frases = FraseMotivacional.objects.all().count()
+
+        if num_frases > 0:
+            now = datetime.datetime.now()
+            day_of_year = int(now.strftime("%j"))
+            position = (day_of_year % num_frases)
+            frase = FraseMotivacional.objects.all().order_by('id')[position]
 
     context = {'total': total,
                'rec': rec,
                'new_rec': new_rec,
                'i': i,
                'last': (i == total-1),
-               'error': error}
+               'error': error,
+               'frase': frase}
     template = loader.get_template('vol/aprovacao_voluntarios.html')
     return HttpResponse(template.render(context, request))
 

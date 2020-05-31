@@ -20,7 +20,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -383,6 +383,9 @@ class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass
 
+class FraseMotivacionalAdmin(admin.ModelAdmin):
+    list_display = ('frase', 'autor',)
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -393,4 +396,5 @@ admin.site.register(AnaliseVoluntario, AnaliseVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(ValidacaoEntidade, ValidacaoEntidadeAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
+admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 
