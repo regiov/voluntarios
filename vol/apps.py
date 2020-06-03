@@ -8,7 +8,7 @@ from vol.signals import my_user_signed_up
 
 class VolConfig(AppConfig):
     name = 'vol'
-    verbose_name = "Site Voluntários"
+    verbose_name = "Voluntariado"
 
     def ready(self):
         # importing model classes
