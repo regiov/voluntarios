@@ -1374,7 +1374,9 @@ def painel(request):
     total_vol_pessoal_aprovado = Voluntario.objects.filter(aprovado=True, resp_analise=request.user).count()
 
     # Percentual de aprovção
-    indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
+    indice_aprovacao_vol_pessoal = None
+    if total_vol_pessoal > 0:
+        indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
 
     # Forças tarefas
     tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')

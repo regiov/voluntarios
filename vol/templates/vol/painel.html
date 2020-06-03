@@ -18,7 +18,7 @@
 <h2>Histórico pessoal de atividades</h2>
 <hr style="margin:0;"/>
 
-<h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ total_vol_pessoal }}</span> <span style="margin-left:20px;">({{ indice_aprovacao_vol_pessoal }}% de aprovação)</span></h3>
+<h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ total_vol_pessoal }}</span> {% if indice_aprovacao_vol_pessoal is not None %}<span style="margin-left:20px;">({{ indice_aprovacao_vol_pessoal }}% de aprovação)</span>{% endif %}</h3>
 
 {% for tarefa in tarefas %}
   <br/>
