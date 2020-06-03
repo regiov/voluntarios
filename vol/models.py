@@ -747,15 +747,17 @@ TIPO_TEL = (
 
 class Telefone(models.Model):
     """Telefone de um voluntário ou de uma entidade"""
-    entidade           = models.ForeignKey(Entidade, on_delete=models.CASCADE, null=True, related_name='tel_set')
-    voluntario         = models.ForeignKey(Voluntario, on_delete=models.CASCADE, null=True, related_name='tel_set')
-    tipo               = models.CharField(u'Tipo', max_length=1, choices=TIPO_TEL, null=True, blank=True)
-    prefixo            = models.CharField(u'Prefixo', max_length=4, null=True, blank=True)
-    numero             = models.CharField(u'Número', max_length=15)
-    contato            = models.CharField(u'Contato', max_length=50, null=True, blank=True)
-    confirmado         = models.BooleanField(u'Confirmado', default=False)
-    data_confirmacao   = models.DateTimeField(u'Data da confirmação', null=True, blank=True)
-    confirmado_por     = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.PROTECT)
+    entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, null=True, related_name='tel_set')
+    voluntario       = models.ForeignKey(Voluntario, on_delete=models.CASCADE, null=True, related_name='tel_set')
+    tipo             = models.CharField(u'Tipo', max_length=1, choices=TIPO_TEL, null=True, blank=True)
+    prefixo          = models.CharField(u'Prefixo', max_length=4, null=True, blank=True)
+    numero           = models.CharField(u'Número', max_length=15)
+    contato          = models.CharField(u'Contato', max_length=50, null=True, blank=True)
+    confirmado       = models.BooleanField(u'Confirmado', default=False)
+    data_confirmacao = models.DateTimeField(u'Data da confirmação', null=True, blank=True)
+    confirmado_por   = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.PROTECT)
+    resp_cadastro    = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_tel_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_cadastro    = models.DateTimeField(u'Data do cadastro', auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         if self.prefixo:
@@ -801,8 +803,10 @@ class Email(models.Model):
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='email_set')
     endereco         = models.CharField(u'E-mail', max_length=90)
     principal        = models.BooleanField(u'Principal', default=True)
-    confirmado       = models.BooleanField(u'Confirmado', default=False)
+    confirmado       = models.BooleanField(u'Confirmado automaticamente', default=False)
     data_confirmacao = models.DateTimeField(u'Data da última confirmação', null=True, blank=True)
+    resp_cadastro    = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_email_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_cadastro    = models.DateTimeField(u'Data do cadastro', auto_now_add=True, null=True, blank=True)
 
     objects = EmailManager()
 
@@ -841,3 +845,21 @@ class FraseMotivacional(models.Model):
 
     def __str__(self):
         return '"' + self.frase + '" (' + self.autor + ')'
+
+class ForcaTarefa(models.Model):
+    """Força Tarefa"""
+    tarefa         = models.CharField(u'Tarefa', max_length=200)
+    data_cadastro  = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    meta           = models.IntegerField(u'Total de registros a serem revisados', null=True, blank=True)
+    modelo         = models.CharField(u'Nome do modelo usado na busca', help_text=u'Ex: Entidade, Voluntario', max_length=60)
+    filtro         = models.TextField(u'Filtro usado na busca em formato de dicionário')
+    url            = models.CharField(u'Nome da URL no arquivo de configuração', max_length=80)
+    visivel        = models.BooleanField(u'Visível no painel de controle', default=True)
+
+    class Meta:
+        verbose_name = u'Força tarefa'
+        verbose_name_plural = u'Forças tarefas'
+
+    def __str__(self):
+        return self.tarefa
+

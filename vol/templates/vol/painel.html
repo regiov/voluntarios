@@ -1,5 +1,5 @@
 {% extends "vol/base_admin.html" %}
-
+{% load l10n %}
 {% block title %}Revisão de voluntários{% endblock title %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 <h2>Voluntários</h2>
 <hr style="margin:0;"/>
 
-<h3>Aguardando revisão: <span style="margin-left:20px;"><a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a></span></h3>
+<h3>Aguardando revisão: <span style="margin-left:20px;">{% if total_vol %}<a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a>{% else %}{{ total_vol }}{% endif %}</span></h3>
 
 <h3>Tempo médio para revisão<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
 
@@ -19,6 +19,20 @@
 <hr style="margin:0;"/>
 
 <h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ total_vol_pessoal }}</span> <span style="margin-left:20px;">({{ indice_aprovacao_vol_pessoal }}% de aprovação)</span></h3>
+
+{% for tarefa in tarefas %}
+  <br/>
+
+  <h2>Força tarefa: {% if tarefa.progresso < 100 %}<a href="{{ tarefa.url }}" target="_blank">{{ tarefa.tarefa }}</a>{% else %}{{ tarefa.tarefa }}{% endif %} (progresso: {{ tarefa.progresso }}%)</h2>
+  <hr style="margin:0;"/>
+  {% localize off %}
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ tarefa.progresso }}" aria-valuemin="0" aria-valuemax="100" style="width:{{ tarefa.progresso }}%">
+      <span class="sr-only">{{ tarefa.progresso }}% alcançado</span>
+    </div>
+  </div>
+  {% endlocalize %}
+{% endfor %}
 
 <br/>
 <p class="dica">[1] calculado desde 23/05/2020</p>

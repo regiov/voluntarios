@@ -20,7 +20,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa
 
 from vol.views import envia_confirmacao_email_entidade
 
@@ -204,7 +204,13 @@ class AnaliseVoluntarioAdmin(admin.ModelAdmin):
 
 class EmailEntidadeInline(admin.TabularInline):
     model = Email
-    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
+    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao', 'resp_cadastro', 'data_cadastro']
+    readonly_fields = ['confirmado', 'data_confirmacao', 'resp_cadastro', 'data_cadastro']
+    extra = 0
+
+class EmailNovoEntidadeInline(admin.TabularInline):
+    model = Email
+    fields = ['endereco', 'principal']
     extra = 0
 
 class ReadOnlyEmailEntidadeInline(admin.TabularInline):
@@ -272,12 +278,14 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
         for obj in formset.deleted_objects:
             obj.delete()
         for instance in instances:
+            # Alterações em Anotações ou Documentos
             if isinstance(instance, AnotacaoEntidade) or isinstance(instance, Documento):
                 if instance.usuario_id is None:
                     # Grava usuário corrente em anotações e documentos
                     instance.usuario = request.user
+            # Alterações em Telefones
             if isinstance(instance, Telefone):
-                # Atualiza status de confirmação de telefone
+                # Atualiza dados de confirmação se necessário
                 if instance.confirmado:
                     if instance.confirmado_por is None:
                         instance.confirmado_por = request.user
@@ -287,6 +295,16 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
                     if instance.confirmado_por is not None:
                         instance.confirmado_por = None
                     instance.data_confirmacao = None
+                # Apenas para novos telefones
+                if instance.id is None:
+                    instance.resp_cadastro = request.user
+                    instance.data_cadastro = timezone.now()
+            # Alterações em Emails
+            if isinstance(instance, Email):
+                # Apenas para novos emails
+                if instance.id is None:
+                    instance.resp_cadastro = request.user
+                    instance.data_cadastro = timezone.now()
             instance.save()
         formset.save_m2m()
         # Neste ponto já gravou alterações nos e-mails, então pode verificar unicidade do principal
@@ -344,21 +362,22 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     enviar_confirmacao.short_description = "Enviar nova mensagem de confirmação de e-mail"
 
-class ValidacaoEntidade(Entidade):
-    """Modelo criado para realizar validação do cadastro de entidades via interface administrativa"""
+class EntidadeSemEmail(Entidade):
+    """Modelo criado para adicionar e-mail a entidades antigas via interface adm"""
     class Meta:
         proxy = True
-        verbose_name = u'Entidade para revisão'
-        verbose_name_plural = u'Entidades para revisão'
+        verbose_name = u'Entidade sem e-mail'
+        verbose_name_plural = u'Entidades sem e-mail'
 
-class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
-    list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'cidade', 'estado', 'ultima_revisao',)
-    ordering = ('-data_cadastro', '-ultima_revisao',)
+class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
+    list_display = ('razao_social', 'cnpj', 'estado', 'cidade',)
+    ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
-    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'ultima_revisao', 'mytags']
+    list_filter = ('estado',)
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        ReadOnlyEmailEntidadeInline, ReadOnlyTelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
+        EmailNovoEntidadeInline, TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
@@ -371,20 +390,24 @@ class ValidacaoEntidadeAdmin(BaseEntidadeAdmin):
 
     # Remove opção de deleção das ações
     def get_actions(self, request):
-        actions = super(ValidacaoEntidadeAdmin, self).get_actions(request)
+        actions = super(EntidadeSemEmailAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
 
-    # Exibe apenas entidades aprovadas
+    # Exibe apenas entidades aprovadas que não estejam sendo gerenciadas por ninguém e que não possuam e-mail
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True)
+        return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True)
 
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass
 
 class FraseMotivacionalAdmin(admin.ModelAdmin):
     list_display = ('frase', 'autor',)
+
+class ForcaTarefaAdmin(admin.ModelAdmin):
+    list_display = ('tarefa', 'data_cadastro', 'meta',)
+    readonly_fields = ['meta']
 
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
@@ -394,7 +417,7 @@ admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
 admin.site.register(Voluntario, VoluntarioAdmin)
 admin.site.register(AnaliseVoluntario, AnaliseVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
-admin.site.register(ValidacaoEntidade, ValidacaoEntidadeAdmin)
+admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
-
+admin.site.register(ForcaTarefa, ForcaTarefaAdmin)

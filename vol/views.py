@@ -3,6 +3,7 @@
 import datetime
 import os
 import random
+from math import ceil, log10
 
 from django.shortcuts import render, redirect
 from django.template import loader
@@ -23,8 +24,9 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
+from django.apps import apps
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa
 
 from allauth.account.models import EmailAddress
 
@@ -1374,10 +1376,31 @@ def painel(request):
     # Percentual de aprovção
     indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
 
+    # Forças tarefas
+    tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')
+
+    tarefas = []
+
+    # Determina o progresso de cada tarefa
+    for tarefa in tarefas_ativas:
+        m = apps.get_model('vol', tarefa.modelo)
+        filtro = eval(tarefa.filtro)
+        qs = m.objects.filter(**filtro)
+        total_atual = qs.count()
+        if tarefa.meta is None:
+            tarefa.meta = total_atual
+            tarefa.save(update_fields=['meta'])
+        tarefa.progresso = 100*(abs(total_atual-tarefa.meta)/tarefa.meta)
+        if tarefa.progresso > 0:
+            incremento = 100*(1/tarefa.meta)
+            pos_primeiro_digito = int(ceil(-log10(incremento)))
+            tarefa.progresso = round(tarefa.progresso, pos_primeiro_digito)
+        tarefas.append(tarefa)
+
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
                'total_vol_pessoal': total_vol_pessoal,
-               'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal}
+               'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal,
+               'tarefas': tarefas}
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
-
