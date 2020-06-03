@@ -1392,11 +1392,14 @@ def painel(request):
         if tarefa.meta is None:
             tarefa.meta = total_atual
             tarefa.save(update_fields=['meta'])
-        tarefa.progresso = 100*(abs(total_atual-tarefa.meta)/tarefa.meta)
-        if tarefa.progresso > 0:
-            incremento = 100*(1/tarefa.meta)
-            pos_primeiro_digito = int(ceil(-log10(incremento)))
-            tarefa.progresso = round(tarefa.progresso, pos_primeiro_digito)
+        if tarefa.meta > 0:
+            tarefa.progresso = 100*(abs(total_atual-tarefa.meta)/tarefa.meta)
+            if tarefa.progresso > 0:
+                incremento = 100*(1/tarefa.meta)
+                pos_primeiro_digito = int(ceil(-log10(incremento)))
+                tarefa.progresso = round(tarefa.progresso, pos_primeiro_digito)
+        else:
+            tarefa.progresso = 100
         tarefas.append(tarefa)
 
     context = {'total_vol': total_vol,
