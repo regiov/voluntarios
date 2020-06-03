@@ -107,6 +107,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     objects = MyUserManager()
 
+    class Meta:
+        verbose_name = u'Usuário'
+        verbose_name_plural = u'Usuários'
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nome']
 
@@ -152,6 +156,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 class RemocaoUsuario(models.Model):
     """Registro de remoção de usuário"""
     momento = models.DateTimeField(u'Momento', default=timezone.now)
+
+    class Meta:
+        verbose_name = u'Remoção de usuário'
+        verbose_name_plural = u'Remoções de usuários'
 
     def __str__(self):
         return str(self.id) + ': ' + str(self.momento)
@@ -656,6 +664,10 @@ class Necessidade(models.Model):
     valor_orig       = models.CharField(u'Valor', max_length=510, null=True, blank=True) 
     data_solicitacao = models.DateTimeField(u'Data da solicitação', auto_now_add=True, null=True, blank=True)
 
+    class Meta:
+        verbose_name = u'Necessidade'
+        verbose_name_plural = u'Necessidades'
+
     def __str__(self):
         if self.qtde_orig is None:
             return self.descricao
@@ -759,6 +771,11 @@ class Telefone(models.Model):
     resp_cadastro    = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_tel_set', on_delete=models.PROTECT, null=True, blank=True)
     data_cadastro    = models.DateTimeField(u'Data do cadastro', auto_now_add=True, null=True, blank=True)
 
+    class Meta:
+        verbose_name = u'Telefone'
+        verbose_name_plural = u'Telefones'
+        ordering = ('data_cadastro',)
+
     def __str__(self):
         if self.prefixo:
             return u'(' + self.prefixo + u') ' + self.numero
@@ -833,6 +850,10 @@ class AtividadeAdmin(models.Model):
     usuario             = models.OneToOneField(Usuario, on_delete=models.PROTECT)
     ciencia_privacidade = models.DateTimeField(u'Data da ciência sobre o compromisso de privacidade', null=True, blank=True)
     viu_instrucoes_vol  = models.DateTimeField(u'Data da visualização das instruções sobre aprovação de voluntários', null=True, blank=True)
+
+    class Meta:
+        verbose_name = u'Atividade nas interfaces administrativas'
+        verbose_name_plural = u'Atividades nas interfaces administrativas'
 
 class FraseMotivacional(models.Model):
     """Frase motivacional"""

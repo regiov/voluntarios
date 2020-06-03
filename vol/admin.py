@@ -150,7 +150,6 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
-
 class AnaliseVoluntario(Voluntario):
     """Modelo criado para avaliar as análises de cadastro de voluntários via interface administrativa"""
     class Meta:
