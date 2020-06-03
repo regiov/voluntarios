@@ -869,13 +869,13 @@ class FraseMotivacional(models.Model):
 
 class ForcaTarefa(models.Model):
     """Força Tarefa"""
-    tarefa         = models.CharField(u'Tarefa', max_length=200)
-    data_cadastro  = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
-    meta           = models.IntegerField(u'Total de registros a serem revisados', null=True, blank=True)
-    modelo         = models.CharField(u'Nome do modelo usado na busca', help_text=u'Ex: Entidade, Voluntario', max_length=60)
-    filtro         = models.TextField(u'Filtro usado na busca em formato de dicionário')
-    url            = models.CharField(u'Nome da URL no arquivo de configuração', max_length=80)
-    visivel        = models.BooleanField(u'Visível no painel de controle', default=True)
+    tarefa        = models.CharField(u'Tarefa', max_length=200)
+    data_cadastro = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    meta          = models.IntegerField(u'Total de registros a serem revisados', null=True, blank=True)
+    modelo        = models.CharField(u'Nome do modelo usado na busca', help_text=u'Ex: Entidade, Voluntario', max_length=60)
+    filtro        = models.TextField(u'Filtro usado na busca em formato de dicionário')
+    url           = models.CharField(u'Link para página da tarefa', max_length=80)
+    visivel       = models.BooleanField(u'Visível no painel de controle', default=True)
 
     class Meta:
         verbose_name = u'Força tarefa'
