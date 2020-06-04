@@ -1395,8 +1395,10 @@ def painel(request):
         if tarefa.meta > 0:
             tarefa.progresso = 100*(abs(total_atual-tarefa.meta)/tarefa.meta)
             if tarefa.progresso > 0:
-                incremento = 100*(1/tarefa.meta)
-                pos_primeiro_digito = int(ceil(-log10(incremento)))
+                # Calcula o número de casas decimais que deve ser exibido no progresso de forma a garantir que a
+                # revisão de um único registro sempre resulte numa alteração, mesmo que pequena
+                incremento = 100*(1/tarefa.meta) # incremento no progresso com um único registro
+                pos_primeiro_digito = int(ceil(-log10(incremento))) # posição do primeiro dígito significativo
                 tarefa.progresso = round(tarefa.progresso, pos_primeiro_digito)
         else:
             tarefa.progresso = 100
