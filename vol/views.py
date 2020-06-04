@@ -1367,6 +1367,9 @@ def painel(request):
 
     tempo_vol = int(avg['duration'].total_seconds()/3600)
 
+    # Total de voluntários aprovados no dia
+    total_vol_dia = Voluntario.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
+
     # Total de voluntários revisados pelo usuário
     total_vol_pessoal = Voluntario.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
@@ -1377,6 +1380,9 @@ def painel(request):
     indice_aprovacao_vol_pessoal = None
     if total_vol_pessoal > 0:
         indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
+
+    # Total de e-mails de entidades descobertos pelo usuário
+    total_emails_descobertos = Email.objects.filter(entidade__isnull=False, entidade__aprovado=True, resp_cadastro=request.user).count()
 
     # Forças tarefas
     tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')
@@ -1406,8 +1412,10 @@ def painel(request):
 
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
+               'total_vol_dia': total_vol_dia,
                'total_vol_pessoal': total_vol_pessoal,
                'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal,
+               'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
