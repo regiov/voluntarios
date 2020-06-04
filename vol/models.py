@@ -303,6 +303,8 @@ class Voluntario(models.Model):
             self.entidade_que_ajudou = ''
         if self.profissao.lower() == 'desempregado':
             self.profissao = ''
+        if self.profissao.lower() == 'dona de casa':
+            self.profissao = 'Do Lar'
         if self.profissao and (self.profissao == self.profissao.upper() or self.profissao == self.profissao.lower()):
             self.profissao = self.profissao.title()
 
