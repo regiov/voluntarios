@@ -408,6 +408,71 @@ class ForcaTarefaAdmin(admin.ModelAdmin):
     list_display = ('tarefa', 'data_cadastro', 'meta',)
     readonly_fields = ['meta']
 
+class AnotacaoAguardandoRevisao(AnotacaoEntidade):
+    """Modelo criado para exibir anotações aguardando revisão"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Anotação sobre entidade'
+        verbose_name_plural = u'Anotações sobre entidades'
+
+class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
+    list_select_related = ('entidade', 'usuario',)
+    list_display = ('momento', 'razao_social', 'anotacao', 'nome_responsavel',)
+    ordering = ('momento',)
+    search_fields = ('razao_social',)
+    fields = ['momento', 'razao_social', 'anotacao', 'nome_responsavel']
+    readonly_fields = ['momento', 'razao_social', 'anotacao', 'nome_responsavel']
+    actions = ['marcar_como_revisada']
+
+    def razao_social(self, instance):
+        return format_html('<a href="../entidade/' + str(instance.entidade.id) + '/change/"><img src="' + static('images/misc/inst.svg') + '" alt="True" title="editar entidade" style="margin-right:5px;width:13px;height:13px;"></a>' + instance.entidade.razao_social)
+    razao_social.short_description = u'Razão social'
+    razao_social.admin_order_field = 'entidade__razao_social'
+
+    def nome_responsavel(self, instance):
+        return  instance.usuario.nome
+    nome_responsavel.short_description = u'Responsável'
+    nome_responsavel.admin_order_field = 'usuario__nome'
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(AnotacaoAguardandoRevisaoAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # Exibe apenas anotações aguardando revisão
+    def get_queryset(self, request):
+        return self.model.objects.filter(req_acao=True, rev__isnull=True)
+
+    @transaction.atomic
+    def marcar_como_revisada(self, request, queryset):
+        num_updates = 0
+        for obj in queryset:
+            if not obj.rev:
+                obj.rev = True
+                obj.resp_rev = request.user
+                obj.data_rev = timezone.now()
+                obj.save(update_fields=['rev', 'resp_rev', 'data_rev'])
+                num_updates = num_updates + 1
+        main_msg = ''
+        if num_updates > 0:
+            main_msg = u'%s anotação(ões) revisada(s). ' % num_updates
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_updates:
+            extra_msg = u'%s não alterada(s) por já estar(em) revisada(s).' % (total_recs-num_updates)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    marcar_como_revisada.short_description = "Marcar anotações como revisadas"
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -420,3 +485,4 @@ admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
+admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)

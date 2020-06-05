@@ -603,11 +603,14 @@ class Entidade(models.Model):
 
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
-    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
-    anotacao = models.TextField(u'Anotação')
-    usuario  = models.ForeignKey(Usuario, on_delete=models.PROTECT)
-    momento  = models.DateTimeField(u'Momento', auto_now_add=True, null=True, blank=True)
-    req_acao = models.BooleanField(u'Requer alteração', default=False)
+    entidade  = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    anotacao  = models.TextField(u'Anotação')
+    usuario   = models.ForeignKey(Usuario, on_delete=models.PROTECT)
+    momento   = models.DateTimeField(u'Momento', auto_now_add=True, null=True, blank=True)
+    req_acao  = models.BooleanField(u'Requer alteração', default=False)
+    rev       = models.NullBooleanField(u'Revisada')
+    resp_rev  = models.ForeignKey(Usuario, verbose_name=u'Responsável pela revisão', related_name='resp_revisao_anotacao_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_rev  = models.DateTimeField(u'Data/hora da revisão', null=True, blank=True)
 
     class Meta:
         verbose_name = u'Anotação'
