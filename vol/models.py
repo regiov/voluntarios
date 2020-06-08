@@ -346,7 +346,7 @@ class Entidade(models.Model):
     nome_fantasia      = models.CharField(u'Nome Fantasia', max_length=100, null=True, blank=True) 
     razao_social       = models.CharField(u'Razão Social', max_length=120) 
     cnpj               = models.CharField(u'CNPJ', max_length=36, null=True, blank=True) 
-    area_atuacao       = models.ForeignKey(AreaAtuacao, verbose_name=u'Área de Atuação', on_delete=models.PROTECT, null=True)
+    area_atuacao       = models.ForeignKey(AreaAtuacao, verbose_name=u'Área de Atuação', on_delete=models.PROTECT, null=True, blank=True)
     descricao          = models.TextField(u'Descrição', null=True, blank=True)
     cep                = models.CharField(u'CEP', max_length=10, null=True, blank=True) 
     logradouro         = models.CharField(u'Logradouro', max_length=100, null=True, blank=True) 
