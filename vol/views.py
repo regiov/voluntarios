@@ -936,7 +936,7 @@ def exibe_entidade_old(request):
     return exibe_entidade(request, id_entidade)
 
 @cache_page(60 * 60 * 24) # timeout: 24h
-def entidades_kml(request):
+def entidades_kml(request, id_last):
     '''KML de todas as Entidades'''
     metodos = ['GET']
     if request.method not in (metodos):

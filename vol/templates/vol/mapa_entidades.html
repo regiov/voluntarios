@@ -17,8 +17,11 @@ function initMap() {
       mapTypeControl: false,
     });
 
-    {% comment %}Utiliza o id da última entidade cadastrada como parâmetro para controlar cache remoto do google. Obs: entidades_recentes é passada por um context_processor.{% endcomment %}
-    var src = 'https://voluntarios.com.br{% url 'entidades_kml' %}?last={% if entidades_recentes.count > 0 %}{{ entidades_recentes.0.id }}{% else %}0{% endif %}';
+    {% comment %}Utiliza o id da última entidade cadastrada como parâmetro para controlar cache remoto do google.
+                 Obs: entidades_recentes é passada por um context_processor.{% endcomment %}
+    // Ei! Fale conosco se tiver interesse nos dados de nossas entidades. Temos muito mais
+    // dados do que você pode obter aqui, além de ser um caminho mais civilizado.
+    var src = 'https://voluntarios.com.br{% url 'entidades_kml' id_last=entidades_recentes.0.id %}';
 
     var kmlLayer = new google.maps.KmlLayer(src, {
       suppressInfoWindows: true,

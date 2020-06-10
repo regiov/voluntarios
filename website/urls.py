@@ -86,7 +86,14 @@ urlpatterns = [
     url(r'^doacao/busca$', views.busca_doacoes, name='busca_doacoes'),
     url(r'^doacao.htm$', views.busca_doacoes),#old
     
-    url(r'^entidades.kml$', views.entidades_kml, name='entidades_kml'),
+    # O google maps faz cache de arquivos kml, então a cada alteração é importante
+    # mudar a URL de onde ele busca o conteúdo. Inicialmente tentamos fazer isso
+    # com parâmetros GET, mas em alguns casos os dados não eram exibidos.
+    # O padrão abaixo procura acrescentar uma espécie de versão na própria
+    # URL para evitar isso. O parâmetro na verdade nem é usado pela view.
+    # O zero na frente é para o caso extremo de não haver uma última entidade aprovada
+    # cujo id serviria de referência para o versionamento da URL..
+    url(r'^kmls/0(?P<id_last>\d+)/entidades.kml$', views.entidades_kml, name='entidades_kml'),
     
     # Páginas estáticas
     url(r'^p/', include('django.contrib.flatpages.urls')),
