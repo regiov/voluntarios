@@ -275,6 +275,39 @@ class AnotacaoEntidadeInline(admin.TabularInline):
         TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
     } 
 
+class AntigaAnotacaoEntidadeInline(admin.TabularInline):
+    model = AnotacaoEntidade
+    verbose_name = "Anotação anterior"
+    verbose_name_plural = "Anotações anteriores"
+    fields = ['anotacao', 'req_acao', 'usuario', 'momento']
+    readonly_fields = ['anotacao', 'req_acao', 'usuario', 'momento']
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+class NovaAnotacaoEntidadeInline(admin.TabularInline):
+    model = AnotacaoEntidade
+    verbose_name = "Nova anotação"
+    verbose_name_plural = "Novas anotações"
+    fields = ['anotacao', 'req_acao']
+    extra = 0
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
+    } 
+
+    # Esta configuração esconde anotações existentes!
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    # Para Django > 2.1 deve-se desabilitar a "view permission" também
+    # (https://docs.djangoproject.com/en/2.2/releases/2.1/#what-s-new-in-django-2-1)
+    def has_view_permission(self, request, obj=None):
+        return False
+
 class BaseEntidadeAdmin(admin.ModelAdmin):
     # Grava alterações automáticas
     def save_formset(self, request, form, formset, change):
@@ -381,7 +414,7 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
-        EmailNovoEntidadeInline, TelEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
+        EmailNovoEntidadeInline, TelEntidadeInline, DocumentoInline, AntigaAnotacaoEntidadeInline, NovaAnotacaoEntidadeInline,
     ]
 
     # Desabilita inclusão
