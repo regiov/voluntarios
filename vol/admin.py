@@ -2,7 +2,12 @@
 
 from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
-from django.contrib.staticfiles.templatetags.staticfiles import static
+try:
+    # Django 2
+    from django.contrib.staticfiles.templatetags.staticfiles import static
+except ModuleNotFoundError:
+    # Django 3
+    from django.templatetags.static import static
 from django.db import transaction
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
