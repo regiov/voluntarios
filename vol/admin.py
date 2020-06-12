@@ -436,6 +436,48 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     def get_queryset(self, request):
         return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True)
 
+class EmailDescoberto(Email):
+    """Modelo criado para listar e-mails recém descobertos de entidades"""
+    class Meta:
+        proxy = True
+        verbose_name = u'E-mail descoberto'
+        verbose_name_plural = u'E-mails descobertos'
+
+class EmailDescobertoAdmin(admin.ModelAdmin):
+    list_display = ('razao_social_entidade', 'endereco', 'responsavel_cadastro', 'data_cadastro', 'confirmado',)
+    ordering = ('-data_cadastro',)
+    search_fields = ('razao_social_entidade',)
+    list_display_links = None
+
+    def razao_social_entidade(self, instance):
+        return instance.entidade.razao_social
+    razao_social_entidade.short_description = u'Entidade'
+    razao_social_entidade.admin_order_field = 'entidade__razao_social'
+
+    def responsavel_cadastro(self, instance):
+        return instance.resp_cadastro.nome
+    responsavel_cadastro.short_description = u'Responsável'
+    responsavel_cadastro.admin_order_field = 'resp_cadastro__nome'
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(EmailDescobertoAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # Exibe apenas e-mail de entidades sem nenhum vínculo e que estejam aguardando confirmação
+    def get_queryset(self, request):
+        return self.model.objects.prefetch_related('entidade', 'resp_cadastro').filter(resp_cadastro__isnull=False, entidade__aprovado=True, entidade__vinculoentidade__isnull=True)
+
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass
 
@@ -524,3 +566,4 @@ admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
 admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)
+admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
