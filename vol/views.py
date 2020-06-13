@@ -937,13 +937,23 @@ def exibe_entidade_old(request):
 
 @cache_page(60 * 60 * 24) # timeout: 24h
 def entidades_kml(request, id_last):
-    '''KML de todas as Entidades'''
+    '''KML de todas as Entidades. Obs: não usamos mais o KML, e sim o json gerado no próximo método.'''
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
     entidades_georref = Entidade.objects.filter(coordenadas__isnull=False, aprovado=True)
     context = {'entidades': entidades_georref}
     return render(request, 'vol/entidades.kml', context=context, content_type='application/vnd.google-earth.kml+xml; charset=utf-8')
+
+@cache_page(60 * 60 * 24) # timeout: 24h
+def entidades_points(request):
+    '''Localização geográfica de todas as Entidades'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    entidades_georref = Entidade.objects.filter(coordenadas__isnull=False, aprovado=True)
+    context = {'entidades': entidades_georref}
+    return render(request, 'vol/entidades.json', context=context, content_type='application/json; charset=utf-8')
 
 def busca_doacoes(request):
     '''Página de busca de doações'''

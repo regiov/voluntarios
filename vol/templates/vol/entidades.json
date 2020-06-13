@@ -1,0 +1,1 @@
+{% load l10n %}{% localize off %}[{% for entidade in entidades %}{"title":"{{ entidade.razao_social|escape }}","lat":{{ entidade.coordenadas.y }},"lng":{{ entidade.coordenadas.x }},"url":"{% url 'exibe_entidade' entidade.id %}"}{% if forloop.last %}{% else %},{% endif %}{% endfor %}]{% endlocalize %}

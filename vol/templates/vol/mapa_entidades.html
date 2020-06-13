@@ -17,24 +17,28 @@ function initMap() {
       mapTypeControl: false,
     });
 
-    {% comment %}Utiliza o id da última entidade cadastrada como parâmetro para controlar cache remoto do google.
-                 Obs: entidades_recentes é passada por um context_processor.{% endcomment %}
-    // Ei! Fale conosco se tiver interesse nos dados de nossas entidades. Temos muito mais
-    // dados do que você pode obter aqui, além de ser um caminho mais civilizado.
-    var src = 'https://voluntarios.com.br{% url 'entidades_kml' id_last=entidades_recentes.0.id %}';
+    // Ei! Fale conosco se tiver interesse nos dados de nossas entidades. Além de ser uma
+    // abordagem mais civilizada, temos muito mais dados do que você pode obter aqui.
+    $.getJSON("{% url 'entidades_points' %}", function(locations) {
 
-    var kmlLayer = new google.maps.KmlLayer(src, {
-      suppressInfoWindows: true,
-      preserveViewport: true,
-      map: map
-    });
+        {% comment %}Add some markers to the map.
+        Note: The code uses the JavaScript Array.prototype.map() method to
+        create an array of markers based on a given "locations" array.
+        The map() method here has nothing to do with the Google Maps API.{% endcomment %}
+        var markers = locations.map(function(location, i) {
+          var marker = new google.maps.Marker({
+            position: location,
+            title: location["title"],
+            url: location["url"]
+          });
+          google.maps.event.addListener(marker, 'click', function() { 
+              window.open(this.url);
+          }); 
+          return marker;
+        });
 
-    var kmlinfowindow = new google.maps.InfoWindow();
-
-    kmlLayer.addListener('click', function(event) {
-      kmlinfowindow.setContent(event.featureData.description);
-      kmlinfowindow.setPosition(event.latLng);
-      kmlinfowindow.open(map);
+        {% comment %} Add a marker clusterer to manage the markers {% endcomment %}
+        var markerCluster = new MarkerClusterer(map, markers, {});
     });
 
     var input = (document.getElementById('pac-input'));
@@ -45,7 +49,7 @@ function initMap() {
     autocomplete.bindTo('bounds', map);
 
     google.maps.event.addListenerOnce(map, 'idle', function(){
-        // after the map is loaded
+        {% comment %} after the map is loaded {% endcomment %}
         $('#pac-input').show();        
     });
 
@@ -60,18 +64,18 @@ function initMap() {
         marker.setVisible(false);
         var place = autocomplete.getPlace();
         if (!place.geometry) {
-            // User entered the name of a Place that was not suggested and
-            // pressed the Enter key, or the Place Details request failed.
+            {% comment %} User entered the name of a Place that was not suggested and
+                          pressed the Enter key, or the Place Details request failed. {% endcomment %}
             window.alert("Nenhuma informação sobre o local: '" + place.name + "'");
             return;
         }
 
-        // If the place has a geometry, then present it on a map.
+        {% comment %} If the place has a geometry, then present it on a map. {% endcomment %}
         if (place.geometry.viewport) {
             map.fitBounds(place.geometry.viewport);
         } else {
             map.setCenter(place.geometry.location);
-            map.setZoom(17);  // Why 17? Because it looks good.
+            map.setZoom(17);  {% comment %} Why 17? Because it looks good. {% endcomment %}
         }
         marker.setIcon(({
             url: place.icon,
@@ -143,7 +147,7 @@ function initMap() {
 </script>
 
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
-
+<script type="text/javascript" src="{% static 'js/markerclusterer-2.1.4.min.js' %}" async defer></script>
 {% endblock head %}
 
 {% block content_container %}
