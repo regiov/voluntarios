@@ -387,7 +387,7 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
         num_messages = 0
         for obj in queryset:
             if not obj.confirmado:
-                envia_confirmacao_email_entidade(request, obj)
+                envia_confirmacao_email_entidade(request, obj.email_principal_obj)
                 num_messages = num_messages + 1
         main_msg = ''
         if num_messages > 0:
