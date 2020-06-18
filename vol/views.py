@@ -1458,7 +1458,7 @@ def panorama_revisao_voluntarios(request):
     # Preenche a estrutura de dados
     for rev in revs:
         data_analise = rev['data_analise'].astimezone(current_tz)
-        days_before = (now-data_analise).days
+        days_before = (now.date()-data_analise.date()).days
         hour = data_analise.hour
         days[days_before]['ok'] = True
         if rev['resp_analise'] not in days[days_before]['hours'][hour]:
