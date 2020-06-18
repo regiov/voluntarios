@@ -1449,7 +1449,7 @@ def panorama_revisao_voluntarios(request):
         days[i] = {'date': now-datetime.timedelta(days=i), 'hours': hours}
     # Seleção das revisões no período
     delta = datetime.timedelta(days=num_days)
-    aprovs = Voluntario.objects.filter(data_analise__date__gte=now-delta).values('data_analise')
+    aprovs = Voluntario.objects.filter(data_analise__date__gt=now-delta).values('data_analise')
     # Preenche a estrutura de dados
     for aprov in aprovs:
         days_before = (now-aprov['data_analise']).days
