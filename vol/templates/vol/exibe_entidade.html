@@ -22,7 +22,7 @@
 
 {% if entidade.nome_contato %}<p><i class="fas fa-user" title="contato"></i> {{ entidade.nome_contato|default:"-" }}</p>{% endif %}
 {% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
-{% if entidade.emails %}<p><i class="fas fa-envelope" title="e-mail"></i> {{ entidade.emails|safe }}</a></p>{% endif %}
+{% if entidade.emails_confirmados %}<p><i class="fas fa-envelope" title="e-mail"></i> {{ entidade.emails_confirmados|safe }}</a></p>{% endif %}
 {% if entidade.website %}<p><i class="fas fa-globe" title="website"></i> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
 </div>
 <br>

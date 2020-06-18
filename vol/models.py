@@ -444,6 +444,18 @@ class Entidade(models.Model):
         return emails
 
     @cached_property
+    def emails_confirmados(self):
+        '''Retorna os endereços de e-mail confirmados'''
+        emails = ''
+        i = 0
+        for email in self.email_set.filter(confirmado=True).order_by('id'):
+            if i > 0:
+                emails = emails + u' ou '
+            emails = emails + email.html()
+            i = i + 1
+        return emails
+
+    @cached_property
     def has_valid_email(self):
         try:
             validate_email(self.email_principal)
@@ -825,7 +837,7 @@ class Email(models.Model):
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='email_set')
     endereco         = models.CharField(u'E-mail', max_length=90)
     principal        = models.BooleanField(u'Principal', default=True)
-    confirmado       = models.BooleanField(u'Confirmado automaticamente', default=False)
+    confirmado       = models.BooleanField(u'Confirmado', default=False)
     data_confirmacao = models.DateTimeField(u'Data da última confirmação', null=True, blank=True)
     resp_cadastro    = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_email_set', on_delete=models.PROTECT, null=True, blank=True)
     data_cadastro    = models.DateTimeField(u'Data do cadastro', auto_now_add=True, null=True, blank=True)
@@ -888,4 +900,3 @@ class ForcaTarefa(models.Model):
 
     def __str__(self):
         return self.tarefa
-
