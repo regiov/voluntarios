@@ -1373,7 +1373,7 @@ def painel(request):
     # Total de voluntários que confirmaram o email e estão aguardando aprovação
     total_vol = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).count()
 
-    # Intervalo de tempo para revisão de cadastros de voluntários
+    # Intervalo de tempo histórico para revisão de cadastros de voluntários
     duracao = Voluntario.objects.filter(data_analise__isnull=False).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
 
     # Tempo médio
@@ -1381,6 +1381,18 @@ def painel(request):
 
     # Tempo máximo
     tempo_vol_max = int(duracao['max'].total_seconds()/3600)
+
+    # Intervalo de tempo nos últimos 7 dias para revisão de cadastros de voluntários
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+    delta = datetime.timedelta(days=7)
+    duracao_recente = Voluntario.objects.filter(data_analise__date__gt=now-delta).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
+
+    # Tempo médio
+    tempo_vol_recente = int(duracao_recente['avg'].total_seconds()/3600)
+
+    # Tempo máximo
+    tempo_vol_max_recente = int(duracao_recente['max'].total_seconds()/3600)
 
     # Total de voluntários aprovados no dia
     total_vol_dia = Voluntario.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
@@ -1428,6 +1440,8 @@ def painel(request):
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
                'tempo_vol_max': tempo_vol_max,
+               'tempo_vol_recente': tempo_vol_recente,
+               'tempo_vol_max_recente': tempo_vol_max_recente,
                'total_vol_dia': total_vol_dia,
                'total_vol_pessoal': total_vol_pessoal,
                'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal,
