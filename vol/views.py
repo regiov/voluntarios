@@ -1456,7 +1456,8 @@ def panorama_revisao_voluntarios(request):
         data_analise = rev['data_analise'].astimezone(current_tz)
         days_before = (now-data_analise).days
         hour = data_analise.hour
-        days[days_before]['hours'][hour].append(rev['resp_analise'])
+        if rev['resp_analise'] not in days[days_before]['hours'][hour]:
+            days[days_before]['hours'][hour].append(rev['resp_analise'])
 
     context = {'hours': hours,
                'main_hours': [8, 12, 18],
