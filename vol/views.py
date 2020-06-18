@@ -4,6 +4,7 @@ import datetime
 import os
 import random
 from math import ceil, log10
+from copy import deepcopy
 
 from django.shortcuts import render, redirect
 from django.template import loader
@@ -1447,7 +1448,10 @@ def panorama_revisao_voluntarios(request):
     # Estrutura padrão de dados para cada dia do período e as respectivas datas
     days = {}
     for i in range(num_days):
-        days[i] = {'date': now-datetime.timedelta(days=i), 'hours': hours.copy()}
+        # date: objeto data correspondente
+        # hours: cópia da estrutura de dados de horas
+        # ok: indica se alguém trabalhou no dia
+        days[i] = {'date': now-datetime.timedelta(days=i), 'hours': deepcopy(hours), 'ok': False}
     # Seleção das revisões no período
     delta = datetime.timedelta(days=num_days)
     revs = Voluntario.objects.filter(data_analise__date__gt=now-delta).values('data_analise', 'resp_analise')
@@ -1456,6 +1460,7 @@ def panorama_revisao_voluntarios(request):
         data_analise = rev['data_analise'].astimezone(current_tz)
         days_before = (now-data_analise).days
         hour = data_analise.hour
+        days[days_before]['ok'] = True
         if rev['resp_analise'] not in days[days_before]['hours'][hour]:
             days[days_before]['hours'][hour].append(rev['resp_analise'])
 

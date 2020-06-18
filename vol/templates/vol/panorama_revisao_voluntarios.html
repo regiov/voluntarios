@@ -19,9 +19,9 @@
     <tbody>
       {% for day, info in days.items %}
       <tr{% if info.date|date:"w" in "06" %} style="background-color:#eee;"{% endif %}>
-	<td class="nowrap"{% if forloop.last %} style="border-bottom: 1px solid #ddd;"{% endif %}>{{ info.date|date:"D d M" }}</td>
+	<td class="nowrap" style="{% if not info.ok %}color: maroon;{% endif %}{% if forloop.last %}border-bottom: 1px solid #ddd;{% endif %}">{{ info.date|date:"D d M" }}</td>
 	{% for hour, revs in info.hours.items %}
-	<td style="background-color:#{% if revs|length > 2 %}ccc{% else %}{% if revs|length > 1 %}ddd{% else %}{% if revs|length > 0 %}eee{% else %}fff{% endif %}{% endif %}{% endif %};{% if hour in main_hours %}border-left: 1px dashed #ccc;{% else %}border-left: 1px solid #eee;{% endif %}{% if forloop.parentloop.last %}border-bottom: 1px solid #ddd;{% endif %}{% if forloop.last %}border-right: 1px solid #ddd;{% endif %}">{{ revs|length }}</td>
+	<td style="background-color:#{% if revs|length > 2 %}ccc{% else %}{% if revs|length > 1 %}ddd{% else %}{% if revs|length > 0 %}eee{% else %}fff{% endif %}{% endif %}{% endif %};{% if hour in main_hours %}border-left: 1px dashed #ccc;{% else %}border-left: 1px solid #eee;{% endif %}{% if forloop.parentloop.last %}border-bottom: 1px solid #ddd;{% endif %}{% if forloop.last %}border-right: 1px solid #ddd;{% endif %}">&nbsp;</td>
 	{% endfor %}
       </tr>
       {% endfor %}
