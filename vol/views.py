@@ -1454,7 +1454,8 @@ def panorama_revisao_voluntarios(request):
     for aprov in aprovs:
         days_before = (now-aprov['data_analise']).days
         hour = aprov['data_analise'].hour
-        days[days_before][hour] += 1
+        if days_before in days and hour in days[days_before]:
+            days[days_before][hour] += 1
 
     context = {'hours': hours,
                'main_hours': [8, 12, 18],
