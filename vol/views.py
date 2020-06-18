@@ -1436,25 +1436,27 @@ def painel(request):
 def panorama_revisao_voluntarios(request):
     '''Panorama da dinâmica de trabalho de revisão de cadastros de voluntários'''
 
-    now = timezone.now()
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
     # Período considerado: últimas duas semanas
     num_days = 14
     # Estrutura padrão de dados das horas no dia
     hours = {}
     for i in range(24): # de 0 a 23
-        hours[i] = 0
+        hours[i] = [] # lista com ids de pessoas que trabalharam nesse horário
     # Estrutura padrão de dados para cada dia do período e as respectivas datas
     days = {}
     for i in range(num_days):
         days[i] = {'date': now-datetime.timedelta(days=i), 'hours': hours.copy()}
     # Seleção das revisões no período
     delta = datetime.timedelta(days=num_days)
-    aprovs = Voluntario.objects.filter(data_analise__date__gt=now-delta).values('data_analise')
+    revs = Voluntario.objects.filter(data_analise__date__gt=now-delta).values('data_analise', 'resp_analise')
     # Preenche a estrutura de dados
-    for aprov in aprovs:
-        days_before = (now-aprov['data_analise']).days
-        hour = aprov['data_analise'].hour
-        days[days_before]['hours'][hour] += 1
+    for rev in revs:
+        data_analise = rev['data_analise'].astimezone(current_tz)
+        days_before = (now-data_analise).days
+        hour = data_analise.hour
+        days[days_before]['hours'][hour].append(rev['resp_analise'])
 
     context = {'hours': hours,
                'main_hours': [8, 12, 18],
