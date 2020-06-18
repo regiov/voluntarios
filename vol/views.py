@@ -1429,3 +1429,35 @@ def painel(request):
                'tarefas': tarefas}
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
+
+
+@login_required
+@staff_member_required
+def panorama_revisao_voluntarios(request):
+    '''Panorama da dinâmica de trabalho de revisão de cadastros de voluntários'''
+
+    now = timezone.now()
+    # Período considerado: últimas duas semanas
+    num_days = 14
+    # Estrutura padrão de dados das horas no dia
+    hours = {}
+    for i in range(24): # de 0 a 23
+        hours[i] = 0
+    # Estrutura padrão de dados para cada dia do período e as respectivas datas
+    days = {}
+    for i in range(num_days):
+        days[i] = {'date': now-datetime.timedelta(days=i), 'hours': hours}
+    # Seleção das revisões no período
+    delta = datetime.timedelta(days=num_days)
+    aprovs = Voluntario.objects.filter(data_analise__date__gte=now-delta).values('data_analise')
+    # Preenche a estrutura de dados
+    for aprov in aprovs:
+        days_before = (now-aprov['data_analise']).days
+        hour = aprov['data_analise'].hour
+        days[days_before][hour] += 1
+
+    context = {'hours': hours,
+               'main_hours': [8, 12, 18],
+               'days': days}
+    template = loader.get_template('vol/panorama_revisao_voluntarios.html')
+    return HttpResponse(template.render(context, request))

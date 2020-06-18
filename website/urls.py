@@ -52,8 +52,6 @@ urlpatterns = [
     url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),
     url(r'^voluntario.asp$', views.exibe_voluntario_old),#old
 
-    url(r'^voluntarios/aprovacao/?$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
-
     url(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),
 
     url(r'^mural/?$', views.mural, name='mural'),
@@ -132,6 +130,8 @@ urlpatterns = [
 
     # Painel de controle
     url(r'^painel$', views.painel, name='painel'),
+    url(r'^painel/voluntarios/revisao$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
+    url(r'^painel/voluntarios/revisao/panorama$', views.panorama_revisao_voluntarios, name='panorama_revisao_voluntarios'),
 ]
 
 if settings.DEBUG:

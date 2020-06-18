@@ -13,7 +13,7 @@
 
 <h3>Tempo médio para revisão<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
 
-<h3>Revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span></h3>
+<h3>Revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span> {% if user.is_superuser %}<span class="dica" style="margin-left:20px;">(<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>)</span>{% endif %}</h3>
 
 <br/>
 
