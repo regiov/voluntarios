@@ -12,7 +12,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllo
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
-from django.db.models import Q, F, Count, Avg
+from django.db.models import Q, F, Count, Avg, Max
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
@@ -1373,10 +1373,14 @@ def painel(request):
     # Total de voluntários que confirmaram o email e estão aguardando aprovação
     total_vol = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).count()
 
-    # Tempo médio para revisão de cadastro de voluntários
-    avg = Voluntario.objects.filter(data_analise__isnull=False).aggregate(duration=Avg(F('data_analise') - F('data_cadastro')))
+    # Intervalo de tempo para revisão de cadastros de voluntários
+    duracao = Voluntario.objects.filter(data_analise__isnull=False).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
 
-    tempo_vol = int(avg['duration'].total_seconds()/3600)
+    # Tempo médio
+    tempo_vol = int(duracao['avg'].total_seconds()/3600)
+
+    # Tempo máximo
+    tempo_vol_max = int(duracao['max'].total_seconds()/3600)
 
     # Total de voluntários aprovados no dia
     total_vol_dia = Voluntario.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
@@ -1423,6 +1427,7 @@ def painel(request):
 
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
+               'tempo_vol_max': tempo_vol_max,
                'total_vol_dia': total_vol_dia,
                'total_vol_pessoal': total_vol_pessoal,
                'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal,

@@ -11,9 +11,13 @@
 
 <h3>Aguardando revisão: <span style="margin-left:20px;">{% if total_vol %}<a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a>{% else %}{{ total_vol }}{% endif %}</span></h3>
 
-<h3>Tempo médio para revisão<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
+<h3>Tempo que os voluntários precisam aguardar até a aprovação do cadastro<span class="dica"><sup>[1]</sup></span>:</h3>
 
-<h3>Revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span> {% if user.is_superuser %}<span class="dica" style="margin-left:20px;">(<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>)</span>{% endif %}</h3>
+<h3>Média histórica: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
+
+<h3>Tempo máximo já registrado: <span style="margin-left:20px;">{{ tempo_vol_max }}h</span></h3>
+
+<h3>Cadastros revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span> {% if user.is_superuser %}<span class="dica" style="margin-left:20px;">(<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>)</span>{% endif %}</h3>
 
 <br/>
 
@@ -39,6 +43,6 @@
 {% endfor %}
 
 <br/>
-<p class="dica">[1] calculado desde 23/05/2020</p>
+<p class="dica">[1] calculado a partir de 23/05/2020</p>
 
 {% endblock content %}
