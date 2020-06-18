@@ -56,7 +56,7 @@
   <br/>
   <a href="{% url 'cadastro_entidade_id' entidade.id %}" class="btn btn-primary">Editar cadastro</a>
   {% else %}
-    {% if entidade.has_valid_email and not entidade.gerenciada %}
+    {% if entidade.has_valid_email and entidade.email_principal_confirmado and not entidade.gerenciada %}
     <br/>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirm-action">Gerenciar cadastro desta entidade</button>
     <br/>
