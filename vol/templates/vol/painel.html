@@ -13,11 +13,13 @@
 
 <h3>Tempo que os voluntários precisam aguardar até a aprovação do cadastro<span class="dica"><sup>[1]</sup></span>:</h3>
 
-<h3>Média histórica: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3>
+<ul style="list-style-type: disc;">
+  <li><h3>Média histórica: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3></li>
 
-<h3>Média dos últimos 7 dias: <span style="margin-left:20px;">{{ tempo_vol_recente }}h</span></h3>
+  <li><h3>Média dos últimos 7 dias: <span style="margin-left:20px;">{{ tempo_vol_recente }}h</span></h3></li>
 
-<h3>Máximo nos últimos 7 dias: <span style="margin-left:20px;">{{ tempo_vol_max_recente }}h</span></h3>
+  <li><h3>Máximo nos últimos 7 dias: <span style="margin-left:20px;">{{ tempo_vol_max_recente }}h</span></h3></li>
+</ul>
 
 <h3>Cadastros revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span> <span class="dica" style="margin-left:20px;">(<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>)</span></h3>
 
