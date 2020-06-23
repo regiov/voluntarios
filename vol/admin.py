@@ -51,7 +51,7 @@ class MyUserAdmin(UserAdmin):
     list_display = ('email', 'nome', 'date_joined', 'email_confirmado')
     search_fields = ('nome', 'email')
     ordering = ('-date_joined',)
-    actions = ['reenviar_confirmacao']
+    actions = ['reenviar_confirmacao', 'reenviar_lembrete_voluntario']
 
     def email_confirmado(self, instance):
         return EmailAddress.objects.filter(user=instance, email=instance.email, verified=True).exists()
