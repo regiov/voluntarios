@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa
+from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
 
 from allauth.account.models import EmailAddress
 
@@ -1450,7 +1450,6 @@ def painel(request):
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
 
-
 @login_required
 @staff_member_required
 def panorama_revisao_voluntarios(request):
@@ -1488,3 +1487,46 @@ def panorama_revisao_voluntarios(request):
                'days': days}
     template = loader.get_template('vol/panorama_revisao_voluntarios.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+@transaction.atomic
+def exibe_conteudo(request, conteudo):
+    '''Exibe conteúdo controlado'''
+    acesso = AcessoAConteudo(conteudo=conteudo, usuario=request.user)
+    acesso.save()
+    if conteudo.parametros_url:
+        return redirect(reverse(conteudo.nome_url, kwargs=eval(conteudo.parametros_url)))
+    return redirect(reverse(conteudo.nome_url))
+
+@login_required
+@staff_member_required
+def exibe_orientacoes_tarefa(request, codigo_tarefa):
+    '''Exibe orientações sobre força tarefa. View criada apenas para faciliar a criação de link.'''
+    try:
+        tarefa = ForcaTarefa.objects.get(codigo=codigo_tarefa)
+    except ForcaTarefa.DoesNotExist:
+        raise Http404
+
+    if not tarefa.orientacoes:
+        raise Http404
+
+    return exibe_conteudo(request, tarefa.orientacoes)
+
+@login_required
+@staff_member_required
+def exibe_tarefa(request, codigo_tarefa):
+    '''Acesso à página de trabalho da força tarefa'''
+    try:
+        tarefa = ForcaTarefa.objects.get(codigo=codigo_tarefa)
+    except ForcaTarefa.DoesNotExist:
+        raise Http404
+
+    if tarefa.orientacoes:
+        acessos = AcessoAConteudo.objects.filter(conteudo=tarefa.orientacoes, usuario=request.user).count()
+        if acessos == 0:
+            # Caso não tenha visualizado as orientações, redireciona pra ela
+            return exibe_conteudo(request, tarefa.orientacoes)
+
+    # Senão redireciona para o link da tarefa
+    return redirect(tarefa.url)
