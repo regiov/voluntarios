@@ -884,15 +884,42 @@ class FraseMotivacional(models.Model):
     def __str__(self):
         return '"' + self.frase + '" (' + self.autor + ')'
 
+class Conteudo(models.Model):
+    """Encapsulamento de conteúdo para rastrear o acesso a ele"""
+    nome           = models.CharField(u'Nome', max_length=200)
+    nome_url       = models.CharField(u'Nome da URL no arquivo urls.py', max_length=100)
+    parametros_url = models.TextField(u'Parâmetros da URL em formato de dicionário', null=True, blank=True)
+
+    class Meta:
+        verbose_name = u'Conteúdo rastreável'
+        verbose_name_plural = u'Conteúdos rastreáveis'
+
+    def __str__(self):
+        return self.nome
+
+class AcessoAConteudo(models.Model):
+    """Registro de acesso a conteúdo"""
+    usuario  = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    conteudo = models.ForeignKey(Conteudo, on_delete=models.CASCADE)
+    # Algumas visualizações importadas de outros locais podem não ter data/hora
+    momento  = models.DateTimeField(u'Data/hora da visualização', default=timezone.now, null=True, blank=True)
+
+    class Meta:
+        verbose_name = u'Visualização de conteúdo informativo'
+        verbose_name_plural = u'Visualizações de conteúdo informativo'
+        # Podemos ter repetição da combinação usuário/conteúdo (um usuário pode visualizar o conteúdo mais de uma vez)
+
 class ForcaTarefa(models.Model):
     """Força Tarefa"""
-    tarefa        = models.CharField(u'Tarefa', max_length=200)
-    data_cadastro = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
-    meta          = models.IntegerField(u'Total de registros a serem revisados', null=True, blank=True)
-    modelo        = models.CharField(u'Nome do modelo usado na busca', help_text=u'Ex: Entidade, Voluntario', max_length=60)
-    filtro        = models.TextField(u'Filtro usado na busca em formato de dicionário')
-    url           = models.CharField(u'Link para página da tarefa', max_length=80)
-    visivel       = models.BooleanField(u'Visível no painel de controle', default=True)
+    tarefa         = models.CharField(u'Tarefa', max_length=200)
+    codigo         = models.CharField(u'Código', max_length=50, null=True, blank=True) # Mudar para não nulo e único
+    data_cadastro  = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    meta           = models.IntegerField(u'Total de registros a serem revisados', null=True, blank=True)
+    modelo         = models.CharField(u'Nome do modelo usado na busca', help_text=u'Ex: Entidade, Voluntario', max_length=60)
+    filtro         = models.TextField(u'Filtro usado na busca em formato de dicionário')
+    url            = models.CharField(u'Link para página da tarefa', max_length=80)
+    visivel        = models.BooleanField(u'Visível no painel de controle', default=True)
+    orientacoes    = models.ForeignKey(Conteudo, on_delete=models.PROTECT, null=True, blank=True)
 
     class Meta:
         verbose_name = u'Força tarefa'

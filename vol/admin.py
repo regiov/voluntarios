@@ -25,7 +25,7 @@ from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -573,6 +573,9 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     marcar_como_revisada.short_description = "Marcar anotações como revisadas"
 
+class ConteudoAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -587,3 +590,4 @@ admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
 admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)
 admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
+admin.site.register(Conteudo, ConteudoAdmin)
