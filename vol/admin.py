@@ -28,6 +28,7 @@ from tinymce.widgets import TinyMCE
 from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa
 
 from notification.models import Message
+from notification.utils import notify_user_msg
 
 from vol.views import envia_confirmacao_email_entidade
 
