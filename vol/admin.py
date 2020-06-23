@@ -27,6 +27,8 @@ from tinymce.widgets import TinyMCE
 
 from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa
 
+from notification.models import Message
+
 from vol.views import envia_confirmacao_email_entidade
 
 from allauth.account.models import EmailAddress
@@ -71,6 +73,23 @@ class MyUserAdmin(UserAdmin):
             extra_msg = u'%s usuário(s) não notificado(s) por já possuir(em) e-mail confirmado.' % (total_recs-num_messages)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     reenviar_confirmacao.short_description = "Reenviar mensagem de confirmação de email"
+
+    def reenviar_lembrete_voluntario(self, request, queryset):
+        msg = Message.objects.get(code='LEMBRETE_CADASTRO_VOLUNTARIO')
+        num_messages = 0
+        for obj in queryset:
+            if not obj.is_voluntario:
+                notify_user_msg(obj, msg)
+                num_messages = num_messages + 1
+        main_msg = ''
+        if num_messages > 0:
+            main_msg = u'%s usuário(s) notificado(s). ' % num_messages
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_messages:
+            extra_msg = u'%s usuário(s) não notificado(s) por já ter(em) se cadastrado como voluntário(s).' % (total_recs-num_messages)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    reenviar_lembrete_voluntario.short_description = "Reenviar lembrete de finalização de cadastro de voluntário"
 
 class MyFlatPageForm(FlatpageForm):
 
