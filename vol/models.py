@@ -228,7 +228,7 @@ class Voluntario(models.Model):
     aprovado              = models.NullBooleanField(u'Aprovado')
     # Estes 3 campos (*_analise) só são preenchidos na primeira aprovação/rejeição de perfil de voluntário
     # somente através da interface expressa.
-    data_analise          = models.DateTimeField(u'Data da análise', null=True, blank=True)
+    data_analise          = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
     resp_analise          = models.ForeignKey(Usuario, verbose_name=u'Responsável pela análise', related_name='resp_analise_voluntario_set', on_delete=models.PROTECT, null=True, blank=True)
     # O objetivo deste campo é ajudar na avaliação da análise feita por quem aprova voluntários
     dif_analise           = models.TextField(u'Alterações na análise', null=True, blank=True)
