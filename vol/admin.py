@@ -427,7 +427,7 @@ class EntidadeSemEmail(Entidade):
         verbose_name_plural = u'Entidades sem e-mail'
 
 class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
-    list_display = ('razao_social', 'cnpj', 'estado', 'cidade',)
+    list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes',)
     ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
     list_filter = ('estado',)
@@ -454,7 +454,12 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
 
     # Exibe apenas entidades aprovadas que não estejam sendo gerenciadas por ninguém e que não possuam e-mail
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True)
+        return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True).annotate(anotacoes=Count('anotacaoentidade'))
+
+    def tem_anotacoes(self, instance):
+        return instance.anotacoes > 0
+    tem_anotacoes.boolean = True
+    tem_anotacoes.short_description = u'Anotações'
 
 class EmailDescoberto(Email):
     """Modelo criado para listar e-mails recém descobertos de entidades"""
