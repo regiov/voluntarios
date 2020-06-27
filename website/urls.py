@@ -85,6 +85,10 @@ urlpatterns = [
     url(r'^doacao.htm$', views.busca_doacoes),#old
     
     url(r'^gis/entidades.json$', views.entidades_points, name='entidades_points'),
+
+    # Mantido para evitar erro 404 de usuários que clicam em buscas do google
+    # (o google indexou o kml, acredita?)
+    url(r'^entidades.kml$', views.busca_entidades, name='entidades_kml'),
     
     # Páginas estáticas
     url(r'^p/', include('django.contrib.flatpages.urls')),
