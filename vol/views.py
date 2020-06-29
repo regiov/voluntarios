@@ -1347,14 +1347,38 @@ def aprovacao_voluntarios(request):
     else: # total == 0
 
         # Lógica de mostrar frase motivacional, uma por dia ao logo do ano
-        num_frases = FraseMotivacional.objects.all().count()
+        #num_frases = FraseMotivacional.objects.all().count()
+        #
+        #if num_frases > 0:
+        #    now = datetime.datetime.now()
+        #    day_of_year = int(now.strftime("%j"))
+        #    position = (day_of_year % num_frases)
+        #    frase = FraseMotivacional.objects.all().order_by('id')[position]
 
-        if num_frases > 0:
-            now = datetime.datetime.now()
-            day_of_year = int(now.strftime("%j"))
-            position = (day_of_year % num_frases)
-            frase = FraseMotivacional.objects.all().order_by('id')[position]
-
+        frase = None
+        qs_frase = FraseMotivacional.objects.filter(utilizacao__isnull=False)
+        # Se não tem nenhuma marcada para utilização
+        if qs_frase.count() == 0:
+            # Pega a primeira no banco
+            qs_frase = FraseMotivacional.objects.all().order_by('id')
+            if qs_frase.count() > 0:
+                frase = qs_frase[0]
+                frase.utilizar_frase()
+        # Se tiver frase marcada
+        else:
+            # Só deve existir uma, mas todo caso pega a primeira
+            frase = qs_frase[0]
+            # Verifica se a data coincide com a data atual
+            if frase.utilizacao != datetime.date.today():
+                # Se não coincidir, pega a próxima frase na sequência de ids
+                qs_frase = FraseMotivacional.objects.filter(pk__gt=frase.pk).order_by('id')
+                if qs_frase.count() == 0:
+                    # Se não tiver próxima, começa do zero
+                    qs_frase = FraseMotivacional.objects.all().order_by('id')
+                if qs_frase.count() > 0:
+                    frase = qs_frase[0]
+                    frase.utilizar_frase()
+            
     context = {'total': total,
                'rec': rec,
                'new_rec': new_rec,

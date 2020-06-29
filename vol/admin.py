@@ -507,7 +507,25 @@ class TipoDocumentoAdmin(admin.ModelAdmin):
     pass
 
 class FraseMotivacionalAdmin(admin.ModelAdmin):
-    list_display = ('frase', 'autor',)
+    list_display = ('frase', 'autor', 'utilizacao',)
+    actions = ['utilizar_frase']
+
+    @transaction.atomic
+    def utilizar_frase(self, request, queryset):
+        num_updates = 0
+        for obj in queryset:
+            obj.utilizar_frase()
+            num_updates = 1
+            break
+        main_msg = ''
+        if num_updates > 0:
+            main_msg = u'%s frase agendada para utilização hoje. ' % num_updates
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_updates:
+            extra_msg = u'%s não agendada(s) pois apenas uma deve ser selecionada.' % (total_recs-num_updates)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    utilizar_frase.short_description = "Utilizar frase hoje"
 
 class ForcaTarefaAdmin(admin.ModelAdmin):
     list_display = ('tarefa', 'data_cadastro', 'meta',)

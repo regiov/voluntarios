@@ -6,7 +6,7 @@ import urllib.request
 import json
 from datetime import date, datetime
 
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -876,6 +876,10 @@ class FraseMotivacional(models.Model):
     """Frase motivacional"""
     frase = models.TextField(u'Frase')
     autor = models.TextField(u'Autor')
+    # O campo abaixo só deve ser preenchido para um registro. Se a data coincidir com a data atual,
+    # a frase é que deve ser exibida no dia, do contrário deve-se utilizar o próximo registro,
+    # apagando a data do registro anterior e gravando a data atual no próximo registro.
+    utilizacao = models.DateField(u'Data de utilização da frase', null=True, blank=True)
 
     class Meta:
         verbose_name = u'Frase motivacional'
@@ -883,6 +887,12 @@ class FraseMotivacional(models.Model):
 
     def __str__(self):
         return '"' + self.frase + '" (' + self.autor + ')'
+
+    def utilizar_frase(self):
+        with transaction.atomic():
+            FraseMotivacional.objects.filter(utilizacao__isnull=False).update(utilizacao=None)
+            self.utilizacao = date.today()
+            self.save(update_fields=['utilizacao'])
 
 class Conteudo(models.Model):
     """Encapsulamento de conteúdo para rastrear o acesso a ele"""
