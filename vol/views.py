@@ -1453,6 +1453,7 @@ def painel(request):
         if tarefa.meta is None:
             tarefa.meta = total_atual
             tarefa.save(update_fields=['meta'])
+        tarefa.previsao_termino = None
         if tarefa.meta > 0:
             tarefa.progresso = 100*(abs(total_atual-tarefa.meta)/tarefa.meta)
             if tarefa.progresso > 0:
@@ -1461,6 +1462,11 @@ def painel(request):
                 incremento = 100*(1/tarefa.meta) # incremento no progresso com um único registro
                 pos_primeiro_digito = int(ceil(-log10(incremento))) # posição do primeiro dígito significativo
                 tarefa.progresso = round(tarefa.progresso, pos_primeiro_digito)
+                # Calcula a previsão de término por regra de três
+                delta = now - tarefa.data_cadastro # tempo decorrido
+                segundos_ate_o_momento = delta.total_seconds() # em segundos
+                segundos_que_restam = (segundos_ate_o_momento*(100-tarefa.progresso))/tarefa.progresso
+                tarefa.previsao_termino = now + datetime.timedelta(seconds=segundos_que_restam)
         else:
             tarefa.progresso = 100
         tarefas.append(tarefa)

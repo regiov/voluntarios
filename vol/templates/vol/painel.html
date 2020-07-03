@@ -43,6 +43,8 @@
       <span class="sr-only">{{ tarefa.progresso }}% alcançado</span>
     </div>
   </div>
+  <h3>Início em: <span style="margin-left:20px;">{{ tarefa.data_cadastro|date:"j \d\e F \d\e Y" }}</span></h3>
+  {% if tarefa.previsao_termino %}<h3>Previsão de término no ritmo atual: <span style="margin-left:20px;">{{ tarefa.previsao_termino|date:"j \d\e F \d\e Y" }}</span></h3>{% endif %}
   {% endlocalize %}
 {% endfor %}
 
