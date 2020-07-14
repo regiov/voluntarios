@@ -14,14 +14,14 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.db.models import Count, Q, TextField
 from django.forms import Textarea
+from django.urls import reverse
+
 from datetime import datetime
 
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
 
-# Como usar TinyMCE para editar flatpages:
-# source: https://stackoverflow.com/questions/15123927/embedding-tinymce-in-django-flatpage
-from django.contrib.flatpages.admin import FlatpageForm, FlatPageAdmin
+from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
@@ -92,18 +92,15 @@ class MyUserAdmin(UserAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     reenviar_lembrete_voluntario.short_description = "Reenviar lembrete de finalização de cadastro de voluntário"
 
-class MyFlatPageForm(FlatpageForm):
-
-    class Meta:
-        model = FlatPage
-        fields = FlatpageForm.Meta.fields
-        widgets = {
-            'content' : TinyMCE(attrs={'cols': 100, 'rows': 15}),
-        }
-
-
 class MyFlatPageAdmin(FlatPageAdmin):
-    form = MyFlatPageForm
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'content':
+            return db_field.formfield(widget=TinyMCE(
+                attrs={'cols': 100, 'rows': 20},
+                mce_attrs={'external_link_list_url': reverse('tinymce-linklist')},
+                ))
+        return super(MyFlatPageAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 
 class AreaTrabalhoAdmin(admin.ModelAdmin):
     pass
