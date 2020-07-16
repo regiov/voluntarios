@@ -88,7 +88,8 @@ urlpatterns = [
 
     # Mantido para evitar erro 404 de usuários que clicam em buscas do google
     # (o google indexou o kml, acredita?)
-    url(r'^entidades.kml$', views.busca_entidades, name='entidades_kml'),
+    url(r'^entidades.kml$', views.busca_entidades),
+    url(r'^kmls/010205/entidades.kml$', views.busca_entidades),
     
     # Páginas estáticas
     url(r'^p/', include('django.contrib.flatpages.urls')),
