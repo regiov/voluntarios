@@ -20,6 +20,7 @@ def my_user_signed_up(request, user, **kwargs):
     user.save(update_fields=fields)
 
 def voluntario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
+    '''Post save de voluntários. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
     # Se o atributo "aprovado" passou de nulo a verdadeiro
     if instance.old_value('aprovado') is None and instance.aprovado:
         # Se o usuário nunca recebeu o aviso de aprovação

@@ -31,10 +31,12 @@ from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEnti
 
 from allauth.account.models import EmailAddress
 
+from notification.models import Message, Event
+
 from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
 from .auth import ChangeUserProfileForm
 
-from notification.utils import notify_support, notify_email
+from notification.utils import notify_support, notify_email, notify_user_msg
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
@@ -1259,7 +1261,12 @@ def aprovacao_voluntarios(request):
                         except Exception as e:
                             notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
                             error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
- 
+
+                    # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
+                    msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO')
+                    if Event.objects.filter(user=myvol.usuario, message=msg).count() == 0:
+                        notify_user_msg(myvol.usuario, msg)
+
                 else:
                     error = concurrency_error_msg
 
