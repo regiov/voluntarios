@@ -27,6 +27,8 @@ from allauth.account import app_settings as allauth_settings
 
 from notification.utils import notify_support
 
+from .utils import track_data
+
 # Unidades federativas do Brasil
 UFS = (
     ( u'AC', u'Acre' ),
@@ -203,6 +205,7 @@ class AreaAtuacaoHierarquica(AreaAtuacao):
             return u"\u00A0\u00A0\u00A0\u25E6 " + self.nome
         return u"\u2022 " + self.nome
 
+@track_data('aprovado')
 class Voluntario(models.Model):
     """Voluntário"""
     """obs: id compatível com banco anterior"""

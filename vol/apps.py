@@ -2,21 +2,17 @@
 
 from django.apps import AppConfig
 
-from allauth.account.signals import user_signed_up
-
-from vol.signals import my_user_signed_up
-
 class VolConfig(AppConfig):
     name = 'vol'
     verbose_name = "Voluntariado"
 
     def ready(self):
-        # importing model classes
-        #from .models import MyModel  # or...
-        #MyModel = self.get_model('MyModel')
 
-        # registering signals with the model's string label
-        #pre_save.connect(receiver, sender='app_label.MyModel')
-        #user_signed_up.connect(request, user)
+        # Deve-se imortar daqui para evitar erro de Modelos ainda não carregdos no setup do Django
+        from django.db.models.signals import post_save
+        from allauth.account.signals import user_signed_up
+        from .signals import my_user_signed_up, voluntario_post_save
+
+        # Conexão de sinais
         user_signed_up.connect(my_user_signed_up)
-
+        post_save.connect(voluntario_post_save, sender='vol.Voluntario')

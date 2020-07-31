@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.template import engines
 
-from notification.models import Event
+from .models import Event
 
 def notify_support(subject, msg, request=None, repeat_after=None):
     """

@@ -27,12 +27,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from vol.models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
 
 from allauth.account.models import EmailAddress
 
-from vol.forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
-from vol.util import ChangeUserProfileForm
+from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
+from .auth import ChangeUserProfileForm
 
 from notification.utils import notify_support, notify_email
 
