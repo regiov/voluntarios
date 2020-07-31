@@ -14,5 +14,12 @@ class MessageAdmin(admin.ModelAdmin):
         # Não permite remoção
         return False
 
+    # Remove opção de deleção nas ações
+    def get_actions(self, request):
+        actions = super(MessageAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 admin.site.register(Message, MessageAdmin)
 
