@@ -2,6 +2,10 @@
 
 from django.db.models.signals import post_init
 
+from notification.utils import notify_user_msg
+
+from notification.models import Message, Event
+
 def track_data(*fields):
     """
     Source: https://gist.github.com/dcramer/730765
@@ -70,3 +74,10 @@ def track_data(*fields):
         cls.save = save
         return cls
     return inner
+
+def notifica_aprovacao_voluntario(usuario):
+    # Se o usuário nunca recebeu o aviso de aprovação
+    msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO')
+    if Event.objects.filter(user=usuario, message=msg).count() == 0:
+        # Envia notificação
+        notify_user_msg(usuario, msg)

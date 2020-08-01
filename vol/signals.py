@@ -2,8 +2,7 @@
 
 from django.apps import apps
 
-from notification.models import Message, Event
-from notification.utils import notify_support, notify_user_msg
+from .utils import notifica_aprovacao_voluntario
 
 def my_user_signed_up(request, user, **kwargs):
     fields = ['is_active']
@@ -23,8 +22,4 @@ def voluntario_post_save(sender, instance, created, raw, using, update_fields, *
     '''Post save de voluntários. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
     # Se o atributo "aprovado" passou de nulo a verdadeiro
     if instance.old_value('aprovado') is None and instance.aprovado:
-        # Se o usuário nunca recebeu o aviso de aprovação
-        msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO')
-        if Event.objects.filter(user=instance.usuario, message=msg).count() == 0:
-            # Envia notificação
-            notify_user_msg(instance.usuario, msg)
+        notifica_aprovacao_voluntario(instance.usuario)
