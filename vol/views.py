@@ -332,7 +332,9 @@ def busca_voluntarios(request):
         # Filtro por palavras-chave
         fpalavras = request.GET.get('fpalavras')
         if fpalavras is not None and len(fpalavras) > 0:
-            voluntarios = voluntarios.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct()
+            # Aqui utilizamos outro queryset para evitar duplicidade de registros devido ao uso de distinct com order_by mais pra frente 
+            ids = Voluntario.objects.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct('pk')
+            voluntarios = voluntarios.filter(pk__in=ids)
 
         # Filtro por última atualização cadastral
         atualiza = request.GET.get('atualiza')
