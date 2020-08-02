@@ -351,13 +351,13 @@ def busca_voluntarios(request):
         #voluntarios = voluntarios.prefetch_related('areainteresse__area_atuacao')
 
         # Ordem dos resultados
-        ordem = request.GET.get('ordem', 'interesse')
+        ordem = request.GET.get('ordem', 'nome')
         if ordem == 'trabalho':
             voluntarios = voluntarios.order_by('area_trabalho__nome', 'usuario__nome')
-        elif ordem == 'nome':
+        else: # nome
             voluntarios = voluntarios.order_by('usuario__nome', 'area_trabalho__nome')
-        else: # interesse
-            voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
+        #else: # interesse
+        #    voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
 
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página

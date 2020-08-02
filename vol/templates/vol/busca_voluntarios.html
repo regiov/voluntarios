@@ -54,12 +54,12 @@
 
   <div class="form-group">
     <label for="id_ordem">Ordenado por:</label><br>
-    <input type="radio" name="ordem" value="interesse"{% if request.GET.ordem == 'trabalho' or request.GET.ordem == 'nome' %}{% else %} checked{% endif %}>
-    Área de Interesse
+    {% comment %}<input type="radio" name="ordem" value="interesse"{% if request.GET.ordem == 'trabalho' or request.GET.ordem == 'nome' %}{% else %} checked{% endif %}>
+    Área de Interesse{% endcomment %}
+    <input type="radio" name="ordem" value="nome"{% if request.GET.ordem == 'trabalho' %}{% else %} checked{% endif %}>
+    Nome
     <input type="radio" name="ordem" value="trabalho"{% if request.GET.ordem == 'trabalho' %} checked{% endif %}>
     Área de Trabalho
-    <input type="radio" name="ordem" value="nome"{% if request.GET.ordem == 'nome' %} checked{% endif %}>
-    Nome
   </div>
 
   <div class="form-group">
