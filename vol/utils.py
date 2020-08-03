@@ -77,7 +77,7 @@ def track_data(*fields):
 
 def notifica_aprovacao_voluntario(usuario):
     # Se o usuário nunca recebeu o aviso de aprovação
-    msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO')
+    msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO_V2')
     if Event.objects.filter(user=usuario, message=msg).count() == 0:
         # Envia notificação
         notify_user_msg(usuario, msg)
