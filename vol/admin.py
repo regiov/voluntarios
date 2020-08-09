@@ -427,7 +427,7 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes',)
     ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
-    list_filter = ('estado',)
+    list_filter = ('estado', 'area_atuacao',)
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
