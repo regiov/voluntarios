@@ -344,7 +344,7 @@ def busca_voluntarios(request):
                 now = datetime.datetime.now()
                 year = datetime.timedelta(days=365)
                 ref = now-atualiza*year
-                voluntarios = voluntarios.filter(ultima_atualizacao__gt=ref)
+                voluntarios = voluntarios.filter(ultima_atualizacao__date__gt=ref.date())
 
         # Já inclui áreas de interesse para otimizar
         # obs: essa abordagem não funciona junto com paginação! (django 1.10.7)
@@ -808,7 +808,7 @@ def busca_entidades(request):
     areas_de_atuacao = AreaAtuacao.objects.all().order_by('indice')
 
     buscar = False
-    fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = None
+    fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = atualiza = None
     get_params = ''
     pagina_inicial = pagina_final = None
 
@@ -822,6 +822,7 @@ def busca_entidades(request):
             fentidade = request.GET.get('fentidade')
             params = request.GET.items()
             boxexato = 'boxexato' in request.GET
+            atualiza = request.GET.get('atualiza')
             
     if request.method == 'POST':
 
@@ -833,6 +834,7 @@ def busca_entidades(request):
             fentidade = request.POST.get('fentidade')
             params = request.POST.items()
             boxexato = 'boxexato' in request.POST
+            atualiza = request.POST.get('atualiza')
 
     if buscar:
 
@@ -869,6 +871,15 @@ def busca_entidades(request):
             fentidade = fentidade.strip()
             if len(fentidade) > 0:
                 entidades = entidades.filter(Q(nome_fantasia__icontains=fentidade) | Q(razao_social__icontains=fentidade))
+
+        # Filtro por data de última atualização
+        if atualiza is not None and atualiza.isdigit():
+            atualiza = int(atualiza)
+            if atualiza in [3, 2, 1]:
+                now = datetime.datetime.now()
+                year = datetime.timedelta(days=365)
+                ref = now-atualiza*year
+                entidades = entidades.filter(ultima_atualizacao__date__gt=ref.date())
 
         # Ordem dos resultados
         entidades = entidades.order_by('estado', 'cidade', 'bairro', 'nome_fantasia')
