@@ -356,6 +356,7 @@ class Entidade(models.Model):
     bairro             = models.CharField(u'Bairro', max_length=40, null=True, blank=True) 
     cidade             = models.CharField(u'Cidade', max_length=60, null=True, blank=True) 
     estado             = models.CharField(u'Estado', max_length=4, null=True, blank=True) 
+    pais               = models.CharField(u'País', max_length=90, null=True, blank=True)
     coordenadas        = models.PointField(u'Coordenadas', null=True, blank=True)
     geocode_status     = models.CharField(u'Situação do georreferenciamento', choices=GEOCODE_STATUS, max_length=20, null=True, blank=True) 
     website            = models.CharField(u'Website', max_length=110, null=True, blank=True) 
@@ -387,7 +388,7 @@ class Entidade(models.Model):
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
     qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações da entidade (desde 12/01/2019)', default=0)
     ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
-    ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now=True, null=True, blank=True)
+    ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now_add=True, null=True, blank=True)
     ultima_revisao     = models.DateTimeField(u'Última revisão', null=True, blank=True)
 
     objects = EntidadeManager()
