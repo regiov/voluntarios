@@ -194,7 +194,7 @@ def cadastro_voluntario(request, msg=None):
         else:
 
             if msg is None:
-                msg = u'Estamos cadastrando profissionais que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa. Preencha o formulário abaixo para participar:'
+                msg = u'Estamos cadastrando pessoas que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa. Preencha o formulário abaixo para participar:'
 
             form = FormVoluntario()
             area_interesse_formset = FormSetAreaInteresse()
