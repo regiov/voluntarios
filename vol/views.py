@@ -221,6 +221,9 @@ def cadastro_voluntario(request, msg=None):
 
         if form.is_valid():
             voluntario = form.save(commit=False) # Repare que ainda não está gravando!
+            # Não sei porque esse campo fica igual a '' em alguns casos!
+            if voluntario.empregado == '':
+                voluntario.empregado = None
             areas_preexistentes = []
             update_cache = False
             ok_idade = True
