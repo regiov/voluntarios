@@ -25,6 +25,16 @@
 <span class="dica">[<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>]</span>
 
 <br/>
+<br/>
+
+{% if request.user.is_superuser %}
+<h2>Entidades</h2>
+<hr style="margin:0;"/>
+
+<h3>Aguardando revisão: <span style="margin-left:15px;">{{ total_ents }}</span></h3>
+
+<br/>
+{% endif %}
 
 <h2>Histórico pessoal de atividades</h2>
 <hr style="margin:0;"/>
