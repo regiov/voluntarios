@@ -13,7 +13,7 @@
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
 <p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
 {% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
-{% if entidade.descricao %}<p><label>Descrição:</label> {{ entidade.descricao }}</p>{% endif %}
+{% if entidade.descricao %}<p class="text-justify"><label>Descrição:</label> {{ entidade.descricao }}</p>{% endif %}
 {% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
 <h3 class="secao-entidade"><span>Mais informações & contato</span></h3>
 <p><i class="fas fa-home" style="vertical-align: top;" title="endereço"></i>
