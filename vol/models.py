@@ -297,9 +297,9 @@ class Voluntario(models.Model):
         '''Indica se não possui experiência como voluntário (usado no template do formulário para deixar o campo entidade_que_ajudou invisível)'''
         return not self.foi_voluntario
 
-    def desempregado(self):
-        '''Indica se está desempregado (usado no template do formulário para deixar o campo empresa invisível)'''
-        return not self.empregado
+    def esconder_empresa(self):
+        '''Indica se o campo empresa deve ser escondido (usado no template do formulário para deixar o campo empresa invisível)'''
+        return self.empregado == False or (self.empregado is None and not self.empresa)
 
     def normalizar(self):
         if self.telefone:

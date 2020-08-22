@@ -111,7 +111,7 @@
     {{ form.empregado }}
   </div>
 
-  {% include "vol/campo_formulario.html" with campo=form.empresa  div_id="empresa" invisible=form.instance.desempregado %}
+  {% include "vol/campo_formulario.html" with campo=form.empresa  div_id="empresa" invisible=form.instance.esconder_empresa %}
 
   <div class="form-group required{% if form.foi_voluntario.errors %} has-error{% endif %}">
     <label for="{{ form.foi_voluntario.id_for_label }}">{{ form.foi_voluntario.label }}</label>
