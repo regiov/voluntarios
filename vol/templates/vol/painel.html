@@ -9,28 +9,29 @@
 <h2>Voluntários</h2>
 <hr style="margin:0;"/>
 
-<h3>Aguardando revisão: <span style="margin-left:20px;">{% if total_vol %}<a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a>{% else %}{{ total_vol }}{% endif %}</span></h3>
+<h3>Aguardando revisão: <span style="margin-left:15px;">{% if total_vol %}<a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a>{% else %}{{ total_vol }}{% endif %}</span></h3>
 
 <h3>Tempo que os voluntários precisam aguardar até a aprovação do cadastro:</h3>
 <p class="dica" style="font-weight: 300;">Nosso esforço é manter este número abaixo de 24h</p>
 <ul style="list-style-type: disc;">
-  <li><h3>Média histórica<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ tempo_vol }}h</span></h3></li>
+  <li><h3>Média histórica<span class="dica"><sup>[1]</sup></span>: <span style="margin-left:15px;">{{ tempo_vol }}h</span></h3></li>
 
-  <li><h3>Média dos últimos 7 dias: <span style="margin-left:20px;">{% if tempo_vol_recente %}{{ tempo_vol_recente }}h{% else %}-{% endif %}</span></h3></li>
+  <li><h3>Média dos últimos 7 dias: <span style="margin-left:15px;">{% if tempo_vol_recente %}{{ tempo_vol_recente }}h{% else %}-{% endif %}</span></h3></li>
 
-  <li><h3>Máximo nos últimos 7 dias: <span style="margin-left:20px;">{% if tempo_vol_max_recente %}{{ tempo_vol_max_recente }}h{% else %}-{% endif %}</span></h3></li>
+  <li><h3>Máximo nos últimos 7 dias: <span style="margin-left:15px;">{% if tempo_vol_max_recente %}{{ tempo_vol_max_recente }}h{% else %}-{% endif %}</span></h3></li>
 </ul>
 
-<h3>Cadastros revisados hoje: <span style="margin-left:20px;">{{ total_vol_dia }}</span> <span class="dica" style="margin-left:20px;">(<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>)</span></h3>
+<h3>Cadastros revisados hoje: <span style="margin-left:15px;">{{ total_vol_dia }}</span></h3>
+<span class="dica">[<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>]</span>
 
 <br/>
 
 <h2>Histórico pessoal de atividades</h2>
 <hr style="margin:0;"/>
 
-<h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:20px;">{{ total_vol_pessoal }}</span> {% if indice_aprovacao_vol_pessoal is not None %}<span style="margin-left:20px;">({{ indice_aprovacao_vol_pessoal }}% de aprovação)</span>{% endif %}</h3>
+<h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:15px;">{{ total_vol_pessoal }}</span></h3>
 
-<h3>E-mails descobertos de entidades: <span style="margin-left:20px;">{{ total_emails_descobertos }}</span></h3>
+<h3>E-mails descobertos de entidades: <span style="margin-left:15px;">{{ total_emails_descobertos }}</span></h3>
 
 {% for tarefa in tarefas %}
   <br/>
@@ -43,8 +44,8 @@
       <span class="sr-only">{{ tarefa.progresso }}% alcançado</span>
     </div>
   </div>
-  <h3>Início em: <span style="margin-left:20px;">{{ tarefa.data_cadastro|date:"j \d\e F \d\e Y" }}</span></h3>
-  {% if tarefa.previsao_termino %}<h3>Previsão de término no ritmo atual: <span style="margin-left:20px;">{{ tarefa.previsao_termino|date:"j \d\e F \d\e Y" }}</span></h3>{% endif %}
+  <h3>Início em: <span style="margin-left:15px;">{{ tarefa.data_cadastro|date:"j \d\e F \d\e Y" }}</span></h3>
+  {% if tarefa.previsao_termino %}<h3>Previsão de término no ritmo atual: <span style="margin-left:15px;">{{ tarefa.previsao_termino|date:"j \d\e F \d\e Y" }}</span></h3>{% endif %}
   {% endlocalize %}
 {% endfor %}
 
