@@ -12,17 +12,20 @@ from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidad
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
     data_aniversario = forms.DateField(label=u'Data de nascimento',
-                                       widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-105, date.today().year-5)], empty_label=(u'ano', u'mês', u'dia'),attrs={'class':'form-control'}),
+                                       widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-105, date.today().year-5)], empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}),
                                        #input_date_formats=['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y'],
                                        #initial=date(date.today().year-36, 5, 22),
                                        help_text="",
+                                       # Aparentemente não há como exibir os valores de empty_label se o campo é obrigatório,
+                                       # portanto deixamos ele opcional e deixamos a verificação de obrigatoriedade para a
+                                       # validação customizada em clean_data_aniversario
                                        required=False)
     estado = forms.ChoiceField(label=u'Estado',
-                               choices=UFS_SIGLA,
-                               initial=u'SP',
+                               # Adiciona uma primeira opção vazia
+                               choices=tuple([(0, '--')] + UFS_SIGLA),
                                widget=forms.Select(attrs={'class':'form-control'}),
                                help_text="")
-    cidade = forms.CharField(label=u'Cidade',
+    cidade = forms.CharField(label=u'Cidade em que reside',
                              max_length=100,
                              widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
                              error_messages={'invalid': u'Digite a cidade onde mora.'},
@@ -32,7 +35,13 @@ class FormVoluntario(forms.ModelForm):
                                 widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
                                 help_text="",
                                 required=False)
-    area_trabalho = forms.ModelChoiceField(label=u'Área de Trabalho',
+    empregado = forms.ChoiceField(label=u'Está trabalhando atualmente?',
+                                  # A classe list-inline do bootstrap faz com que as opções fiquem alinhadas horizontalmente
+                                  widget=forms.RadioSelect(attrs={'class': 'list-inline'}),
+                                  choices = [(True, 'sim'), (False, 'não')],
+                                  help_text="",
+                                  required=False)
+    area_trabalho = forms.ModelChoiceField(label=u'Qual a sua área de trabalho',
                                            empty_label=u'-- Escolha a área de trabalho --',
                                            queryset=AreaTrabalho.objects.all().order_by('nome'),
                                            widget=forms.Select(attrs={'class':'form-control'}),
@@ -48,14 +57,17 @@ class FormVoluntario(forms.ModelForm):
                                widget=forms.TextInput(attrs={'class':'form-control', 'size':25}),
                                help_text="",
                                required=False)
-    empresa = forms.CharField(label=u'Empresa onde trabalha',
+    empresa = forms.CharField(label=u'Empresa/Organização onde trabalha',
                               max_length=60,
                               widget=forms.TextInput(attrs={'class':'form-control', 'size':40}),
                               help_text="",
                               required=False)
-    foi_voluntario = forms.BooleanField(label=u'sim',
-                                     help_text="",
-                                     required=False)
+    foi_voluntario = forms.ChoiceField(label=u'Já fez trabalho voluntário?',
+                                       # A classe list-inline do bootstrap faz com que as opções fiquem alinhadas horizontalmente
+                                       widget=forms.RadioSelect(attrs={'class': 'list-inline'}),
+                                       choices = [(True, 'sim'), (False, 'não')],
+                                       help_text="",
+                                       required=False)
     entidade_que_ajudou = forms.CharField(label=u'Entidade que ajudou',
                                           max_length=100,
                                           widget=forms.TextInput(attrs={'class':'form-control', 'size':40}),
@@ -72,23 +84,29 @@ class FormVoluntario(forms.ModelForm):
                                 widget=forms.Textarea(attrs={'class':'form-control', 'rows':5, 'cols':30}),
                                 help_text="",
                                 required=False)
+    ciente_autorizacao = forms.BooleanField(label=u'',
+                                            # Acrescenta margem para o label não ficar muito colado
+                                            widget=forms.CheckboxInput(attrs={'style':'margin-right:5px;'}),
+                                            help_text="",
+                                            required=False)
 
     class Meta:
         model = Voluntario
-        fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone",
-                  "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho", "area_interesse")
+        fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone", "empregado",
+                  "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho",
+                  "area_interesse", "ciente_autorizacao")
 
     def clean_data_aniversario(self):
         val = self.cleaned_data['data_aniversario']
-        if val == '':
-            return None
+        if not val:
+            raise forms.ValidationError(u'É obrigatório informar a data de nascimento.')
         return val
 
     def clean_estado(self):
         val = self.cleaned_data['estado'].strip().upper()
         ufs = dict(UFS_SIGLA)
         if val not in ufs.keys():
-            raise forms.ValidationError(u'Estado inexistente')
+            raise forms.ValidationError(u'Faltou selecionar o estado.')
         return val
 
     def clean_cidade(self):
@@ -121,7 +139,6 @@ class FormVoluntario(forms.ModelForm):
         if self.errors and not self.non_field_errors():
             self.add_error(None, u'Por favor, verifique as pendências abaixo')
         return cleaned_data
-
 
 class FormEntidade(forms.ModelForm):
     "Formulário para cadastro de entidade"

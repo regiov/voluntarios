@@ -201,13 +201,15 @@ def cadastro_voluntario(request, msg=None):
 
         if msg:
             messages.info(request, msg)
-        
+
     if request.method == 'POST':
         agradece_cadastro = False
         if request.user.is_voluntario:
 
             if 'delete' in request.POST:
                 request.user.voluntario.delete()
+                del request.user.is_voluntario
+                request.user.voluntario = None # Só assim para desacoplar de fato!
                 # Redireciona para página de exibição de mensagem
                 messages.info(request, u'Seu perfil de voluntário foi removido. Note que isto não remove seu cadastro de usuário, ou seja, você continuará podendo entrar no site, podendo inclusive cadastrar um novo perfil de voluntário quando desejar. Se a intenção for remover também seu cadastro de usuário, basta acessar sua <a href="' + reverse('cadastro_usuario') + '">página de dados pessoais</a>. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
                 return mensagem(request, u'Remoção de Perfil de Voluntário')
@@ -218,15 +220,29 @@ def cadastro_voluntario(request, msg=None):
             form = FormVoluntario(request.POST)
 
         if form.is_valid():
-            voluntario = form.save(commit=False)
+            voluntario = form.save(commit=False) # Repare que ainda não está gravando!
             areas_preexistentes = []
+            update_cache = False
+            ok_idade = True
             if request.user.is_voluntario:
                 areas_preexistentes = list(AreaInteresse.objects.filter(voluntario=request.user.voluntario).values_list('area_atuacao', flat=True))
             else:
                 voluntario.usuario = request.user
+                update_cache = True
+                # Esta verificação está aqui para usufruir do método menor_de_idade, que não
+                # está acessível através do FormVoluntario no momento da validação, pois ainda
+                # não existe instância, além de envolver um tipo de validação que envolve dois
+                # campos, sendo que o template não exibe erros gerais.
+                #Note que para chegar aqui o formulário tem que ser válido!
+                if voluntario.menor_de_idade() and not voluntario.ciente_autorizacao:
+                    # Adicionamos um erro ao form do voluntário, mas precisamos também de uma flag para não prosseguir com a gravação
+                    form.add_error('data_aniversario', u'Por ser menor de idade, faltou indicar no final do formulário que você está ciente da necessidade de autorização dos pais.')
+                    ok_idade = False
             area_interesse_formset = FormSetAreaInteresse(request.POST, request.FILES)
-            if area_interesse_formset.is_valid():
+            if area_interesse_formset.is_valid() and ok_idade:
                 voluntario.save()
+                if update_cache:
+                    del request.user.is_voluntario
                 areas_incluidas = []
                 areas_selecionadas = []
                 for area_interesse_form in area_interesse_formset:
@@ -1093,7 +1109,7 @@ def frase_mural(request):
 
     return JsonResponse({'texto': vol.descricao,
                          'iniciais': vol.iniciais(),
-                         'idade': vol.idade(),
+                         'idade': vol.idade_str(),
                          'cidade': vol.cidade.title(),
                          'estado': vol.estado.upper()})
 

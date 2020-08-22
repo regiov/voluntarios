@@ -212,12 +212,14 @@ class Voluntario(models.Model):
     usuario               = models.OneToOneField(Usuario, null=True, on_delete=models.CASCADE)
     data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=20, null=True, blank=True)
     data_aniversario      = models.DateField(u'Data de nascimento', null=True, blank=True)
+    ciente_autorizacao    = models.NullBooleanField(u'Ciente que menor precisa de autorização', null=True, blank=True)
     profissao             = models.CharField(u'Profissão', max_length=100, null=True, blank=True)
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
-    cidade                = models.CharField(u'Cidade', max_length=100)
-    estado                = models.CharField(u'Estado', max_length=2)
     #pais                 = models.CharField(u'País', max_length=50)
+    estado                = models.CharField(u'Estado', max_length=2)
+    cidade                = models.CharField(u'Cidade', max_length=100)
+    empregado             = models.NullBooleanField(u'Empregado', null=True, blank=True)
     empresa               = models.CharField(u'Empresa', max_length=100, null=True, blank=True)
     foi_voluntario        = models.BooleanField(u'Foi voluntário', default=False)
     entidade_que_ajudou   = models.CharField(u'Entidade que ajudou', max_length=100, null=True, blank=True)
@@ -265,9 +267,21 @@ class Voluntario(models.Model):
         if self.data_aniversario is not None:
             hoje = date.today()
             val = hoje.year - self.data_aniversario.year - ((hoje.month, hoje.day) < (self.data_aniversario.month, self.data_aniversario.day))
+            return val
+        return None
+
+    def idade_str(self):
+        val = self.idade()
+        if val is not None:
             if val <= 110:
                 return str(val) + u' anos'
         return ''
+
+    def menor_de_idade(self):
+        val = self.idade()
+        if val is not None and val < 18:
+            return True
+        return False
 
     def areas_de_interesse(self):
         areas = ''
@@ -278,6 +292,14 @@ class Voluntario(models.Model):
             areas = areas + area.area_atuacao.nome
             cnt = cnt + 1
         return areas
+
+    def nao_foi_voluntario(self):
+        '''Indica se não possui experiência como voluntário (usado no template do formulário para deixar o campo entidade_que_ajudou invisível)'''
+        return not self.foi_voluntario
+
+    def desempregado(self):
+        '''Indica se está desempregado (usado no template do formulário para deixar o campo empresa invisível)'''
+        return not self.empregado
 
     def normalizar(self):
         if self.telefone:

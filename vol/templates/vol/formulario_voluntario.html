@@ -8,9 +8,67 @@
 <script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
 
 <script type="text/javascript">
+
     $(function() {
         $('.formset').formset({deleteText: 'remover', addText: 'escolher mais uma área'});
     })
+
+    $(document).ready(function () {
+    
+        // Controle de exibição do campo "empresa"
+        $("input[type=radio][name=empregado]").change(function() {
+            if (this.value === "True") {
+                $("#empresa").show();
+            }
+            else {
+                $("#empresa").hide();
+            }
+        });
+
+        // Controle de exibição do campo "entidade que ajudou"
+        $("input[type=radio][name=foi_voluntario]").change(function() {
+            if (this.value === "True") {
+                $("#entidade_que_ajudou").show();
+            }
+            else {
+                $("#entidade_que_ajudou").hide();
+            }
+        });
+
+        {% if not request.user.is_voluntario %}
+        // Controle de exibição do checkbox para menores de 18 anos
+        function verifica_idade() {
+            var dia = $("#id_data_aniversario_day").children("option:selected").val();
+            var mes = $("#id_data_aniversario_month").children("option:selected").val();
+            var ano = $("#id_data_aniversario_year").children("option:selected").val();
+            if (dia.length > 0 && mes.length > 0 && ano.length > 0) {
+                var hoje = new Date();
+                var idade = hoje.getFullYear() - parseInt(ano);
+                var m = hoje.getMonth() + 1 - parseInt(mes); // getMonth retorna 0-11!
+                if (m < 0 || (m === 0 && hoje.getDate() < parseInt(dia))) {
+                    idade--;
+                }
+                if (idade < 18) {
+                    $("#ciente-autorizacao").show();
+                    return;
+                }
+            }
+            $("#ciente-autorizacao").hide();
+        }
+
+        verifica_idade();
+
+        $("#id_data_aniversario_day").change(function() {
+            verifica_idade();
+        });
+        $("#id_data_aniversario_month").change(function() {
+            verifica_idade();
+        });
+        $("#id_data_aniversario_year").change(function() {
+            verifica_idade();
+        });
+        {% endif %}
+    });
 </script>
 
 {% endblock head %}
@@ -24,7 +82,7 @@
 
 <form id="form-voluntario" method="POST" action="">{% csrf_token %}
 
-{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_id="data_aniversario_container" label_id="data_aniversario_label" %}
+{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_id="data_aniversario_container" label_id="data_aniversario_label" required=True %}
 <table width="100%">
  <tr> 
   <td width="10%">
@@ -35,12 +93,8 @@
   </td>
  </tr>
 </table>
-{% include "vol/campo_formulario.html" with campo=form.cidade %}
-{% include "vol/campo_formulario.html" with campo=form.estado %}
-{% include "vol/campo_formulario.html" with campo=form.profissao %}
-{% include "vol/campo_formulario.html" with campo=form.empresa %}
-{% include "vol/campo_formulario.html" with campo=form.foi_voluntario label="Já foi Voluntário?" after_field="sim" %}
-{% include "vol/campo_formulario.html" with campo=form.entidade_que_ajudou label="Se sim, para qual Entidade?" %}
+{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
+{% include "vol/campo_formulario.html" with campo=form.estado required=True %}
 
   <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
     <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>
@@ -49,6 +103,22 @@
     {{ form.area_trabalho }}
     {% if form.area_trabalho.help_text %}<p class="help-block dica">{{ form.area_trabalho.help_text }}</p>{% endif %}
   </div>
+
+  {% include "vol/campo_formulario.html" with campo=form.profissao %}
+
+  <div class="form-group required{% if form.empregado.errors %} has-error{% endif %}">
+    <label for="{{ form.empregado.id_for_label }}">{{ form.empregado.label }}</label>
+    {{ form.empregado }}
+  </div>
+
+  {% include "vol/campo_formulario.html" with campo=form.empresa  div_id="empresa" invisible=form.instance.desempregado %}
+
+  <div class="form-group required{% if form.foi_voluntario.errors %} has-error{% endif %}">
+    <label for="{{ form.foi_voluntario.id_for_label }}">{{ form.foi_voluntario.label }}</label>
+    {{ form.foi_voluntario }}
+  </div>
+
+  {% include "vol/campo_formulario.html" with campo=form.entidade_que_ajudou label="Entidade(s) que ajudou" div_id="entidade_que_ajudou" invisible=form.instance.nao_foi_voluntario %}
 
   <div class="form-group required{% if form.area_interesse.errors %} has-error{% endif %}">
     <label for="{{ form.area_interesse.id_for_label }}" class="nowrap">{{ form.area_interesse.label }}</label>
@@ -70,6 +140,11 @@
     <p class="dica" style="font-weight: 300;">Apesar de não ser obrigatório, recomendamos preencher este campo, pois ele é muito usado nas buscas e é uma oportunidade de falar um pouco sobre você.</p>
     {{ form.descricao }}
   </div>
+
+  {% comment %}Exibe apenas quando cadastro estiver sendo criado{% endcomment %}
+  {% if not request.user.is_voluntario %}
+  {% include "vol/campo_formulario.html" with campo=form.ciente_autorizacao div_id="ciente-autorizacao" after_field="<b>Estou ciente que, por ser menor de 18 anos, preciso de autorização dos pais ou representante legal para exercer trabalho voluntário.</b>" invisible=True %}
+  {% endif %}
 
   <div class="form-group">
    <input id="save" class="btn btn-primary" type="submit" name="save" value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
@@ -100,7 +175,7 @@
    {% endif %}
 
   </div>
-
+<p class="help-block dica">(*) campos obrigatórios</p>
 </form>
 {% comment %}
 Garante que o form seja submetido apenas uma vez, 
