@@ -224,6 +224,13 @@ def cadastro_voluntario(request, msg=None):
             # Não sei porque esse campo fica igual a '' em alguns casos!
             if voluntario.empregado == '':
                 voluntario.empregado = None
+            # Ajusta conteúdos interligados
+            # (apaga entidade que ajudou caso não tenha sido voluntário)
+            if voluntario.entidade_que_ajudou and not voluntario.foi_voluntario:
+                voluntario.entidade_que_ajudou = None
+            # (apaga empresa caso não esteja empregado)
+            if voluntario.empresa and voluntario.empregado == False:
+                voluntario.empresa = None
             areas_preexistentes = []
             update_cache = False
             ok_idade = True
