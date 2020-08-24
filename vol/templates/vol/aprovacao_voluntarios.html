@@ -15,6 +15,10 @@
 
 <input type="hidden" name="id" value="{{ rec.id }}">
 <input type="hidden" name="i" value="{{ i }}">
+{% comment %}Inclui campos que precisam ser validados mesmo não sendo alteráveis aqui{% endcomment %}
+<input type="hidden" name="data_aniversario_day" value="{{ rec.data_aniversario|date:"j" }}">
+<input type="hidden" name="data_aniversario_month" value="{{ rec.data_aniversario|date:"n" }}">
+<input type="hidden" name="data_aniversario_year" value="{{ rec.data_aniversario|date:"Y" }}">
 
 <table class="table table-striped" style="margin-top:30px;">
 <thead>
