@@ -1,6 +1,6 @@
 {% extends "vol/base.html" %}
 {% load static %}
-
+{% get_media_prefix as MEDIA_PREFIX %}
 {% block title %}Campanha Seja um Voluntário{% endblock title %}
 
 {% block content_container %}
@@ -58,12 +58,12 @@
                 <div class="row">
                     <div class="action take-tour">
                         <div class="col-sm-7">
-                            <h1 class="title"><span>Como ajudar os outros</span></h1>
-                            <p>Acompanhe um blog que irá incentivar você a entender de voluntariado, filantropia e os problemas atuais do Terceiro Setor.</p>
+                            <h1 class="title"><span>Guia do voluntariado</span></h1>
+                            <p>Preparamos uma cartilha respondendo às principais dúvidas sobre trabalho voluntário, com modelos de documentos, legislação sobre o assunto e contando um pouco sobre nós.</p>
                         </div>
                         <div class="col-sm-5">
                             <div class="tour-button">
-                                <a href="http://dias.melhores.com.br" class="btn btn-common" target="_blank">Visite nosso blog</a>
+                                <a href="{{ MEDIA_PREFIX }}/docs/guia-voluntariado-v1.pdf" class="btn btn-common" target="_blank">Faça download do guia</a>
                              </div>
                         </div>
                     </div>
