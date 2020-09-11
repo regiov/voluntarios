@@ -137,6 +137,7 @@ urlpatterns = [
     url(r'^painel$', views.painel, name='painel'),
     url(r'^painel/voluntarios/revisao$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
     url(r'^painel/voluntarios/revisao/panorama$', views.panorama_revisao_voluntarios, name='panorama_revisao_voluntarios'),
+    url(r'^painel/entidades/revisao$', views.revisao_entidades, name='revisao_entidades'),
     url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/?$', views.exibe_tarefa, name='exibe_tarefa'),
     url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/orientacoes/?$', views.exibe_orientacoes_tarefa, name='exibe_orientacoes_tarefa'),
 ]

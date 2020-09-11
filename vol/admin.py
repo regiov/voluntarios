@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.gis.admin import GeoModelAdmin
 try:
     # Django 2
@@ -8,13 +8,15 @@ try:
 except ModuleNotFoundError:
     # Django 3
     from django.templatetags.static import static
-from django.db import transaction
+from django.db import transaction, DatabaseError
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
 from django.utils.html import format_html
 from django.db.models import Count, Q, TextField
 from django.forms import Textarea
 from django.urls import reverse
+from django.shortcuts import redirect
+from django.utils.safestring import mark_safe
 
 from datetime import datetime
 
@@ -172,14 +174,14 @@ class VoluntarioAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
 
-class AnaliseVoluntario(Voluntario):
+class RevisaoVoluntario(Voluntario):
     """Modelo criado para avaliar as análises de cadastro de voluntários via interface administrativa"""
     class Meta:
         proxy = True
-        verbose_name = u'Análise de voluntário'
-        verbose_name_plural = u'Análises de voluntários'
+        verbose_name = u'Revisão de voluntário'
+        verbose_name_plural = u'Revisões de voluntários'
 
-class AnaliseVoluntarioAdmin(admin.ModelAdmin):
+class RevisaoVoluntarioAdmin(admin.ModelAdmin):
     list_select_related = ('usuario', 'resp_analise',)
     list_display = ('data_analise', 'nome_responsavel', 'nome_voluntario', 'aprovado',)
     ordering = ('-data_analise',)
@@ -191,7 +193,7 @@ class AnaliseVoluntarioAdmin(admin.ModelAdmin):
 
     # Exibe apenas cadastros em que há um responsável pela análise
     def get_queryset(self, request):
-        qs = super(AnaliseVoluntarioAdmin, self).get_queryset(request)
+        qs = super(RevisaoVoluntarioAdmin, self).get_queryset(request)
         return qs.filter(resp_analise__isnull=False)
 
     def nome_voluntario(self, instance):
@@ -218,7 +220,7 @@ class AnaliseVoluntarioAdmin(admin.ModelAdmin):
 
     # Remove opção de deleção das ações
     def get_actions(self, request):
-        actions = super(AnaliseVoluntarioAdmin, self).get_actions(request)
+        actions = super(RevisaoVoluntarioAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
@@ -269,6 +271,12 @@ class VinculoEntidadeInline(admin.TabularInline):
     fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
     raw_id_fields = ('usuario',)
     readonly_fields = ['data_inicio']
+    extra = 0
+
+class ReadOnlyVinculoEntidadeInline(admin.TabularInline):
+    model = VinculoEntidade
+    fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
+    readonly_fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
     extra = 0
 
 class NecessidadeInline(admin.TabularInline):
@@ -458,6 +466,93 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     tem_anotacoes.boolean = True
     tem_anotacoes.short_description = u'Anotações'
 
+class EntidadeAguardandoAprovacao(Entidade):
+    """Modelo criado para gerenciar aprovação de entidades na interface adm"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Entidade aguardando aprovação'
+        verbose_name_plural = u'Entidades aguardando aprovação'
+
+class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
+    list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'data_cadastro', 'resp_bloqueio', 'data_bloqueio',)
+    ordering = ('data_cadastro',)
+    search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
+    actions = ['unlock_selected']
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'aprovado']
+    readonly_fields = ['area_atuacao']
+    inlines = [
+        EmailNovoEntidadeInline, TelEntidadeInline, ReadOnlyVinculoEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,
+    ]
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # Este método é chamado nas duas situações, tanto para abrir o formulário quanto para salvar.
+        # Aqui só estamos interessados no bloqueio do registro ao abrir o formulário:
+        if request.method == 'GET':
+            extra_context = extra_context or {}
+            changelist_url = reverse('admin:vol_entidadeaguardandoaprovacao_changelist')
+            # Já tenta bloquear o registro, desde que não tenha sido bloqueado ou que o bloqueio atual seja da mesma pessoa
+            with transaction.atomic():
+                try:
+                    obj = Entidade.objects.select_for_update(nowait=True).get(Q(resp_bloqueio__isnull=True) | Q(resp_bloqueio=request.user), pk=object_id, aprovado__isnull=True)
+                    obj.resp_bloqueio = request.user
+                    obj.data_bloqueio = timezone.now()
+                    # Atenção, esta chamada dispara o pre_save!
+                    obj.save(update_fields=['resp_bloqueio', 'data_bloqueio'])
+                    messages.info(request, mark_safe(u'Para buscar o cartão de CNPJ desta entidade, acesse o <a href="http://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp" target="_blank">site da receita federal</a>.'))
+                except Entidade.DoesNotExist:
+                    messages.error(request, u'Esta entidade não pode ser editada - verifique se a edição está bloqueada por outra pessoa ou se o cadastro já foi revisado.')
+                    return redirect(changelist_url)
+                except DatabaseError:
+                    messages.error(request, u'Outra pessoa acabou de começar a editar esta entidade - tente trabalhar em outro cadastro.')
+                    return redirect(changelist_url)
+        return super().change_view(request, object_id, form_url, extra_context=extra_context,)
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(EntidadeAguardandoAprovacaoAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # Ação de desbloqueio de registros
+    @transaction.atomic
+    def unlock_selected(self, request, queryset):
+        num_unlocks = 0
+        for obj in queryset:
+            # Apenas o usuário que bloqueou pode desbloquear, ou então um superusuário
+            if obj.resp_bloqueio is not None and (obj.resp_bloqueio == request.user or request.user.is_superuser):
+                obj.resp_bloqueio = None
+                obj.data_bloqueio = None
+                obj.save(update_fields=['resp_bloqueio', 'data_bloqueio'])
+                num_unlocks = num_unlocks + 1
+        main_msg = ''
+        if num_unlocks > 0:
+            main_msg = u'%s entidade(s) desbloqueada(s). ' % num_unlocks
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_unlocks:
+            extra_msg = u'%s entidade(s) ignorada(s), ou por não estar(em) bloqueada(s) ou por ter(em) sido bloqueada(s) por outra pessoa.' % (total_recs-num_unlocks)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    unlock_selected.short_description = "Desbloquear registros selecionados"
+
+    # Exibe apenas entidades que já confirmaram seu e-mail principal e estão aguardando aprovação
+    def get_queryset(self, request):
+        id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).values_list('entidade_id')
+        query = self.model.objects.filter(pk__in=id_entidades)
+        if not request.user.is_superuser:
+            if len(query) == 0:
+                url_painel = reverse('painel')
+                messages.info(request, mark_safe(u'Nenhuma entidade aguardando aprovação. Clique <a href="' + url_painel + '" target="_blank">aqui</a> se desejar retornar ao painel de controle.'))
+        return query
+
 class EmailDescoberto(Email):
     """Modelo criado para listar e-mails recém descobertos de entidades"""
     class Meta:
@@ -602,9 +697,10 @@ admin.site.register(FlatPage, MyFlatPageAdmin)
 admin.site.register(AreaTrabalho, AreaTrabalhoAdmin)
 admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
 admin.site.register(Voluntario, VoluntarioAdmin)
-admin.site.register(AnaliseVoluntario, AnaliseVoluntarioAdmin)
+admin.site.register(RevisaoVoluntario, RevisaoVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
+admin.site.register(EntidadeAguardandoAprovacao, EntidadeAguardandoAprovacaoAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 admin.site.register(ForcaTarefa, ForcaTarefaAdmin)

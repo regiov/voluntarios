@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 class Message(models.Model):
     '''
@@ -14,7 +16,7 @@ class Event(models.Model):
     '''
     Notification event.
     '''
-    rtype    = models.CharField(u'Recipient type (S=support, U=user)', max_length=1)
+    rtype    = models.CharField(u'Recipient type (S=support, U=user, E=generic)', max_length=1)
     message  = models.ForeignKey(Message, null=True, blank=True, on_delete=models.CASCADE)
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
     subject  = models.CharField(u'Message subject', null=True, blank=True, max_length=200)
@@ -22,4 +24,8 @@ class Event(models.Model):
     repeat   = models.IntegerField(u'Repetitions', default=0)
     creation = models.DateTimeField(u'Creation timestamp', auto_now_add=True)
     last_rep = models.DateTimeField(u'Last repetition', null=True, blank=True)
+    # Generic relation, allowing events to be related to any external model
+    content_type   = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
+    object_id      = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
 

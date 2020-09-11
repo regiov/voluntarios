@@ -365,6 +365,7 @@ class EntidadeManager(models.Manager):
             ret = None
         return ret
 
+@track_data('aprovado')
 class Entidade(models.Model):
     """Entidade."""
     """obs: id corresponde ao colocweb em registros importados."""
@@ -406,12 +407,18 @@ class Entidade(models.Model):
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     confirmado_em      = models.DateTimeField(u'Data da confirmação do e-mail', null=True, blank=True)
-    aprovado           = models.NullBooleanField(u'Cadastro revisado e aprovado')
+    aprovado           = models.NullBooleanField(u'Cadastro aprovado')
     data_cadastro      = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True, db_index=True)
     qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações da entidade (desde 12/01/2019)', default=0)
     ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now_add=True, null=True, blank=True)
     ultima_revisao     = models.DateTimeField(u'Última revisão', null=True, blank=True)
+    # Estes 2 campos (*_analise) só são preenchidos na primeira aprovação/rejeição do cadastro
+    data_analise       = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
+    resp_analise       = models.ForeignKey(Usuario, verbose_name=u'Responsável pela análise', related_name='resp_analise_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    # Campos utilizados para gerenciar lock de registro na interface administrativa
+    resp_bloqueio      = models.ForeignKey(Usuario, verbose_name=u'Em edição por', related_name='resp_bloqueio_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_bloqueio      = models.DateTimeField(u'Início da edição', null=True, blank=True)
 
     objects = EntidadeManager()
 
@@ -430,8 +437,12 @@ class Entidade(models.Model):
         raise ValueError(u'Entidade sem chave primária')
 
     @cached_property
+    def vinculos_ativos(self):
+        return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True)
+
+    @cached_property
     def gerenciada(self):
-        return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True).count() > 0
+        return self.vinculos_ativos.count() > 0
 
     @cached_property
     def email_principal_obj(self):
@@ -898,6 +909,45 @@ class AtividadeAdmin(models.Model):
         verbose_name = u'Atividade nas interfaces administrativas'
         verbose_name_plural = u'Atividades nas interfaces administrativas'
 
+class FraseMotivacionalManager(models.Manager):
+
+    def reflexao_do_dia(self):
+        '''Retorna a frase do dia para reflexão'''
+
+        # Lógica antiga de mostrar frase motivacional, uma por dia ao logo do ano
+        #num_frases = FraseMotivacional.objects.all().count()
+        #
+        #if num_frases > 0:
+        #    now = datetime.datetime.now()
+        #    day_of_year = int(now.strftime("%j"))
+        #    position = (day_of_year % num_frases)
+        #    frase = FraseMotivacional.objects.all().order_by('id')[position]
+
+        frase = None
+        qs_frase = FraseMotivacional.objects.filter(utilizacao__isnull=False)
+        # Se não tem nenhuma marcada para utilização
+        if qs_frase.count() == 0:
+            # Pega a primeira no banco
+            qs_frase = FraseMotivacional.objects.all().order_by('id')
+            if qs_frase.count() > 0:
+                frase = qs_frase[0]
+                frase.utilizar_frase()
+        # Se tiver frase marcada
+        else:
+            # Só deve existir uma, mas todo caso pega a primeira
+            frase = qs_frase[0]
+            # Verifica se a data coincide com a data atual. Se coincidir, retorna ela.
+            if frase.utilizacao != datetime.date.today():
+                # Se não coincidir, pega a próxima frase na sequência de ids
+                qs_frase = FraseMotivacional.objects.filter(pk__gt=frase.pk).order_by('id')
+                if qs_frase.count() == 0:
+                    # Se não tiver próxima, começa do zero
+                    qs_frase = FraseMotivacional.objects.all().order_by('id')
+                if qs_frase.count() > 0:
+                    frase = qs_frase[0]
+                    frase.utilizar_frase()
+        return frase
+
 class FraseMotivacional(models.Model):
     """Frase motivacional"""
     frase = models.TextField(u'Frase')
@@ -906,6 +956,8 @@ class FraseMotivacional(models.Model):
     # a frase é que deve ser exibida no dia, do contrário deve-se utilizar o próximo registro,
     # apagando a data do registro anterior e gravando a data atual no próximo registro.
     utilizacao = models.DateField(u'Data de utilização da frase', null=True, blank=True)
+
+    objects = FraseMotivacionalManager()
 
     class Meta:
         verbose_name = u'Frase motivacional'
@@ -922,13 +974,14 @@ class FraseMotivacional(models.Model):
 
 class Conteudo(models.Model):
     """Encapsulamento de conteúdo para rastrear o acesso a ele"""
+    codigo         = models.CharField(u'Código', max_length=50, null=True, blank=True) # Mudar para não nulo e único
     nome           = models.CharField(u'Nome', max_length=200)
     nome_url       = models.CharField(u'Nome da URL no arquivo urls.py', max_length=100)
     parametros_url = models.TextField(u'Parâmetros da URL em formato de dicionário', null=True, blank=True)
 
     class Meta:
-        verbose_name = u'Conteúdo rastreável'
-        verbose_name_plural = u'Conteúdos rastreáveis'
+        verbose_name = u'Conteúdo com rastreamento de acesso'
+        verbose_name_plural = u'Conteúdos com rastreamento de acesso'
 
     def __str__(self):
         return self.nome

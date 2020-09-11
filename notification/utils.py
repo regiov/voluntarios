@@ -60,6 +60,7 @@ def notify_user_msg(user, message, context={}, from_email=settings.NOTIFY_USER_F
     """
     subject = message.subject
     content = message.content
+    # If a context is provided, this means our content may have variables, so treat content as a template string
     if len(context) > 0:
         if 'django' not in engines:
             msg = u"error: django engine unavailable!\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (subject, user.email, content)
@@ -92,14 +93,47 @@ def notify_user_template(user, subject_template, msg_template, from_email=settin
         msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, user.get_full_name(), message)
         notify_support(u'Notification failure', msg)
 
-def notify_email(to, subject, msg_template, context={}, from_email=settings.NOTIFY_USER_FROM, **kwargs):
+def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, **kwargs):
+    """
+    Generic funtion to send a message to an e-mail.
+    """
+    try:
+        send_mail(subject, msg_str, from_email, [to], **kwargs)
+    except Exception as e:
+        error = type(e).__name__ + str(e.args)
+        msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, to, msg_str)
+        notify_support(u'Notification failure', msg)
+        return False
+    return True
+
+def notify_email_template(to, subject, msg_template, context={}, from_email=settings.NOTIFY_USER_FROM, **kwargs):
     """
     Generic funtion to send a message to an e-mail using a template for the message.
     """
     message = render_to_string(msg_template, context)
-    try:
-        send_mail(subject, message, from_email, [to], **kwargs)
-    except Exception as e:
-        error = type(e).__name__ + str(e.args)
-        msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, to, message)
-        notify_support(u'Notification failure', msg)
+    notify_email(to, subject, message, from_email)
+
+def notify_email_msg(to, msg_obj, context={}, from_email=settings.NOTIFY_USER_FROM, content_obj=None, **kwargs):
+    """
+    Generic funtion to send a message to an e-mail using a Message object.
+    """
+    subject = msg_obj.subject
+    content = msg_obj.content
+    # If a context is provided, this means our content may have variables, so treat content as a template string
+    if len(context) > 0:
+        if 'django' not in engines:
+            msg = u"error: django engine unavailable!\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (subject, to, content)
+            notify_support(u'Notification failure', msg)
+            return
+        django_engine = engines['django']
+        template = django_engine.from_string(content)
+        content = template.render(context=context)
+    if notify_email(to, subject, content, from_email):
+        if content_obj:
+            try:
+                event = Event(rtype='E', content_object=content_obj, message=msg_obj)
+                event.save()
+            except Exception as e:
+                error = type(e).__name__ + str(e.args)
+                msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nobs:\n\n%s" % (error, subject, to, 'Failed to save Event')
+                notify_support(u'Notification failure', msg)

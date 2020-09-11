@@ -1,9 +1,14 @@
 # coding=UTF-8
 
+# IMPORTANTE:
+#
+# Como as rotinas aqui são usadas pelo models.py, não se pode importar modelos em novas rotinas pois dá erro.
+#
+
 from django.db.models.signals import post_init
+from django.contrib.contenttypes.models import ContentType
 
-from notification.utils import notify_user_msg
-
+from notification.utils import notify_user_msg, notify_email_msg
 from notification.models import Message, Event
 
 def track_data(*fields):
@@ -76,8 +81,17 @@ def track_data(*fields):
     return inner
 
 def notifica_aprovacao_voluntario(usuario):
+    '''Envia e-mail comunicando ao usuário a aprovação do seu perfil'''
     # Se o usuário nunca recebeu o aviso de aprovação
     msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO_V2')
     if Event.objects.filter(user=usuario, message=msg).count() == 0:
         # Envia notificação
         notify_user_msg(usuario, msg)
+
+def notifica_aprovacao_entidade(entidade):
+    '''Envia e-mail comunicando à entidade a aprovação do seu cadastro'''
+    # Se a entidade nunca recebeu o aviso de aprovação
+    msg = Message.objects.get(code='AVISO_APROVACAO_ENTIDADE')
+    if Event.objects.filter(object_id=entidade.id, content_type=ContentType.objects.get_for_model(entidade).id, message=msg).count() == 0:
+        # Envia notificação
+        notify_email_msg(entidade.email_principal, msg, content_obj=entidade)

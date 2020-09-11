@@ -20,23 +20,23 @@ from django.forms import inlineformset_factory
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo
 
 from allauth.account.models import EmailAddress
 
 from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario
+from .utils import notifica_aprovacao_voluntario, notifica_aprovacao_entidade
 
-from notification.utils import notify_support, notify_email
+from notification.utils import notify_support, notify_email_template
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
@@ -107,9 +107,9 @@ def cadastro_usuario(request):
                 try:
                     registro_remocao = RemocaoUsuario()
                     registro_remocao.save()
-                    notify_email(user_email, u'Remoção de cadastro :-(', 'vol/msg_remocao_usuario.txt', from_email=settings.NOTIFY_USER_FROM)
+                    notify_email_template(user_email, u'Remoção de cadastro :-(', 'vol/msg_remocao_usuario.txt', from_email=settings.NOTIFY_USER_FROM)
                 except Exception as e:
-                    # Se houver erro no envio da notificação, o próprio notify_email já tenta avisar o suporte,
+                    # Se houver erro no envio da notificação, o próprio notify_email_template já tenta avisar o suporte,
                     # portanto só cairá aqui se houver erro nas outras ações
                     pass
             except Exception as e:
@@ -471,9 +471,9 @@ def envia_confirmacao_email_entidade(request, email):
                'host': request.get_host(),
                'key': email.hmac_key()}
     try:
-        notify_email(email.endereco, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email_template(email.endereco, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
     except Exception as e:
-        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # Se houver erro o próprio notify_email_template já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
@@ -578,9 +578,9 @@ def envia_confirmacao_vinculo(request, id_entidade):
                'host': request.get_host(),
                'key': vinculo.hmac_key()}
     try:
-        notify_email(entidade.email_principal, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email_template(entidade.email_principal, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
     except Exception as e:
-        # Se houver erro o próprio notify_email já tenta notificar o suporte,
+        # Se houver erro o próprio notify_email_template já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
         pass
 
@@ -764,7 +764,7 @@ def cadastro_entidade(request, id_entidade=None):
                                     tel.save(update_fields=['confirmado', 'confirmado_por', 'data_confirmacao'])
                                 break
                 if houve_mudanca:
-                    notify_email(settings.NOTIFY_USER_FROM, u'Alteração de telefone', 'vol/msg_alteracao_telefone.txt', from_email=settings.NOREPLY_EMAIL, context={'entidade': entidade, 'telefones_anteriores': telefones_anteriores, 'telefones_atuais': telefones_atuais})
+                    notify_email_template(settings.NOTIFY_USER_FROM, u'Alteração de telefone', 'vol/msg_alteracao_telefone.txt', from_email=settings.NOREPLY_EMAIL, context={'entidade': entidade, 'telefones_anteriores': telefones_anteriores, 'telefones_atuais': telefones_atuais})
 
             # Nova entidade
             else:
@@ -1390,38 +1390,7 @@ def aprovacao_voluntarios(request):
             
     else: # total == 0
 
-        # Lógica de mostrar frase motivacional, uma por dia ao logo do ano
-        #num_frases = FraseMotivacional.objects.all().count()
-        #
-        #if num_frases > 0:
-        #    now = datetime.datetime.now()
-        #    day_of_year = int(now.strftime("%j"))
-        #    position = (day_of_year % num_frases)
-        #    frase = FraseMotivacional.objects.all().order_by('id')[position]
-
-        frase = None
-        qs_frase = FraseMotivacional.objects.filter(utilizacao__isnull=False)
-        # Se não tem nenhuma marcada para utilização
-        if qs_frase.count() == 0:
-            # Pega a primeira no banco
-            qs_frase = FraseMotivacional.objects.all().order_by('id')
-            if qs_frase.count() > 0:
-                frase = qs_frase[0]
-                frase.utilizar_frase()
-        # Se tiver frase marcada
-        else:
-            # Só deve existir uma, mas todo caso pega a primeira
-            frase = qs_frase[0]
-            # Verifica se a data coincide com a data atual
-            if frase.utilizacao != datetime.date.today():
-                # Se não coincidir, pega a próxima frase na sequência de ids
-                qs_frase = FraseMotivacional.objects.filter(pk__gt=frase.pk).order_by('id')
-                if qs_frase.count() == 0:
-                    # Se não tiver próxima, começa do zero
-                    qs_frase = FraseMotivacional.objects.all().order_by('id')
-                if qs_frase.count() > 0:
-                    frase = qs_frase[0]
-                    frase.utilizar_frase()
+        frase = FraseMotivacional.objects.reflexao_do_dia()
             
     context = {'total': total,
                'rec': rec,
@@ -1432,6 +1401,23 @@ def aprovacao_voluntarios(request):
                'frase': frase}
     template = loader.get_template('vol/aprovacao_voluntarios.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+@permission_required('vol.change_entidadeaguardandoaprovacao')
+@transaction.atomic
+def revisao_entidades(request):
+    '''Página para revisar novos cadastros de entidades'''
+
+    # Controle de exibição das orientações
+    codigo_conteudo = 'orientacoes-revisao-entidades'
+    acessos = AcessoAConteudo.objects.filter(conteudo__codigo=codigo_conteudo, usuario=request.user).count()
+    if acessos == 0:
+        # Caso não tenha visualizado as orientações, redireciona pra ela
+        return exibe_conteudo(request, codigo_conteudo)
+
+    changelist_url = reverse('admin:vol_entidadeaguardandoaprovacao_changelist')
+    return redirect(changelist_url)
 
 @login_required
 @staff_member_required
@@ -1575,6 +1561,12 @@ def panorama_revisao_voluntarios(request):
 @transaction.atomic
 def exibe_conteudo(request, conteudo):
     '''Exibe conteúdo controlado'''
+    if isinstance(conteudo, str):
+        try:
+            conteudo = Conteudo.objects.get(codigo=conteudo)
+        except Conteudo.DoesNotExist:
+            notify_support(u'Código de conteúdo inexistente', u'Código: ' + conteudo, request)
+            raise Http404
     acesso = AcessoAConteudo(conteudo=conteudo, usuario=request.user)
     acesso.save()
     if conteudo.parametros_url:
