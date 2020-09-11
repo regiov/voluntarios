@@ -4,7 +4,7 @@ import os
 import urllib.parse
 import urllib.request
 import json
-from datetime import date, datetime
+import datetime
 
 from django.db import models, transaction
 from django.conf import settings
@@ -265,7 +265,7 @@ class Voluntario(models.Model):
 
     def idade(self):
         if self.data_aniversario is not None:
-            hoje = date.today()
+            hoje = datetime.date.today()
             val = hoje.year - self.data_aniversario.year - ((hoje.month, hoje.day) < (self.data_aniversario.month, self.data_aniversario.day))
             return val
         return None
@@ -969,7 +969,7 @@ class FraseMotivacional(models.Model):
     def utilizar_frase(self):
         with transaction.atomic():
             FraseMotivacional.objects.filter(utilizacao__isnull=False).update(utilizacao=None)
-            self.utilizacao = date.today()
+            self.utilizacao = datetime.date.today()
             self.save(update_fields=['utilizacao'])
 
 class Conteudo(models.Model):
