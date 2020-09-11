@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional
 
 from allauth.account.models import EmailAddress
 
