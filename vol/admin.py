@@ -476,7 +476,6 @@ class EntidadeAguardandoAprovacao(Entidade):
 class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'data_cadastro', 'resp_bloqueio', 'data_bloqueio',)
     ordering = ('data_cadastro',)
-    search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
     actions = ['unlock_selected']
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'aprovado']
     readonly_fields = ['area_atuacao']
