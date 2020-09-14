@@ -334,7 +334,18 @@ class NovaAnotacaoEntidadeInline(admin.TabularInline):
         return False
 
 class BaseEntidadeAdmin(admin.ModelAdmin):
-    # Grava alterações automáticas
+    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'mytags', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em',)
+
+    # Gravações automáticas na Entidade
+    def save_model(self, request, obj, form, change):
+        # Se aprovou ou rejeitou cadastro
+        if obj.old_value('aprovado') is None and obj.aprovado is not None and obj.resp_analise is None:
+            # Grava o responsável pela análise
+            obj.resp_analise = request.user
+            obj.data_analise = timezone.now()
+        super().save_model(request, obj, form, change)
+
+    # Gravações automáticas nos modelos relacionados
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for obj in formset.deleted_objects:
@@ -383,7 +394,6 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco',)
     list_filter = ('aprovado', 'importado',)
     preserve_filters = True
-    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza', 'mytags',)
     readonly_fields = ('geocode_status', 'importado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
@@ -552,6 +562,55 @@ class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
                 messages.info(request, mark_safe(u'Nenhuma entidade aguardando aprovação. Clique <a href="' + url_painel + '" target="_blank">aqui</a> se desejar retornar ao painel de controle.'))
         return query
 
+
+class RevisaoEntidade(Entidade):
+    """Modelo criado para avaliar as análises de cadastro de entidades via interface administrativa"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Revisão de entidade'
+        verbose_name_plural = u'Revisões de entidades'
+
+class RevisaoEntidadeAdmin(BaseEntidadeAdmin):
+    list_select_related = ('resp_analise',)
+    list_display = ('data_analise', 'nome_responsavel', 'razao_social', 'aprovado',)
+    ordering = ('-data_analise',)
+    search_fields = ('razao_social', 'nome_fantasia', )
+    list_filter = ('aprovado', ('resp_analise', admin.RelatedOnlyFieldListFilter),)
+    preserve_filters = True
+    inlines = [
+        EmailEntidadeInline, TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeInline, AnotacaoEntidadeInline
+    ]
+
+    def get_exclude(self, request, obj=None):
+        return self.exclude + ('geocode_status', 'importado',)
+
+    # Exibe apenas cadastros em que há um responsável pela análise
+    def get_queryset(self, request):
+        qs = super(RevisaoEntidadeAdmin, self).get_queryset(request)
+        return qs.filter(resp_analise__isnull=False)
+
+    def nome_responsavel(self, instance):
+        if instance.resp_analise:
+            return instance.resp_analise.nome
+        return '(vazio)'
+    nome_responsavel.short_description = u'Responsável pela análise'
+    nome_responsavel.admin_order_field = 'resp_analise__nome'
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(RevisaoEntidadeAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 class EmailDescoberto(Email):
     """Modelo criado para listar e-mails recém descobertos de entidades"""
     class Meta:
@@ -700,6 +759,7 @@ admin.site.register(RevisaoVoluntario, RevisaoVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
 admin.site.register(EntidadeAguardandoAprovacao, EntidadeAguardandoAprovacaoAdmin)
+admin.site.register(RevisaoEntidade, RevisaoEntidadeAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
 admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
