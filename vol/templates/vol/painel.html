@@ -39,6 +39,10 @@
 
 <h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:15px;">{{ total_vol_pessoal }}</span></h3>
 
+{% if indice_revisao_vol_pessoal > 0.001 %}
+<h3>Participação na revisão de voluntários <span class="dica"><sup>[2]</sup></span>: <span style="margin-left:15px;">{{ indice_revisao_vol_pessoal|floatformat:3 }}%</span></h3>
+{% endif %}
+
 <h3>E-mails descobertos de entidades: <span style="margin-left:15px;">{{ total_emails_descobertos }}</span></h3>
 
 {% for tarefa in tarefas %}
@@ -58,6 +62,7 @@
 {% endfor %}
 
 <br/>
-<p class="dica" style="font-weight: 300;">[1] cálculo a partir de 23/05/2020</p>
+<p class="dica" style="font-weight: 300;">[1] cálculo a partir de 23/05/2020.</p>
+<p class="dica" style="font-weight: 300;">[2] considerando todos voluntários já revisados desde a data da sua primeira revisão.</p>
 
 {% endblock content %}

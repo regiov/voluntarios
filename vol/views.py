@@ -12,7 +12,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllo
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
-from django.db.models import Q, F, Count, Avg, Max
+from django.db.models import Q, F, Count, Avg, Max, Min
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
@@ -1458,13 +1458,18 @@ def painel(request):
     # Total de voluntários revisados pelo usuário
     total_vol_pessoal = Voluntario.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
-    # Total de voluntários aprovados pelo usuário
-    total_vol_pessoal_aprovado = Voluntario.objects.filter(aprovado=True, resp_analise=request.user).count()
+    # Data da primeira análise do usuário
+    primeira_analise = Voluntario.objects.filter(resp_analise=request.user).aggregate(data=Min(F('data_analise')))
 
-    # Percentual de aprovção
-    indice_aprovacao_vol_pessoal = None
-    if total_vol_pessoal > 0:
-        indice_aprovacao_vol_pessoal = round(100*(total_vol_pessoal_aprovado/total_vol_pessoal), 1)
+    # Total de voluntários revisados por todos desde que o usuário logado começou a revisar
+    total_vol_geral = 0
+    if primeira_analise['data']:
+        total_vol_geral = Voluntario.objects.filter(aprovado__isnull=False, data_analise__gte=primeira_analise['data']).count()
+
+    # Percentual de revisão
+    indice_revisao_vol_pessoal = None
+    if total_vol_pessoal > 0 and total_vol_geral > 0:
+        indice_revisao_vol_pessoal = round(100*(total_vol_pessoal/total_vol_geral), 3)
 
     # Total de entidades que confirmaram o email e estão aguardando aprovação
     total_ents = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).count()
@@ -1512,7 +1517,7 @@ def painel(request):
                'total_vol_dia': total_vol_dia,
                'total_ents': total_ents,
                'total_vol_pessoal': total_vol_pessoal,
-               'indice_aprovacao_vol_pessoal': indice_aprovacao_vol_pessoal,
+               'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}
     template = loader.get_template('vol/painel.html')
