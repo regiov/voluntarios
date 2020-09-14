@@ -1474,6 +1474,9 @@ def painel(request):
     # Total de entidades que confirmaram o email e estão aguardando aprovação
     total_ents = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).count()
 
+    # Total de entidades revisadas pelo usuário
+    total_ents_pessoal = Entidade.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
+
     # Total de e-mails de entidades descobertos pelo usuário
     total_emails_descobertos = Email.objects.filter(entidade__isnull=False, entidade__aprovado=True, resp_cadastro=request.user).count()
 
@@ -1515,9 +1518,10 @@ def painel(request):
                'tempo_vol_recente': tempo_vol_recente,
                'tempo_vol_max_recente': tempo_vol_max_recente,
                'total_vol_dia': total_vol_dia,
-               'total_ents': total_ents,
                'total_vol_pessoal': total_vol_pessoal,
                'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
+               'total_ents': total_ents,
+               'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}
     template = loader.get_template('vol/painel.html')
