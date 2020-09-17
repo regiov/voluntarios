@@ -27,7 +27,7 @@ from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -749,6 +749,26 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
 class ConteudoAdmin(admin.ModelAdmin):
     pass
 
+class AcessoAConteudoAdmin(admin.ModelAdmin):
+    list_display = ('conteudo', 'usuario', 'momento',)
+    ordering = ('-momento',)
+    list_display_links = None
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita remoção
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    # Remove opção de deleção das ações
+    def get_actions(self, request):
+        actions = super(AcessoAConteudoAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -766,3 +786,4 @@ admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
 admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)
 admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
 admin.site.register(Conteudo, ConteudoAdmin)
+admin.site.register(AcessoAConteudo, AcessoAConteudoAdmin)

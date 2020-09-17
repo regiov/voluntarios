@@ -994,8 +994,8 @@ class AcessoAConteudo(models.Model):
     momento  = models.DateTimeField(u'Data/hora da visualização', default=timezone.now, null=True, blank=True)
 
     class Meta:
-        verbose_name = u'Visualização de conteúdo informativo'
-        verbose_name_plural = u'Visualizações de conteúdo informativo'
+        verbose_name = u'Visualização de conteúdo'
+        verbose_name_plural = u'Visualizações de conteúdo'
         # Podemos ter repetição da combinação usuário/conteúdo (um usuário pode visualizar o conteúdo mais de uma vez)
 
 class ForcaTarefa(models.Model):
