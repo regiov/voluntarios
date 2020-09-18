@@ -40,7 +40,7 @@
 <h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:15px;">{{ total_vol_pessoal }}</span></h3>
 
 {% if indice_revisao_vol_pessoal > 0.001 %}
-<h3>Participação na revisão de voluntários <span class="dica"><sup>[2]</sup></span>: <span style="margin-left:15px;">{{ indice_revisao_vol_pessoal|floatformat:3 }}%</span></h3>
+<h3>Participação na revisão de voluntários <span class="dica"><sup>[2]</sup></span>: <span style="margin-left:15px;">{% if indice_revisao_vol_pessoal > 1.0 %}{{ indice_revisao_vol_pessoal|floatformat:1 }}{% else %}{{ indice_revisao_vol_pessoal|floatformat:3 }}{% endif %}%</span></h3>
 {% endif %}
 
 <h3>Entidades revisadas <span class="dica"><sup>[3]</sup></span>: <span style="margin-left:15px;">{{ total_ents_pessoal }}</span></h3>
