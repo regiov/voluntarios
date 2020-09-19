@@ -1575,7 +1575,7 @@ def carga_revisao_voluntarios(request):
     # Período considerado: últimos 3 meses
     num_days = 90
     delta = datetime.timedelta(days=num_days)
-    revisoes = Voluntario.objects.filter(data_analise__date__gt=now-delta).annotate(semana=TruncWeek('data_analise')).values('semana', 'resp_analise').annotate(cnt=Count('id'))
+    revisoes = Voluntario.objects.filter(data_analise__date__gt=now-delta).annotate(semana=TruncMonth('data_analise')).values('semana', 'resp_analise').annotate(cnt=Count('id'))
 
     # Lista de ids de revisores sem repetição
     revisores = []
