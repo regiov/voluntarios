@@ -1,0 +1,99 @@
+{% extends "vol/base_admin.html" %}
+{% load l10n %}
+{% block title %}Revisão de voluntários{% endblock title %}
+
+{% block head %}
+    <link href="//fonts.googleapis.com/css?family=Roboto:500,400italic,300,700,500italic,400" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <style>
+    canvas { -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+          }
+    </style>
+{% endblock head %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Distribuição da carga de trabalho nos últimos {{ meses|floatformat:0 }} meses</h1>
+
+<p>O gráfico abaixo mostra quanto cada pessoa ajudou a revisar os cadastros de voluntários ao longo do tempo. O objetivo é identificar se está havendo sobrecarga de trabalho para, se necessário, distribuir melhor as tarefas ou chamar mais pessoas para ajudar.</p>
+
+{% for rev in revisores %}
+{{ rev }}
+{% endfor %}
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="chart-container" style="position: relative;">
+
+           <canvas id="chart"></canvas>
+           <script type="text/javascript">
+             var colors = [
+                 'rgb(255, 99, 132)',
+                 'rgb(255, 159, 64)',
+                 'rgb(255, 205, 86)',
+                 'rgb(75, 192, 192)',
+                 'rgb(54, 162, 235)',
+                 'rgb(153, 102, 255)',
+                 'rgb(201, 203, 207)'
+             ];
+             function transparentize(color, opacity) {
+                 var alpha = opacity === undefined ? 0.5 : 1 - opacity;
+                 var rgb = color.split("(")[1].split(")")[0].split(",");
+                 return 'rgba('+ rgb[0] +', '+ rgb[1] +', '+ rgb[2] +', '+ alpha +')';
+             }
+             function get_color(idx) {
+                 if (idx in colors) {
+                     return colors[idx];
+                 }
+
+                 return colors[idx % colors.length]
+             }
+             var my_ctx = document.getElementById('chart').getContext('2d');
+
+             var my_data = { labels: [{% for dt in x %}"{{ dt|date:"Y-m-d" }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+                             datasets: [ {% for y in ys %}
+                                   { label: 'revisor {{ forloop.counter }}',
+                                     borderColor: get_color({{ forloop.counter0 }}),
+                                     backgroundColor: transparentize(get_color({{ forloop.counter0 }})),
+                                     borderWidth: 1,
+                                     fill: 1,
+                                     data: {{ y }},
+                                   }{% if not forloop.last %}, {% endif %} {% endfor %}]
+                           };
+             var my_options = { responsive: true,
+                                maintainAspectRatio: true,
+                                spanGaps: false,
+                                elements: {
+                                    line: {
+                                        tension: 0.3
+                                    }
+                                },
+                                plugins: {
+                                    filler: {
+                                        propagate: false
+                                    },
+                                    'samples-filler-analyser': {
+                                        target: 'chart-analyser'
+                                    }
+                                },
+                                legend: { display: false },
+                                title: { display: false },
+                                scales: { xAxes: [{ ticks: { minRotation: 45, maxRotation: 45 }, gridLines: { display: false } }], 
+                                          yAxes: [{ stacked: true, ticks: { stepSize: 1, beginAtZero: true } }] }
+                              };
+           </script>
+      </div>
+    </div>
+  </div>
+
+{% block post_footer %}
+<script>
+   window.onload = function() {
+       window.chart = new Chart(my_ctx, { type: 'line', data: my_data, options: my_options });
+   };
+</script>
+{% endblock post_footer %}
+
+{% endblock content %}

@@ -22,7 +22,11 @@
 </ul>
 
 <h3>Cadastros revisados hoje: <span style="margin-left:15px;">{{ total_vol_dia }}</span></h3>
-<span class="dica">[<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica de trabalho nos últimos dias</a>]</span>
+<span class="dica">[<a href="{% url 'panorama_revisao_voluntarios' %}">dinâmica (dias e horários trabalhados)</a>]</span>
+{% if request.user.is_superuser %}
+<br/>
+<span class="dica">[<a href="{% url 'carga_revisao_voluntarios' %}">distribuição da carga de trabalho</a>]</span>
+{% endif %}
 
 <br/>
 <br/>

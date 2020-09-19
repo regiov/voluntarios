@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError, SuspiciousOperation, Permiss
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, TruncWeek
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.forms import inlineformset_factory
@@ -1563,6 +1563,53 @@ def panorama_revisao_voluntarios(request):
                'main_hours': [8, 12, 18],
                'days': days}
     template = loader.get_template('vol/panorama_revisao_voluntarios.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def carga_revisao_voluntarios(request):
+    '''Distribuição da carga de trabalho na revisão de cadastros de voluntários'''
+
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+    # Período considerado: últimos 3 meses
+    num_days = 90
+    delta = datetime.timedelta(days=num_days)
+    revisoes = Voluntario.objects.filter(data_analise__date__gt=now-delta).annotate(semana=TruncWeek('data_analise')).values('semana', 'resp_analise').annotate(cnt=Count('id'))
+
+    # Lista de ids de revisores sem repetição
+    revisores = []
+    # Estrutura de dados para facilitar a localização de quantidades de revisões por semana e revisor:
+    # semana_em_que_houve_trabalho -> revisor 1 -> qtde revisões
+    #                              -> revisor 2 -> qtde revisões
+    dados = {}
+
+    for r in revisoes:
+        if r['resp_analise'] not in revisores:
+            revisores.append(r['resp_analise'])
+        if r['semana'] not in dados:
+            dados[r['semana']] = {}
+        dados[r['semana']][r['resp_analise']] = r['cnt']
+
+    # Eixo x: semanas trabalhadas em ordem ascendente
+    x = sorted(dados.keys())
+
+    # Eixos y: lista (por revisor) de listas de valores (quantidades de revisões a cada semana trabalhada)
+    ys = []
+
+    for revisor in sorted(revisores):
+        y = []
+        for semana in x: # já está ordenado
+            qtde = 0
+            if revisor in dados[semana]:
+                qtde = dados[semana][revisor]
+            y.append(qtde)
+        ys.append(y)
+    
+    context = {'meses': num_days/30,
+               'x': x,
+               'ys': ys}
+    template = loader.get_template('vol/carga_revisao_voluntarios.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
