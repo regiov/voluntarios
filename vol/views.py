@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError, SuspiciousOperation, Permiss
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
-from django.db.models.functions import TruncMonth, TruncWeek
+from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.forms import inlineformset_factory
