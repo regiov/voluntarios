@@ -17,7 +17,7 @@
 
 <h1 class="margin-bottom">Distribuição da carga de trabalho nos últimos {{ meses|floatformat:0 }} meses</h1>
 
-<p>O gráfico abaixo mostra quanto cada pessoa ajudou a revisar os cadastros de voluntários ao longo do tempo. O objetivo é identificar se está havendo sobrecarga de trabalho para, se necessário, distribuir melhor as tarefas ou chamar mais pessoas para ajudar.</p>
+<p>O gráfico abaixo mostra quanto cada pessoa ajudou a revisar os cadastros de voluntários ao longo do tempo, agrupando os dados por semanas. O objetivo é identificar se está havendo sobrecarga de trabalho para, se necessário, distribuir melhor as tarefas ou chamar mais pessoas para ajudar. Para entender o gráfico, o topo dele significa o total de cadastros revisados naquela semana. Abaixo do topo temos em diferentes cores o quanto cada pessoa contribuiu nas revisões. O ideal é que tenhamos várias cores em quantidades aproximadamente iguais, o que significa que o trabalho está sendo bem distribuído.</p>
 
 {% for rev in revisores %}
 {{ rev }}
