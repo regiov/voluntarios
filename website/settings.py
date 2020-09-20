@@ -215,8 +215,9 @@ CACHES = {
 
 # TinyMCE configuration
 TINYMCE_DEFAULT_CONFIG = {
-    'plugins': 'table,paste',
-    'theme': 'advanced',
+    'plugins': 'table,paste,code',
+    'theme': 'silver',
+    'toolbar': 'undo redo styleselect bold italic alignleft aligncenter alignright bullist numlist outdent indent code',
     'custom_undo_redo_levels': 10,
     'convert_urls': False,
     'resize': 'both',
