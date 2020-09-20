@@ -338,8 +338,12 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
 
     # Gravações automáticas na Entidade
     def save_model(self, request, obj, form, change):
+        # Como o track_data não funciona aqui, temos que pegar o valor do banco
+        old_aprovado = None
+        if obj.id:
+            old_aprovado = Entidade.objects.get(pk=obj.id).aprovado
         # Se aprovou ou rejeitou cadastro
-        if obj.old_value('aprovado') is None and obj.aprovado is not None and obj.resp_analise is None:
+        if old_aprovado is None and obj.aprovado is not None and obj.resp_analise is None:
             # Grava o responsável pela análise
             obj.resp_analise = request.user
             obj.data_analise = timezone.now()
