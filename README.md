@@ -2,12 +2,12 @@
 
 ## Requisitos
 
-* PostgreSQL 9.x
-* Python 3
-* Django 2.0
-* django-tinymce 2.6.0
+* PostgreSQL >= 9.4
+* Python >= 3.6
+* Django >= 3.1
+* django-tinymce >= 3.0.1
 * django-bootstrapform 3.4
-* django-allauth 0.37.0
+* django-allauth >= 0.42.0
 
 ## Configuração
 
