@@ -242,7 +242,7 @@ class ReadOnlyEmailEntidadeInline(admin.TabularInline):
     readonly_fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -260,7 +260,7 @@ class ReadOnlyTelEntidadeInline(admin.TabularInline):
     readonly_fields = ['tipo', 'prefixo', 'numero', 'contato', 'data_confirmacao', 'confirmado_por']
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -308,7 +308,7 @@ class AntigaAnotacaoEntidadeInline(admin.TabularInline):
     readonly_fields = ['anotacao', 'req_acao', 'usuario', 'momento']
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj):
         return False
 
     def has_delete_permission(self, request, obj=None):
