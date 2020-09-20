@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError, SuspiciousOperation, Permiss
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, TruncWeek
 from django.contrib import messages
 from django.forms.formsets import BaseFormSet, formset_factory
 from django.forms import inlineformset_factory
@@ -1575,7 +1575,7 @@ def carga_revisao_voluntarios(request):
     # Período considerado: últimos 3 meses
     num_days = 90
     delta = datetime.timedelta(days=num_days)
-    revisoes = Voluntario.objects.filter(data_analise__date__gt=now-delta).annotate(semana=TruncMonth('data_analise')).values('semana', 'resp_analise').annotate(cnt=Count('id'))
+    revisoes = Voluntario.objects.filter(data_analise__date__gt=now-delta).annotate(semana=TruncWeek('data_analise')).values('semana', 'resp_analise').annotate(cnt=Count('id'))
 
     # Lista de ids de revisores sem repetição
     revisores = []
