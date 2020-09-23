@@ -556,9 +556,9 @@ class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     unlock_selected.short_description = "Desbloquear registros selecionados"
 
-    # Exibe apenas entidades que já confirmaram seu e-mail principal e estão aguardando aprovação
+    # Exibe apenas entidades que já confirmaram pelo menos um e-mail e estão aguardando aprovação
     def get_queryset(self, request):
-        id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).values_list('entidade_id')
+        id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, confirmado=True).values_list('entidade_id')
         query = self.model.objects.filter(pk__in=id_entidades)
         if not request.user.is_superuser:
             if len(query) == 0:
