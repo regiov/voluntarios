@@ -1474,6 +1474,9 @@ def painel(request):
     # Total de entidades que confirmaram o email e estão aguardando aprovação
     total_ents = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).count()
 
+    # Total de entidades revisadas no dia
+    total_ents_dia = Entidade.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
+
     # Total de entidades revisadas pelo usuário
     total_ents_pessoal = Entidade.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
@@ -1521,6 +1524,7 @@ def painel(request):
                'total_vol_pessoal': total_vol_pessoal,
                'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
                'total_ents': total_ents,
+               'total_ents_dia': total_ents_dia,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}
