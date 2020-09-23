@@ -1472,7 +1472,9 @@ def painel(request):
         indice_revisao_vol_pessoal = round(100*(total_vol_pessoal/total_vol_geral), 3)
 
     # Total de entidades que confirmaram o email e estão aguardando aprovação
-    total_ents = Email.objects.filter(entidade__aprovado__isnull=True, principal=True, confirmado=True).count()
+    id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, confirmado=True).values_list('entidade_id')
+
+    total_ents = Entidade.objects.filter(pk__in=id_entidades).count()
 
     # Total de entidades revisadas no dia
     total_ents_dia = Entidade.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
