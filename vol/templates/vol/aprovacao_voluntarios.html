@@ -105,6 +105,7 @@
       <h2>Reflexão do dia:</h2>
       <h3>"{{ frase.frase }}"<h3>
       <h3><i>{{ frase.autor }}</i><h3>
+      {% if frase.mais_info %}<p class="dica" style="color:#686868; max-width:350px;">{{ frase.mais_info }}{% if frase.link_mais_info %} [<a href="{{ frase.link_mais_info }}" target="_blank">mais...</a>]{% endif %}</p>{% endif %}
     {% endif %}
   {% else %}
     <h1 class="margin-bottom">Nenhum voluntário aguardando revisão</h1>

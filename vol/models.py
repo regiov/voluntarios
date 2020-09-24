@@ -952,6 +952,8 @@ class FraseMotivacional(models.Model):
     """Frase motivacional"""
     frase = models.TextField(u'Frase')
     autor = models.TextField(u'Autor')
+    mais_info = models.TextField(u'Texto com informações adicionais', null=True, blank=True)
+    link_mais_info = models.TextField(u'Link opcional das informações adicionais', null=True, blank=True)
     # O campo abaixo só deve ser preenchido para um registro. Se a data coincidir com a data atual,
     # a frase é que deve ser exibida no dia, do contrário deve-se utilizar o próximo registro,
     # apagando a data do registro anterior e gravando a data atual no próximo registro.
