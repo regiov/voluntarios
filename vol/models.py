@@ -326,12 +326,13 @@ class Voluntario(models.Model):
             self.empresa = ''
         if self.entidade_que_ajudou and self.entidade_que_ajudou.lower() == 'nenhuma':
             self.entidade_que_ajudou = ''
-        if self.profissao.lower() == 'desempregado':
-            self.profissao = ''
-        if self.profissao.lower() == 'dona de casa':
-            self.profissao = 'Do Lar'
-        if self.profissao and (self.profissao == self.profissao.upper() or self.profissao == self.profissao.lower()):
-            self.profissao = self.profissao.title()
+        if self.profissao:
+            if self.profissao == self.profissao.upper() or self.profissao == self.profissao.lower():
+                self.profissao = self.profissao.title()
+            if self.profissao.lower() == 'desempregado':
+                self.profissao = ''
+            elif self.profissao.lower() == 'dona de casa':
+                self.profissao = 'Do Lar'
 
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
