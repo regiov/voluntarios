@@ -2,15 +2,17 @@
 
 {% block title %}Revisão de voluntários{% endblock title %}
 
-{% block content %}
+{% block head %}
+<style type='text/css'>
+  .row { padding: 4px; }
+  .strip { background-color: #f2f2f2; }
+  .btn-acao { margin-top: 20px; color: black; }
+</style>
+{% endblock head %}
 
+{% block content_container %}
+<section id="content">
 {% if rec %}
-
-<h1 class="margin-bottom">Voluntários aguardando revisão</h1>
-<h3>( total: {{ total }} )</h3>
-
-{% if error %}<p><font face="Verdana" size="2" color="red">{{ error|linebreaksbr }}</font></p>{% endif %}
-
 <form action="" method="POST">{% csrf_token %}
 
 <input type="hidden" name="id" value="{{ rec.id }}">
@@ -20,98 +22,130 @@
 <input type="hidden" name="data_aniversario_month" value="{{ rec.data_aniversario|date:"n" }}">
 <input type="hidden" name="data_aniversario_year" value="{{ rec.data_aniversario|date:"Y" }}">
 
-<table class="table table-striped" style="margin-top:30px;">
-<thead>
-<tr>
-<th>&nbsp;</th>
-<th>original</th>
-<th>revisado</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td width="20%"><b>Nome:</b></td>
-<td width="40%">{{ rec.usuario.nome }}</td>
-<td width="40%"><input type="text" name="nome" value="{{ new_rec.usuario.nome }}" size="50"></td>
-</tr>
-<tr>
-<td><b>E-mail:</b></td>
-<td>{{ rec.usuario.email}}</td>
-<td><input type="text" name="email" value="{{ new_rec.usuario.email }}" size="50"></td>
-</tr>
-<td><b>Nascimento:</b></td>
-<td>{{ rec.data_aniversario|default:"" }}</td>
-<td>(não editável)</td>
-</tr>
-<tr>
-<td><b>Profissão:</b></td>
-<td>{{ rec.profissao|default:""}}</td>
-<td>{% if rec.profissao %}<input type="text" name="profissao" value="{{ new_rec.profissao }}" size="50">{% endif %}</td>
-</tr>
-<tr>
-<td><b>Telefone:</b></td>
-<td>{% if rec.ddd %}({{ rec.ddd}}){% endif %} {{ rec.telefone|default:""}}</td>
-<td>{% if rec.ddd or rec.telefone %}<input type="text" name="ddd" value="{{ new_rec.ddd }}" size="5"> <input type="text" name="telefone" value="{{ new_rec.telefone }}">{% endif %}</td>
-</tr>
-<tr>
-<td><b>Cidade:</b></td>
-<td>{{ rec.cidade}}</td>
-<td><input type="text" name="cidade" value="{{ new_rec.cidade }}" size="50"></td>
-</tr>
-<tr>
-<td><b>Estado:</b></td>
-<td>{{ rec.estado}}</td>
-<td><input type="text" name="estado" value="{{ new_rec.estado }}" size="5"></td>
-</tr>
-<tr>
-<td><b>Empresa:</b></td>
-<td>{{ rec.empresa|default:""}}</td>
-<td>{% if rec.empresa %}<input type="text" name="empresa" value="{{ new_rec.empresa }}" size="50">{% endif %}</td>
-</tr>
-<tr>
-<td><b>Foi voluntario:</b></td>
-<td>{%if rec.foi_voluntario %}sim{% else %}não{% endif %}</td>
-<td>(não editável)</td>
-</tr>
-<tr>
-<td><b>Entidade que ajudou:</b></td>
-<td>{{ rec.entidade_que_ajudou|default:""}}</td>
-<td>{% if rec.entidade_que_ajudou %}<input type="text" name="entidade_que_ajudou" value="{{ new_rec.entidade_que_ajudou }}" size="50">{% endif %}</td>
-</tr>
-<tr>
-<td><b>Área de trabalho:</b></td>
-<td>{{ rec.area_trabalho|default:""}}</td>
-<td>(não editável)</td>
-</tr>
-<tr>
-<td><b>Descrição:</b></td>
-<td>{{ rec.descricao|default:""}}</td>
-<td>{% if rec.descricao %}<textarea name="descricao" rows="4" cols="50">{{ new_rec.descricao }}</textarea>{% endif %}</td>
-</tr>
-</tbody>
-</table>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
 
-<input type="submit" name="rejeitar" value="Rejeitar" class="btn btn-primary" style="margin: 0 20px; background-color: lightsalmon; color: black;"><input type="submit" name="aprovar" value="Aprovar" class="btn btn-primary" style="margin: 0 20px; background-color: lightgreen; color: black;">{% if not last %}<input type="submit" name="pular" value="Pular" class="btn btn-primary" style="margin: 0 20px; background-color: lightgrey; color: black;">{% endif %}
+<h1 class="margin-bottom">Voluntários aguardando revisão</h1>
+<h3>( total: {{ total }} )</h3>
 
-</form>
+{% if error %}<p><font face="Verdana" size="2" color="red">{{ error|linebreaksbr }}</font></p>{% endif %}
+
+      </div><!-- col-sm-12 -->
+    </div><!-- row -->
+
+<div class="row">
+<div class="col-sm-2"><b>campo</b></div>
+<div class="col-sm-5"><b>conteúdo original</b></div>
+<div class="col-sm-5"><b>conteúdo revisado</b></div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Nome:</b></div>
+<div class="col-sm-5">{{ rec.usuario.nome }}</div>
+<div class="col-sm-5"><input class="form-control" type="text" name="nome" value="{{ new_rec.usuario.nome }}"></div>
+</div>
+<div class="row">
+<div class="col-sm-2"><b>E-mail:</b></div>
+<div class="col-sm-5">{{ rec.usuario.email}}</div>
+<div class="col-sm-5"><input class="form-control" type="text" name="email" value="{{ new_rec.usuario.email }}"></div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Nascimento:</b></div>
+<div class="col-sm-5">{{ rec.data_aniversario|default:"" }}</div>
+<div class="col-sm-5">(não editável)</div>
+</div>
+<div class="row">
+<div class="col-sm-2"><b>Profissão:</b></div>
+<div class="col-sm-5">{{ rec.profissao|default:""}}</div>
+<div class="col-sm-5">{% if rec.profissao %}<input class="form-control" type="text" name="profissao" value="{{ new_rec.profissao }}">{% endif %}</div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Telefone:</b></div>
+<div class="col-sm-5">{% if rec.ddd %}({{ rec.ddd}}){% endif %} {{ rec.telefone|default:""}}</div>
+{% if rec.ddd or rec.telefone %}
+<div class="col-sm-2"><input class="form-control" type="text" name="ddd" value="{{ new_rec.ddd }}"></div>
+<div class="col-sm-3"><input class="form-control" type="text" name="telefone" value="{{ new_rec.telefone }}"></div>
+{% else %}
+<div class="col-sm-5"></div>
+{% endif %}
+</div>
+<div class="row">
+<div class="col-sm-2"><b>Cidade:</b></div>
+<div class="col-sm-5">{{ rec.cidade}}</div>
+<div class="col-sm-5"><input class="form-control" type="text" name="cidade" value="{{ new_rec.cidade }}"></div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Estado:</b></div>
+<div class="col-sm-5">{{ rec.estado}}</div>
+<div class="col-sm-5"><input class="form-control" type="text" name="estado" value="{{ new_rec.estado }}"></div>
+</div>
+<div class="row">
+<div class="col-sm-2"><b>Empresa:</b></div>
+<div class="col-sm-5">{{ rec.empresa|default:""}}</div>
+<div class="col-sm-5">{% if rec.empresa %}<input class="form-control" type="text" name="empresa" value="{{ new_rec.empresa }}">{% endif %}</div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Foi voluntario:</b></div>
+<div class="col-sm-5">{%if rec.foi_voluntario %}sim{% else %}não{% endif %}</div>
+<div class="col-sm-5">(não editável)</div>
+</div>
+<div class="row">
+<div class="col-sm-2"><b>Entidade que ajudou:</b></div>
+<div class="col-sm-5">{{ rec.entidade_que_ajudou|default:""}}</div>
+<div class="col-sm-5">{% if rec.entidade_que_ajudou %}<input class="form-control" type="text" name="entidade_que_ajudou" value="{{ new_rec.entidade_que_ajudou }}">{% endif %}</div>
+</div>
+<div class="row strip">
+<div class="col-sm-2"><b>Área de trabalho:</b></div>
+<div class="col-sm-5">{{ rec.area_trabalho|default:""}}</div>
+<div class="col-sm-5">(não editável)</div>
+</div>
+<div class="row">
+<div class="col-sm-2"><b>Descrição:</b></div>
+<div class="col-sm-5">{{ rec.descricao|default:""}}</div>
+<div class="col-sm-5">{% if rec.descricao %}<textarea class="form-control" name="descricao" rows="4" cols="50">{{ new_rec.descricao }}</textarea>{% endif %}</div>
+</div>
+
+    <div class="row">
+      <div class="col-xs-4">
+	<input type="submit" name="rejeitar" value="Rejeitar" class="btn btn-primary btn-acao" style="background-color: lightsalmon;">
+      </div>
+      <div class="col-xs-4">
+	<input type="submit" name="aprovar" value="Aprovar" class="btn btn-primary btn-acao" style="background-color: lightgreen;">
+      </div>
+      <div class="col-xs-4">
+	{% if not last %}<input type="submit" name="pular" value="Pular" class="btn btn-primary btn-acao" style="background-color: lightgrey;">{% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  </form>
 
 {% else %}
 
-  <br/>
-  {% if request.method == 'POST' %}
-  <h1>Revisão concluída</h1>
-  <h2 class="margin-bottom">Obrigado por doar seu tempo a esta causa!</h2>
-    {% if frase %}
-      <h2>Reflexão do dia:</h2>
-      <h3>"{{ frase.frase }}"<h3>
-      <h3><i>{{ frase.autor }}</i><h3>
-      {% if frase.mais_info %}<p class="dica" style="color:#686868; max-width:350px;">{{ frase.mais_info }}{% if frase.link_mais_info %} [<a href="{{ frase.link_mais_info }}" target="_blank">mais...</a>]{% endif %}</p>{% endif %}
-    {% endif %}
-  {% else %}
-    <h1 class="margin-bottom">Nenhum voluntário aguardando revisão</h1>
-    <h3>Nada a fazer aqui no momento ;-)</h3>
-  {% endif %}
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
+	<br/>
+        {% if request.method == 'POST' %}
+          <h1>Revisão concluída</h1>
+          <h2 class="margin-bottom">Obrigado por doar seu tempo a esta causa!</h2>
+          {% if frase %}
+            <h2>Reflexão do dia:</h2>
+            <h3>"{{ frase.frase }}"<h3>
+            <h3><i>{{ frase.autor }}</i><h3>
+            {% if frase.mais_info %}<p class="dica" style="color:#686868; max-width:350px;">{{ frase.mais_info }}{% if frase.link_mais_info %} [<a href="{{ frase.link_mais_info }}" target="_blank">mais...</a>]{% endif %}</p>{% endif %}
+          {% endif %}
+        {% else %}
+          <h1 class="margin-bottom">Nenhum voluntário aguardando revisão</h1>
+          <h3>Nada a fazer aqui no momento ;-)</h3>
+        {% endif %}
+       </div>
+    </div>
+  </div>
+
 {% endif %}
 
-{% endblock content %}
+</section>
+{% endblock content_container %}
 
