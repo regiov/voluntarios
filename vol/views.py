@@ -1631,9 +1631,7 @@ def exibe_conteudo(request, conteudo):
             raise Http404
     acesso = AcessoAConteudo(conteudo=conteudo, usuario=request.user)
     acesso.save()
-    if conteudo.parametros_url:
-        return redirect(reverse(conteudo.nome_url, kwargs=eval(conteudo.parametros_url)))
-    return redirect(reverse(conteudo.nome_url))
+    return redirect(conteudo.get_url())
 
 @login_required
 @staff_member_required

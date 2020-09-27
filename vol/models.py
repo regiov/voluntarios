@@ -18,6 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core import signing
 from django.core.validators import validate_email
 from django.dispatch import receiver
+from django.urls import reverse
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -988,6 +989,11 @@ class Conteudo(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def get_url(self):
+        if self.parametros_url:
+            return reverse(self.nome_url, kwargs=eval(self.parametros_url))
+        return reverse(self.nome_url)
 
 class AcessoAConteudo(models.Model):
     """Registro de acesso a conteúdo"""

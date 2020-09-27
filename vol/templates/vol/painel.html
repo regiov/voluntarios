@@ -54,7 +54,7 @@
 {% for tarefa in tarefas %}
   <br/>
 
-  <h2>Força tarefa: {% if tarefa.progresso < 100 %}<a href="{% url 'exibe_tarefa' tarefa.codigo %}" target="_blank">{{ tarefa.tarefa }}</a>{% else %}{{ tarefa.tarefa }}{% endif %} (progresso: {{ tarefa.progresso }}%)</h2>
+  <h2>Força tarefa: {% if tarefa.progresso < 100 %}<a href="{% url 'exibe_tarefa' tarefa.codigo %}" target="_blank">{{ tarefa.tarefa }}</a>{% else %}{{ tarefa.tarefa }}{% endif %} (progresso: {{ tarefa.progresso }}%){% if tarefa.orientacoes %}<a href="{{ tarefa.orientacoes.get_url }}" title="orientações"><i class="fas fa-info-circle" style="color: #CCCCCC;"></i></a>{% endif %}</h2>
   <hr style="margin:0;"/>
   {% localize off %}
   <div class="progress">
