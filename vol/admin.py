@@ -473,12 +473,25 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
 
     # Exibe apenas entidades aprovadas que não estejam sendo gerenciadas por ninguém e que não possuam e-mail
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True).annotate(anotacoes=Count('anotacaoentidade'))
+        return self.model.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True).annotate(anotacoes=Count('anotacaoentidade_set'))
 
     def tem_anotacoes(self, instance):
         return instance.anotacoes > 0
     tem_anotacoes.boolean = True
     tem_anotacoes.short_description = u'Anotações'
+
+class EntidadeDeFranca(Entidade):
+    """Modelo criado para revisar entidades de Franca via interface adm"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Entidade de Franca/SP'
+        verbose_name_plural = u'Entidades de Franca/SP'
+
+class EntidadeDeFrancaAdmin(EntidadeSemEmailAdmin):
+
+    # Exibe apenas entidades aprovadas que não estejam sendo gerenciadas por ninguém e que não possuam e-mail
+    def get_queryset(self, request):
+        return self.model.objects.filter(aprovado=True, cidade__iexact="franca", estado="SP").annotate(anotacoes=Count('anotacaoentidade_set'))
 
 class EntidadeAguardandoAprovacao(Entidade):
     """Modelo criado para gerenciar aprovação de entidades na interface adm"""
@@ -782,6 +795,7 @@ admin.site.register(Voluntario, VoluntarioAdmin)
 admin.site.register(RevisaoVoluntario, RevisaoVoluntarioAdmin)
 admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
+admin.site.register(EntidadeDeFranca, EntidadeDeFrancaAdmin)
 admin.site.register(EntidadeAguardandoAprovacao, EntidadeAguardandoAprovacaoAdmin)
 admin.site.register(RevisaoEntidade, RevisaoEntidadeAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
