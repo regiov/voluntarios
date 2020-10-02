@@ -346,9 +346,9 @@ def busca_voluntarios(request):
             fcidade = fcidade.strip()
             if len(fcidade) > 0:
                 if 'boxexato' in request.GET:
-                    voluntarios = voluntarios.filter(cidade__iexact=fcidade)
+                    voluntarios = voluntarios.filter(cidade__unaccent__iexact=fcidade)
                 else:
-                    voluntarios = voluntarios.filter(cidade__icontains=fcidade)
+                    voluntarios = voluntarios.filter(cidade__unaccent__icontains=fcidade)
 
         # Filtro por área de trabalho
         fareatrabalho = request.GET.get('fareatrabalho')
@@ -881,22 +881,23 @@ def busca_entidades(request):
         if fcidade is not None:
             fcidade = fcidade.strip()
             if len(fcidade) > 0:
+                # Obs: unaccent deve vir antes dos outros operadores!
                 if boxexato:
-                    entidades = entidades.filter(cidade__iexact=fcidade)
+                    entidades = entidades.filter(cidade__unaccent__iexact=fcidade)
                 else:
-                    entidades = entidades.filter(cidade__icontains=fcidade)
+                    entidades = entidades.filter(cidade__unaccent__icontains=fcidade)
 
         # Filtro por bairro
         if fbairro is not None:
             fbairro = fbairro.strip()
             if len(fbairro) > 0:
-                entidades = entidades.filter(bairro__icontains=fbairro)
+                entidades = entidades.filter(bairro__unaccent__icontains=fbairro)
 
         # Filtro por nome
         if fentidade is not None:
             fentidade = fentidade.strip()
             if len(fentidade) > 0:
-                entidades = entidades.filter(Q(nome_fantasia__icontains=fentidade) | Q(razao_social__icontains=fentidade))
+                entidades = entidades.filter(Q(nome_fantasia__unaccent__icontains=fentidade) | Q(razao_social__unaccent__icontains=fentidade))
 
         # Filtro por data de última atualização
         if atualiza is not None and atualiza.isdigit():
