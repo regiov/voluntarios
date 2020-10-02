@@ -395,7 +395,7 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
 class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'email_confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
-    search_fields = ('razao_social', 'cnpj', 'email_set__endereco',)
+    search_fields = ('nome_fantasia', 'razao_social', 'cnpj', 'email_set__endereco',)
     list_filter = ('aprovado', 'importado',)
     preserve_filters = True
     readonly_fields = ('geocode_status', 'importado',)
