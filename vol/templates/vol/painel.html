@@ -32,7 +32,7 @@
 <h2>Entidades</h2>
 <hr style="margin:0;"/>
 
-<h3>Aguardando revisão: <span style="margin-left:15px;">{% if total_ents and perms.vol.entidadeaguardandoaprovacao %}<a href="{% url 'revisao_entidades' %}">{{ total_ents }}</a>{% else %}{{ total_ents }}{% endif %}</span></h3>
+<h3>Aguardando revisão: <span style="margin-left:15px;">{% if total_ents and perms.vol.change_entidadeaguardandoaprovacao %}<a href="{% url 'revisao_entidades' %}">{{ total_ents }}</a>{% else %}{{ total_ents }}{% endif %}</span></h3>
 
 <h3>Cadastros revisados hoje: <span style="margin-left:15px;">{{ total_ents_dia }}</span></h3>
 
