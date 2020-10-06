@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-* PostgreSQL >= 9.4
+* PostgreSQL >= 9.6
 * Python >= 3.6
 * Django >= 3.1
 * django-tinymce >= 3.0.1
