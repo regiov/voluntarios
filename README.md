@@ -3,6 +3,7 @@
 ## Requisitos
 
 * PostgreSQL >= 9.6
+* Postgis >= 2.4.3
 * Python >= 3.6
 * Django >= 3.1
 * django-tinymce >= 3.0.1
@@ -15,6 +16,15 @@ Depois de instalar os programas acima, crie um banco de dados:
 
 ```
 createdb NOME_DO_BANCO
+```
+
+Acesso o banco de dados via linha de comando como superusuário (normalmente "postgres") para habilitar a extensão postgis:
+
+```
+sudo su - postgres
+psql NOME_DO_BANCO
+create extension postgis;
+\q
 ```
 
 Em seguida faça uma cópia local do website:
@@ -32,10 +42,11 @@ cp settings.py local_settings.py
 
 Edite o arquivo *local_settings.py*, removendo todas as configurações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação.
 
-Crie as tabelas através do Django:
+Crie as tabelas através do Django migrations, lembrando de antes criar as migrações iniciais para os módulos notification e vol:
 
 ```
-./manage.py makemigrations
+./manage.py makemigrations vol
+./manage.py makemigrations notification
 ./manage.py migrate
 
 ```
