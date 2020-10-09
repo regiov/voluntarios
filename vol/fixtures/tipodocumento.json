@@ -1,0 +1,1 @@
+[{"model": "vol.tipodocumento", "pk": 1, "fields": {"nome": "Cart\u00e3o de CNPJ", "codigo": "cnpj"}}, {"model": "vol.tipodocumento", "pk": 2, "fields": {"nome": "Apresenta\u00e7\u00e3o Institucional", "codigo": "folder"}}]

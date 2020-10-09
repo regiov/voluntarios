@@ -51,6 +51,12 @@ Crie as tabelas através do Django migrations, lembrando de antes criar as migra
 
 ```
 
+Faça a carga inicial de dados nas principais tabelas:
+
+```
+./manage.py loaddata vol/fixtures/*
+```
+
 Exporte os arquivos estáticos para um diretório previamente criado e já especificado nas configurações locais:
 
 ```
