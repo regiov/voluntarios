@@ -153,8 +153,10 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                             <h3>Novas entidades cadastradas</h3>
                             <ul class="nav navbar-stacked">
                                 {% for er in entidades_recentes %}
+                                {% if er.website != "https://voluntarios.com.br" %}
                                 <li><a href="{% url 'exibe_entidade' er.id %}">{{ er.menor_nome }}<br><span class="dica">{% if er.cidade and er.estado %}({{ er.cidade }}-{{ er.estado }}){% endif %}</span></a></li>
-                                {% endfor%}
+                                {% endif %}
+                                {% endfor %}
                             </ul>
                         </div>
                         <div class="sidebar-item  recent">
