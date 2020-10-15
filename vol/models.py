@@ -348,6 +348,18 @@ class AreaInteresse(models.Model):
     def __str__(self):
         return self.area_atuacao.nome
 
+class TipoArtigo(models.Model):
+    """Tipo de artigo material (para doação)"""
+    nome = models.CharField(u'Nome', max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = u'Tipo de artigo para doação'
+        verbose_name_plural = u'Tipos de artigos para doação'
+        ordering = ('nome',)
+
+    def __str__(self):
+        return self.nome
+
 GEOCODE_STATUS = (
     ('OK', 'Georreferenciado com endereço completo'),
     ('ZERO_RESULTS', 'Não foi possível georreferenciar'),
@@ -371,11 +383,15 @@ class EntidadeManager(models.Manager):
 class Entidade(models.Model):
     """Entidade."""
     """obs: id corresponde ao colocweb em registros importados."""
+
+    # Dados básicos
     nome_fantasia      = models.CharField(u'Nome Fantasia', max_length=100, null=True, blank=True) 
     razao_social       = models.CharField(u'Razão Social', max_length=120) 
     cnpj               = models.CharField(u'CNPJ', max_length=36, null=True, blank=True) 
     area_atuacao       = models.ForeignKey(AreaAtuacao, verbose_name=u'Área de Atuação', on_delete=models.PROTECT, null=True, blank=True)
     descricao          = models.TextField(u'Descrição', null=True, blank=True)
+
+    # Endereço
     cep                = models.CharField(u'CEP', max_length=10, null=True, blank=True) 
     logradouro         = models.CharField(u'Logradouro', max_length=100, null=True, blank=True) 
     bairro             = models.CharField(u'Bairro', max_length=40, null=True, blank=True) 
@@ -383,7 +399,8 @@ class Entidade(models.Model):
     estado             = models.CharField(u'Estado', max_length=4, null=True, blank=True) 
     pais               = models.CharField(u'País', max_length=90, null=True, blank=True)
     coordenadas        = models.PointField(u'Coordenadas', null=True, blank=True)
-    geocode_status     = models.CharField(u'Situação do georreferenciamento', choices=GEOCODE_STATUS, max_length=20, null=True, blank=True) 
+    geocode_status     = models.CharField(u'Situação do georreferenciamento', choices=GEOCODE_STATUS, max_length=20, null=True, blank=True)
+    
     website            = models.CharField(u'Website', max_length=110, null=True, blank=True) 
     despesas           = models.CharField(u'Despesas', max_length=100, null=True, blank=True) 
     beneficiados       = models.CharField(u'Beneficiados', max_length=100, null=True, blank=True) 
@@ -395,17 +412,17 @@ class Entidade(models.Model):
     num_vol            = models.IntegerField(u'Número de voluntários trabalhando atualmente', null=True, blank=True) 
     num_vol_ano        = models.IntegerField(u'Número de voluntários necessários ao longo do ano', null=True, blank=True) 
 
+    # Responsável & contato
     nome_resp          = models.CharField(u'Nome do responsável', max_length=50, null=True, blank=True) 
     sobrenome_resp     = models.CharField(u'Sobrenome do responsável', max_length=70, null=True, blank=True) 
     cargo_resp         = models.CharField(u'Cargo do responsável', max_length=50, null=True, blank=True) 
     nome_contato       = models.CharField(u'Nome da pessoa de contato', max_length=100, null=True, blank=True) 
 
-    banco              = models.CharField(u'Banco', max_length=74, null=True, blank=True) 
-    agencia            = models.CharField(u'Agência', max_length=14, null=True, blank=True) 
-    conta              = models.CharField(u'Conta', max_length=26, null=True, blank=True) 
+    # Necessidade de doações
+    doacoes            = models.ManyToManyField(TipoArtigo, through='NecessidadeArtigo')
+    obs_doacoes        = models.TextField(u'Observações sobre as doações', null=True, blank=True)
 
-    mytags             = models.CharField(u'Tags (sep. por vírgula)', max_length=100, null=True, blank=True) 
-
+    # Campos de gerenciamento
     importado          = models.BooleanField(u'Importado da base anterior', default=False) 
     confirmado         = models.BooleanField(u'E-mail confirmado', default=False)
     confirmado_em      = models.DateTimeField(u'Data da confirmação do e-mail', null=True, blank=True)
@@ -415,9 +432,11 @@ class Entidade(models.Model):
     ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now_add=True, null=True, blank=True)
     ultima_revisao     = models.DateTimeField(u'Última revisão', null=True, blank=True)
+    
     # Estes 2 campos (*_analise) só são preenchidos na primeira aprovação/rejeição do cadastro
     data_analise       = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
     resp_analise       = models.ForeignKey(Usuario, verbose_name=u'Responsável pela análise', related_name='resp_analise_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    
     # Campos utilizados para gerenciar lock de registro na interface administrativa
     resp_bloqueio      = models.ForeignKey(Usuario, verbose_name=u'Em edição por', related_name='resp_bloqueio_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
     data_bloqueio      = models.DateTimeField(u'Início da edição', null=True, blank=True)
@@ -900,6 +919,21 @@ class Email(models.Model):
     def html(self):
         '''Retorna o endereço com link'''
         return '<a href="mailto:' + self.endereco + '">' + self.endereco + '</a>'
+
+class NecessidadeArtigo(models.Model):
+    '''Aceitação de artigo para doação'''
+    entidade      = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    tipoartigo    = models.ForeignKey(TipoArtigo, verbose_name=u'Tipo de artigo', on_delete=models.PROTECT)
+    resp_cadastro = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', on_delete=models.PROTECT)
+    data_cadastro = models.DateTimeField(u'Data do cadastro', auto_now_add=True)
+
+    class Meta:
+        verbose_name = u'Artigo aceito como doação'
+        verbose_name_plural = u'Artigos aceitos como doação'
+        unique_together = ('entidade', 'tipoartigo')
+
+    def __str__(self):
+        return str(self.tipoartigo)
 
 class AtividadeAdmin(models.Model):
     """Dados sobre atividades administrativas feitas pelo usuário como parte da equipe do site"""

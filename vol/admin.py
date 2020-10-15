@@ -12,8 +12,8 @@ from django.db import transaction, DatabaseError
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
 from django.utils.html import format_html
-from django.db.models import Count, Q, TextField
-from django.forms import Textarea
+from django.db.models import Count, Q, TextField, CharField
+from django.forms import Textarea, TextInput
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
@@ -27,7 +27,7 @@ from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -253,6 +253,11 @@ class TelEntidadeInline(admin.TabularInline):
     fields = ['tipo', 'prefixo', 'numero', 'contato', 'confirmado', 'data_confirmacao', 'confirmado_por']
     readonly_fields = ['data_confirmacao', 'confirmado_por']
     extra = 0
+    # Para diminuir o tamanho dos campos
+    formfield_overrides = {
+        CharField: {'widget': TextInput(attrs={'size':10})},
+    }
+
 
 class ReadOnlyTelEntidadeInline(admin.TabularInline):
     model = Telefone
@@ -285,11 +290,34 @@ class NecessidadeInline(admin.TabularInline):
     readonly_fields = ['data_solicitacao']
     extra = 0
 
+class NecessidadeArtigoInline(admin.TabularInline):
+    model = NecessidadeArtigo
+    fields = ['tipoartigo',]
+    extra = 0
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super(NecessidadeArtigoInline, self).formfield_for_dbfield(db_field, **kwargs)
+        # Remove opções de editar tipos de artigos
+        if db_field.name == 'tipoartigo':
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+            formfield.widget.can_delete_related = False
+        return formfield
+
 class DocumentoInline(admin.TabularInline):
     model = Documento
     fields = ['tipodoc', 'doc', 'data_cadastro', 'usuario']
     readonly_fields = ['data_cadastro', 'usuario']
     extra = 0
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super(DocumentoInline, self).formfield_for_dbfield(db_field, **kwargs)
+        # Remove opções de editar tipos de artigos
+        if db_field.name == 'tipodoc':
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+            formfield.widget.can_delete_related = False
+        return formfield
 
 class AnotacaoEntidadeInline(admin.TabularInline):
     model = AnotacaoEntidade
@@ -334,7 +362,7 @@ class NovaAnotacaoEntidadeInline(admin.TabularInline):
         return False
 
 class BaseEntidadeAdmin(admin.ModelAdmin):
-    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'banco', 'agencia', 'conta', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'mytags', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em',)
+    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em',)
 
     # Gravações automáticas na Entidade
     def save_model(self, request, obj, form, change):
@@ -382,6 +410,12 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
                 if instance.id is None:
                     instance.resp_cadastro = request.user
                     instance.data_cadastro = timezone.now()
+            # Alterações em artigos aceitos como doação
+            if isinstance(instance, NecessidadeArtigo):
+                # Apenas para novos itens
+                if instance.id is None:
+                    instance.resp_cadastro = request.user
+                    instance.data_cadastro = timezone.now()
             instance.save()
         formset.save_m2m()
         # Neste ponto já gravou alterações nos e-mails, então pode verificar unicidade do principal
@@ -401,7 +435,7 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     readonly_fields = ('geocode_status', 'importado',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
-        EmailEntidadeInline, TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeInline, AnotacaoEntidadeInline
+        EmailEntidadeInline, TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeArtigoInline, NecessidadeInline, AnotacaoEntidadeInline
     ]
 
     @transaction.atomic
@@ -786,6 +820,9 @@ class AcessoAConteudoAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+class TipoArtigoAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)
 admin.site.register(FlatPage, MyFlatPageAdmin)
@@ -805,3 +842,4 @@ admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)
 admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
 admin.site.register(Conteudo, ConteudoAdmin)
 admin.site.register(AcessoAConteudo, AcessoAConteudoAdmin)
+admin.site.register(TipoArtigo, TipoArtigoAdmin)
