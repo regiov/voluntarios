@@ -350,7 +350,8 @@ class AreaInteresse(models.Model):
 
 class TipoArtigo(models.Model):
     """Tipo de artigo material (para doação)"""
-    nome = models.CharField(u'Nome', max_length=50, unique=True)
+    nome  = models.CharField(u'Nome', max_length=50, unique=True)
+    ordem = models.IntegerField(u'Ordem de exibição', null=True, blank=True)
 
     class Meta:
         verbose_name = u'Tipo de artigo para doação'
