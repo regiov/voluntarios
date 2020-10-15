@@ -356,7 +356,7 @@ class TipoArtigo(models.Model):
     class Meta:
         verbose_name = u'Tipo de artigo para doação'
         verbose_name_plural = u'Tipos de artigos para doação'
-        ordering = ('nome',)
+        ordering = ('ordem',)
 
     def __str__(self):
         return self.nome
