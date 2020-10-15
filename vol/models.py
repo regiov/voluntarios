@@ -458,6 +458,10 @@ class Entidade(models.Model):
             return signing.dumps(obj=self.pk, salt=ENTIDADE_SALT)
         raise ValueError(u'Entidade sem chave primária')
 
+    def esconder_obs_doacoes(self):
+        '''Indica se o campo de observações sobre doações deve ser escondido (usado no formulário da entidade)'''
+        return self.necessidadeartigo_set.all().count() == 0
+
     @cached_property
     def vinculos_ativos(self):
         return VinculoEntidade.objects.filter(entidade=self, data_fim__isnull=True, confirmado=True)

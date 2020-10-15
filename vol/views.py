@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo
 
 from allauth.account.models import EmailAddress
 
@@ -689,6 +689,7 @@ def cadastro_entidade(request, id_entidade=None):
 
         else:
 
+            # Nova entidade
             form = FormEntidade(request.POST)
             telformset = FormSetTelefone(request.POST, request.FILES)
             emailformset = FormSetEmail(request.POST, request.FILES)
@@ -703,6 +704,15 @@ def cadastro_entidade(request, id_entidade=None):
                 entidade.save()
                 telformset.save()
                 emailformset.save()
+                # Grava manualmente os tipos de artigo aceitos como doação
+                artigos_originais = form.initial['doacoes'] # ids como inteiros
+                artigos_finais = form.cleaned_data['doacoes'] # ids como strings
+                for artigo in artigos_finais:
+                    if int(artigo) not in artigos_originais:
+                        NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo_id=artigo, resp_cadastro=request.user)
+                for artigo in artigos_originais:
+                    if str(artigo) not in artigos_finais:
+                        NecessidadeArtigo.objects.filter(entidade=entidade, tipoartigo_id=artigo).delete()
 
                 messages.info(request, u'Alterações gravadas com sucesso!')
 
@@ -740,10 +750,10 @@ def cadastro_entidade(request, id_entidade=None):
                     messages.info(request, u'Foi enviada uma mensagem de confirmação para o e-mail novo ou alterado. Verifique a caixa postal para efetuar a validação do mesmo.')
 
                 # Força reaprovação de cadastro caso dados importantes tenham mudado
-                if entidade.aprovado and (nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower()):
-                    entidade.aprovado = None
-                    entidade.save(update_fields=['aprovado'])
-                    messages.warning(request, u'Atenção: a alteração no nome dá início a uma nova etapa de revisão/aprovação do cadastro da entidade. Aguarde a aprovação para que a entidade volte a aparecer nas buscas.')
+                #if entidade.aprovado and (nome_fantasia_anterior != request.POST['nome_fantasia'].lower() or razao_social_anterior != request.POST['razao_social'].lower()):
+                #    entidade.aprovado = None
+                #    entidade.save(update_fields=['aprovado'])
+                #    messages.warning(request, u'Atenção: a alteração no nome dá início a uma nova etapa de revisão/aprovação do cadastro da entidade. Aguarde a aprovação para que a entidade volte a aparecer nas buscas.')
 
                 # Caso tenha alterado o endereço, tenta georreferenciar novamente
                 if endereco_original != entidade.endereco():
@@ -769,11 +779,17 @@ def cadastro_entidade(request, id_entidade=None):
             # Nova entidade
             else:
 
-                entidade = form.save(commit=True)
+                # Aqui tb é necessário usar commit=False, do contrário o Django vai automaticamente tentar salvar
+                # as doações através do save_m2m interno e vai dar erro, porque temos campos extras
+                entidade = form.save(commit=False)
+                entidade.save()
                 telformset.instance = entidade
                 telformset.save()
                 emailformset.instance = entidade
                 emailformset.save()
+                # Grava manualmente os tipos de artigo aceitos como doação
+                for artigo in form.cleaned_data['doacoes']:
+                    NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo_id=artigo, resp_cadastro=request.user)
 
                 msg = u'Entidade cadastrada com sucesso!'
 

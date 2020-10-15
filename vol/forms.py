@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from django import forms
 from django.utils.safestring import mark_safe
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
@@ -216,18 +216,31 @@ class FormEntidade(forms.ModelForm):
                               widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
                               help_text="",
                               required=False)
+    doacoes = forms.MultipleChoiceField(label=u'Artigos aceitos como doação',
+                                        choices=TipoArtigo.objects.all().order_by('ordem').values_list('id', 'nome'),
+                                        widget=forms.CheckboxSelectMultiple(),
+                                        help_text="",
+                                        required=False)
+    obs_doacoes = forms.CharField(label=u'Detalhes adicionais sobre as doações',
+                                  max_length=7000,
+                                  widget=forms.Textarea(attrs={'class':'form-control', 'rows':2, 'cols':30}),
+                                  help_text="procedimento a ser seguido, horários de atendimento, etc.",
+                                  required=False)
 
     class Meta:
         model = Entidade
         fields = ('nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'num_vol', 'num_vol_ano',
                   'nome_resp', 'sobrenome_resp', 'cargo_resp', 'cep', 'logradouro', 'bairro',
-                  'cidade', 'estado', 'nome_contato', 'website')
+                  'cidade', 'estado', 'nome_contato', 'website', 'doacoes', 'obs_doacoes')
 
     def __init__(self, *args, **kwargs):
 
         super(FormEntidade, self).__init__(*args, **kwargs)
 
         if self.instance and self.instance.pk:
+
+            # Eventuais artigos já marcados como aceitos para doação
+            self.initial['doacoes'] = list(self.instance.necessidadeartigo_set.all().values_list('tipoartigo_id', flat=True))
 
             if self.instance.cnpj is not None and len(self.instance.cnpj) > 0 and self.instance.aprovado:
                 self.fields['cnpj'].widget.attrs['readonly'] = True

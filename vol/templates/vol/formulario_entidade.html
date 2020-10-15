@@ -12,6 +12,30 @@
         $('.telformset').formset({formCssClass: 'telformset', prefix: 'tel_set', deleteText: 'remover', addText: 'incluir outro'});
         $('.emailformset').formset({formCssClass: 'emailformset', prefix: 'email_set', deleteCssClass: 'delete-row-distinct', addCssClass: 'add-row-distinct', deleteText: 'remover', addText: 'incluir outro'});
     });
+
+    // Controle de exibição das observações sobre doações
+    function controla_exibicao_obs_doacoes() {
+        var aceita_doacao = false;
+        $("input[type=checkbox][name=doacoes]").each(function() {
+            if ($(this).is(":checked")) {
+                // Se ao menos um tipo de artigo estiver marcado
+                $("#obs-doacoes").show();
+                aceita_doacao = true;
+                return false;
+            } 
+        });
+        if (!aceita_doacao) {
+            $("#obs-doacoes").hide();
+        }
+    }
+
+    $(document).ready(function () {
+        $("input[type=checkbox][name=doacoes]").each(function() {
+            $(this).change(function() {
+                controla_exibicao_obs_doacoes();
+            });
+        });
+    });
 </script>
 
 {% endblock head %}
@@ -102,6 +126,13 @@
 
 {% include "vol/campo_formulario.html" with campo=form.nome_contato %}
 </fieldset>
+
+<fieldset>
+<legend>Artigos aceitos como doação</legend>
+{{ form.doacoes }}
+</fieldset>
+
+{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" invisible=form.instance.esconder_obs_doacoes %}
 
 <div class="form-group">
   <input id="save" class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
