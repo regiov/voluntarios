@@ -295,8 +295,8 @@ def tem_acesso_a_voluntarios(request):
         messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar cadastrado no sistema como usuário, além de estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
         return False
 
-    # Permite que membros da equipe façam consultas
-    if not (request.user.is_staff or request.user.has_perm('vol.search_volunteers')):
+    # Há casos especiais em que algumas pessoas podem fazer buscas através de uma permissão customizada
+    if not request.user.has_perm('vol.search_volunteers'):
 
         # Do contrário apenas usuários com entidades aprovadas
         if not request.user.has_entidade:
