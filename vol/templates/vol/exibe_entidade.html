@@ -30,7 +30,7 @@
 {% if doacoes %}
 <h3 class="secao-entidade"><span>Artigos aceitos como doação</span></h3>
 <p>{% for necessidade in doacoes %}{{ necessidade.tipoartigo }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-{% if obs_doacoes %}<p>Obs: {{ entidade.obs_doacoes }}</p>{% endif %}
+{% if entidade.obs_doacoes %}<p>Obs: {{ entidade.obs_doacoes }}</p>{% endif %}
 {% endif %}
 {% endwith %}
 {% if necessidades %}
