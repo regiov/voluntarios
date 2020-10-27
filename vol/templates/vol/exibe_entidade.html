@@ -1,6 +1,8 @@
 {% extends "vol/base_nosidebar.html" %}
 
-{% block title %}Entidade{% endblock title %}
+{% block description %}{% if entidade.razao_social %}{{ entidade.razao_social }}{% endif %}{% endblock description %}
+
+{% block title %}{% if entidade.nome_fantasia %}{{ entidade.nome_fantasia }}{% else %}Entidade{% endif %}{% endblock title %}
 
 {% block content %}
 
