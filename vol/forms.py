@@ -6,6 +6,7 @@ from datetime import date, timedelta
 
 from django import forms
 from django.utils.safestring import mark_safe
+from django.utils.functional import lazy
 
 from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo
 
@@ -216,11 +217,11 @@ class FormEntidade(forms.ModelForm):
                               widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
                               help_text="",
                               required=False)
-    doacoes = forms.MultipleChoiceField(label=u'Artigos aceitos como doação',
-                                        choices=TipoArtigo.objects.all().order_by('ordem').values_list('id', 'nome'),
-                                        widget=forms.CheckboxSelectMultiple(),
-                                        help_text="",
-                                        required=False)
+    doacoes = forms.ModelMultipleChoiceField(label=u'Artigos aceitos como doação',
+                                             queryset=TipoArtigo.objects.all().order_by('ordem'),
+                                             widget=forms.CheckboxSelectMultiple(),
+                                             help_text="",
+                                             required=False)
     obs_doacoes = forms.CharField(label=u'Detalhes adicionais sobre as doações',
                                   max_length=7000,
                                   widget=forms.Textarea(attrs={'class':'form-control', 'rows':2, 'cols':30}),
