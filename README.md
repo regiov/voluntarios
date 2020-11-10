@@ -51,9 +51,12 @@ Crie as tabelas através do Django migrations, lembrando de antes criar as migra
 
 ```
 
-Faça a carga inicial de dados nas principais tabelas:
+Faça a carga inicial de dados nas principais tabelas, removendo antes o conteúdo da tabela auth_permission:
 
 ```
+export PYTHONPATH=/DIRETORIO/DE/INSTALACAO/website
+export DJANGO_SETTINGS_MODULE=website.settings
+django-admin dbshell -- -c 'delete from auth_permission'
 ./manage.py loaddata vol/fixtures/*
 ```
 
