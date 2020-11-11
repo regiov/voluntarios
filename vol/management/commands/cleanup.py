@@ -34,4 +34,4 @@ class Command(BaseCommand):
                 resultado = email.user.delete()
                 n = n + 1
 
-        vinculos_antigos_nao_confirmados = VinculoEntidade.objects.filter(confirmado=False, date_inicio__lte=timezone.now()-timedelta(days=30)).delete()
+        vinculos_antigos_nao_confirmados = VinculoEntidade.objects.filter(confirmado=False, data_inicio__lte=timezone.now()-timedelta(days=30)).delete()
