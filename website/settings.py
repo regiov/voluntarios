@@ -164,10 +164,6 @@ MEDIA_ROOT = 'SET IN LOCAL SETTINGS'
 
 MEDIA_URL = '/media/'
 
-STATIC_ENCRYPT_URL = '/.well-known/'
-
-STATIC_ENCRYPT_ROOT = 'SET IN LOCAL SETTINGS'
-
 CSRF_FAILURE_VIEW = 'vol.views.csrf_failure'
 
 # Sites app
