@@ -708,11 +708,11 @@ def cadastro_entidade(request, id_entidade=None):
                 artigos_originais = form.initial['doacoes'] # ids como inteiros
                 artigos_finais = form.cleaned_data['doacoes'] # ids como strings
                 for artigo in artigos_finais:
-                    if int(artigo) not in artigos_originais:
-                        NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo_id=artigo, resp_cadastro=request.user)
+                    if artigo not in artigos_originais:
+                        NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo=artigo, resp_cadastro=request.user)
                 for artigo in artigos_originais:
-                    if str(artigo) not in artigos_finais:
-                        NecessidadeArtigo.objects.filter(entidade=entidade, tipoartigo_id=artigo).delete()
+                    if artigo not in artigos_finais:
+                        NecessidadeArtigo.objects.filter(entidade=entidade, tipoartigo=artigo).delete()
 
                 messages.info(request, u'Alterações gravadas com sucesso!')
 
@@ -789,7 +789,7 @@ def cadastro_entidade(request, id_entidade=None):
                 emailformset.save()
                 # Grava manualmente os tipos de artigo aceitos como doação
                 for artigo in form.cleaned_data['doacoes']:
-                    NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo_id=artigo, resp_cadastro=request.user)
+                    NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo=artigo, resp_cadastro=request.user)
 
                 msg = u'Entidade cadastrada com sucesso!'
 
