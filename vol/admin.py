@@ -672,7 +672,7 @@ class EmailDescoberto(Email):
 class EmailDescobertoAdmin(admin.ModelAdmin):
     list_display = ('razao_social_entidade', 'endereco', 'responsavel_cadastro', 'data_cadastro', 'confirmado',)
     ordering = ('-data_cadastro',)
-    search_fields = ('razao_social_entidade',)
+    search_fields = ('entidade__razao_social',)
     list_display_links = None
 
     def razao_social_entidade(self, instance):
