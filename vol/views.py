@@ -471,7 +471,7 @@ def envia_confirmacao_email_entidade(request, email):
                'host': request.get_host(),
                'key': email.hmac_key()}
     try:
-        notify_email_template(email.endereco, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email_template(email.endereco, u'Confirmação de e-mail de entidade', 'vol/msg_confirmacao_email_entidade.txt', from_email=settings.NOTIFY_USER_FROM, context=context)
     except Exception as e:
         # Se houver erro o próprio notify_email_template já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
@@ -578,7 +578,7 @@ def envia_confirmacao_vinculo(request, id_entidade):
                'host': request.get_host(),
                'key': vinculo.hmac_key()}
     try:
-        notify_email_template(entidade.email_principal, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOREPLY_EMAIL, context=context)
+        notify_email_template(entidade.email_principal, u'Confirmação de vínculo com entidade', 'vol/msg_confirmacao_vinculo.txt', from_email=settings.NOTIFY_USER_FROM, context=context)
     except Exception as e:
         # Se houver erro o próprio notify_email_template já tenta notificar o suporte,
         # portanto só cairá aqui se houver erro na notificação ao suporte
@@ -774,7 +774,7 @@ def cadastro_entidade(request, id_entidade=None):
                                     tel.save(update_fields=['confirmado', 'confirmado_por', 'data_confirmacao'])
                                 break
                 if houve_mudanca:
-                    notify_email_template(settings.NOTIFY_USER_FROM, u'Alteração de telefone', 'vol/msg_alteracao_telefone.txt', from_email=settings.NOREPLY_EMAIL, context={'entidade': entidade, 'telefones_anteriores': telefones_anteriores, 'telefones_atuais': telefones_atuais})
+                    notify_email_template(settings.NOTIFY_USER_FROM, u'Alteração de telefone', 'vol/msg_alteracao_telefone.txt', from_email=settings.NOTIFY_USER_FROM, context={'entidade': entidade, 'telefones_anteriores': telefones_anteriores, 'telefones_atuais': telefones_atuais})
 
             # Nova entidade
             else:
