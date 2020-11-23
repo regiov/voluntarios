@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo
 
 from allauth.account.models import EmailAddress
 
@@ -706,11 +706,17 @@ def cadastro_entidade(request, id_entidade=None):
                 emailformset.save()
                 # Grava manualmente os tipos de artigo aceitos como doação
                 artigos_originais = form.initial['doacoes'] # ids como inteiros
-                artigos_finais = form.cleaned_data['doacoes'] # ids como strings
+                artigos_finais = form.cleaned_data['doacoes'] # objetos!
                 for artigo in artigos_finais:
-                    if artigo not in artigos_originais:
-                        NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo=artigo, resp_cadastro=request.user)
-                for artigo in artigos_originais:
+                    if artigo.id not in artigos_originais:
+                        # Por algum motivo tem havido erro de duplicidade no create, então acrescentei
+                        # mais uma verificação com o try
+                        try:
+                            nec = NecessidadeArtigo.objects.get(entidade=entidade, tipoartigo=artigo)
+                        except NecessidadeArtigo.DoesNotExist:
+                            NecessidadeArtigo.objects.create(entidade=entidade, tipoartigo=artigo, resp_cadastro=request.user)
+                for artigo_id in artigos_originais:
+                    artigo = TipoArtigo.objects.get(pk=artigo_id)
                     if artigo not in artigos_finais:
                         NecessidadeArtigo.objects.filter(entidade=entidade, tipoartigo=artigo).delete()
 
