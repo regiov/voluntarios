@@ -12,6 +12,11 @@ class Message(models.Model):
     subject     = models.CharField(u'Subject', max_length=200, null=True, blank=True)
     content     = models.TextField(u'Message content', null=True, blank=True)
 
+    def __str__(self):
+        if self.code:
+            return self.code
+        return self.subject
+
 class Event(models.Model):
     '''
     Notification event.
@@ -28,4 +33,5 @@ class Event(models.Model):
     content_type   = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
     object_id      = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
+    bounce  = models.TextField(u'Bounce message content', null=True, blank=True)
 
