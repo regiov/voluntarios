@@ -25,6 +25,7 @@ from django.contrib.auth.models import (
 )
 
 from allauth.account import app_settings as allauth_settings
+from allauth.account.models import EmailAddress
 
 from notification.utils import notify_support
 
@@ -75,22 +76,30 @@ class MyUserManager(BaseUserManager):
         """
         Cria e salva um novo usuário com o email, nome e senha fornecidos.
         Método necessário para apps com definição própria de usuário.
-        Utilizado apenas pela interface adm.
+        Atenção: não estamos lidando com aceitação de termos de uso por aqui!
+        Em princípio apenas o método create_superuser, usado apenas em
+        linha de comando, chama este método.
         """
         if not email:
             raise ValidationError('Faltou o e-mail')
 
-        user = self.model(email=self.normalize_email(email), nome=nome,)
+        email_normalizado = self.normalize_email(email)
+        user = self.model(email=email_normalizado, nome=nome,)
 
         user.set_password(password)
         user.save(using=self._db)
+        request = None # request é usado apenas no envio da mensagem de confirmação do e-mail
+        # Usuário cadastrado sem envio de mensagem de confirmação de e-mail. Quando houver
+        # tentativa de login o sistema irá enviar a mensagem automaticamente.
+        email_obj = EmailAddress.objects.add_email(request, user, email_normalizado, confirm=False)
+        email_obj.set_as_primary()
         return user
 
     def create_superuser(self, email, nome, password):
         """
         Cria e salva um superusuário com o email, nome e senha fornecidos.
         Método necessário para apps com definição própria de usuário.
-        Utilizado apenas pela interface adm.
+        Utilizado apenas pela linha de comando.
         """
         user = self.create_user(email, password=password, nome=nome,)
         user.is_superuser = True

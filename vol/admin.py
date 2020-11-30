@@ -2,26 +2,18 @@
 
 from django.contrib import admin, messages
 from django.contrib.gis.admin import GeoModelAdmin
-try:
-    # Django 2
-    from django.contrib.staticfiles.templatetags.staticfiles import static
-except ModuleNotFoundError:
-    # Django 3
-    from django.templatetags.static import static
+from django.templatetags.static import static
 from django.db import transaction, DatabaseError
 from django.utils.translation import gettext, gettext_lazy as _
 from django.utils import timezone
 from django.utils.html import format_html
 from django.db.models import Count, Q, TextField, CharField
-from django.forms import Textarea, TextInput
+from django import forms
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
 
 from datetime import datetime
-
-# Usuário customizado
-from django.contrib.auth.admin import UserAdmin
 
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
@@ -36,6 +28,9 @@ from vol.views import envia_confirmacao_email_entidade
 
 from allauth.account.models import EmailAddress
 from allauth.account.utils import send_email_confirmation
+
+# Usuário customizado
+from django.contrib.auth.admin import UserAdmin
 
 class MyUserAdmin(UserAdmin):
     fieldsets = (
@@ -55,6 +50,13 @@ class MyUserAdmin(UserAdmin):
     search_fields = ('nome', 'email')
     ordering = ('-date_joined',)
     actions = ['reenviar_confirmacao', 'reenviar_lembrete_voluntario']
+
+    # Desabilita inclusão, forçando novos cadastros a serem feitos todos pelo site normal,
+    # do contrário será necessário fazer uma série de customizações aqui para incluir
+    # o campo nome, incluir o e-mail em account_emailaddress, além da questão de não ser
+    # possível terceirizar a aceitação dos termos de uso.
+    def has_add_permission(self, request):
+        return False
 
     def email_confirmado(self, instance):
         return EmailAddress.objects.filter(user=instance, email=instance.email, verified=True).exists()
@@ -255,7 +257,7 @@ class TelEntidadeInline(admin.TabularInline):
     extra = 0
     # Para diminuir o tamanho dos campos
     formfield_overrides = {
-        CharField: {'widget': TextInput(attrs={'size':10})},
+        CharField: {'widget': forms.TextInput(attrs={'size':10})},
     }
 
 
@@ -325,7 +327,7 @@ class AnotacaoEntidadeInline(admin.TabularInline):
     readonly_fields = ['usuario', 'momento']
     extra = 0
     formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
+        TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':75})},
     } 
 
 class AntigaAnotacaoEntidadeInline(admin.TabularInline):
@@ -349,7 +351,7 @@ class NovaAnotacaoEntidadeInline(admin.TabularInline):
     fields = ['anotacao', 'req_acao']
     extra = 0
     formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows':2, 'cols':75})},
+        TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':75})},
     } 
 
     # Esta configuração esconde anotações existentes!
