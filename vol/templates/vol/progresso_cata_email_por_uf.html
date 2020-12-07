@@ -1,0 +1,23 @@
+{% extends "vol/base_admin.html" %}
+{% load l10n %}
+{% block title %}Progresso por UF{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Estimativa de progresso por UF</h1>
+
+{% for estado in estados %}
+  <br/>
+
+  <h2><a href="{% url 'progresso_cata_email_por_municipio' estado.sigla %}">{{ estado.nome }}</a> (progresso: {{ estado.progresso }}%)</h2>
+  <hr style="margin:0;"/>
+  {% localize off %}
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ estado.progresso }}" aria-valuemin="0" aria-valuemax="100" style="width:{{ estado.progresso }}%">
+      <span class="sr-only">{{ estado.progresso }}% alcançado</span>
+    </div>
+  </div>
+  {% endlocalize %}
+{% endfor %}
+
+{% endblock content %}

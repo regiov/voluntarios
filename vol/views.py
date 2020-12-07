@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, UFS
 
 from allauth.account.models import EmailAddress
 
@@ -1687,3 +1687,82 @@ def exibe_tarefa(request, codigo_tarefa):
 
     # Senão redireciona para o link da tarefa
     return redirect(tarefa.url)
+
+@login_required
+@staff_member_required
+def progresso_cata_email_por_uf(request):
+    '''Exibe andamento da força tarefa de descobrir e-mail por estado'''
+
+    # OBS: não há como saber o total com precisão por estado, pois algumas entidades podem ter sido removidas
+    
+    # Entidades aprovadas, sem data de cadastro, sem vínculo, sem e-mail e sem anotação
+    q_faltam = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True, anotacaoentidade_set__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+    faltam = {}
+    for props in q_faltam:
+        faltam[props['estado']] = props['total']
+
+    # Entidades aprovadas, sem data de cadastro, sem vínculo, com e-mail sem confirmação ou com anotação
+    q_feitos = Entidade.objects.filter(Q(email_set__confirmado=False) | Q(anotacaoentidade_set__isnull=False), aprovado=True, vinculoentidade__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+    feitos = {}
+    for props in q_feitos:
+        feitos[props['estado']] = props['total']
+
+    estados = []
+
+    for sigla, nome in UFS:
+        progresso = total = tot_faltam = tot_feitos = 0
+        if sigla in faltam:
+            tot_faltam = faltam[sigla]
+        if sigla in feitos:
+            tot_feitos = feitos[sigla]
+        total = tot_faltam + tot_feitos
+        if total > 0:
+            progresso = round((tot_feitos/total)*100.0, 1)
+            if progresso < 100:
+                estados.append({'sigla': sigla, 'nome': nome, 'progresso': progresso})
+    
+    context = {'estados': estados}
+    template = loader.get_template('vol/progresso_cata_email_por_uf.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def progresso_cata_email_por_municipio(request, sigla):
+    '''Exibe andamento da força tarefa de descobrir e-mail por município'''
+
+    # OBS: não há como saber o total com precisão por município, pois algumas entidades podem ter sido removidas
+
+    cidades_disponiveis = []
+
+    # Entidades aprovadas, sem data de cadastro, sem vínculo, sem e-mail e sem anotação
+    q_faltam = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True, anotacaoentidade_set__isnull=True, data_cadastro__isnull=True, estado=sigla).values('cidade').order_by('cidade').annotate(total=Count('pk', distinct=True))
+    faltam = {}
+    for props in q_faltam:
+        faltam[props['cidade']] = props['total']
+        cidades_disponiveis.append(props['cidade'])
+
+    # Entidades aprovadas, sem data de cadastro, sem vínculo, com e-mail sem confirmação ou com anotação
+    q_feitos = Entidade.objects.filter(Q(email_set__confirmado=False) | Q(anotacaoentidade_set__isnull=False), aprovado=True, vinculoentidade__isnull=True, data_cadastro__isnull=True, estado=sigla).values('cidade').order_by('cidade').annotate(total=Count('pk', distinct=True))
+    feitos = {}
+    for props in q_feitos:
+        feitos[props['cidade']] = props['total']
+        if props['cidade'] not in cidades_disponiveis:
+            cidades_disponiveis.append(props['cidade'])
+
+    cidades = []
+
+    for nome in sorted(cidades_disponiveis):
+        progresso = total = tot_faltam = tot_feitos = 0
+        if nome in faltam:
+            tot_faltam = faltam[nome]
+        if nome in feitos:
+            tot_feitos = feitos[nome]
+        total = tot_faltam + tot_feitos
+        if total > 0:
+            progresso = round((tot_feitos/total)*100.0, 1)
+            if progresso < 100:
+                cidades.append({'nome': nome, 'progresso': progresso})
+    
+    context = {'uf': sigla, 'cidades': cidades}
+    template = loader.get_template('vol/progresso_cata_email_por_municipio.html')
+    return HttpResponse(template.render(context, request))

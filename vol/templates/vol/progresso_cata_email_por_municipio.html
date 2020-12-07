@@ -1,0 +1,23 @@
+{% extends "vol/base_admin.html" %}
+{% load l10n %}
+{% block title %}Progresso por município{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Estimativa de progresso por município</h1>
+
+{% for cidade in cidades %}
+  <br/>
+
+  <h2><a href="{% url 'admin:vol_entidadesememail_changelist' %}?estado={{ uf }}&cidade={{ cidade.nome }}">{{ cidade.nome }}</a> (progresso: {{ cidade.progresso }}%)</h2>
+  <hr style="margin:0;"/>
+  {% localize off %}
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ cidade.progresso }}" aria-valuemin="0" aria-valuemax="100" style="width:{{ cidade.progresso }}%">
+      <span class="sr-only">{{ cidade.progresso }}% alcançado</span>
+    </div>
+  </div>
+  {% endlocalize %}
+{% endfor %}
+
+{% endblock content %}

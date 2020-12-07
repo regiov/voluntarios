@@ -141,6 +141,8 @@ urlpatterns = [
     url(r'^painel/entidades/revisao$', views.revisao_entidades, name='revisao_entidades'),
     url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/?$', views.exibe_tarefa, name='exibe_tarefa'),
     url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/orientacoes/?$', views.exibe_orientacoes_tarefa, name='exibe_orientacoes_tarefa'),
+    url(r'^painel/cata-email/progresso/uf$', views.progresso_cata_email_por_uf, name='progresso_cata_email_por_uf'),
+    url(r'^painel/cata-email/progresso/uf/(?P<sigla>[\w]{2})/?$', views.progresso_cata_email_por_municipio, name='progresso_cata_email_por_municipio'),
 ]
 
 if settings.DEBUG:

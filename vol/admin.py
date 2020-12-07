@@ -481,11 +481,25 @@ class EntidadeSemEmail(Entidade):
         verbose_name = u'Entidade sem e-mail'
         verbose_name_plural = u'Entidades sem e-mail'
 
+class FiltroPorCidade(admin.SimpleListFilter):
+    '''Filtro customizado para cidades'''
+    title = u'Cidade'
+
+    parameter_name = 'cidade'
+
+    def lookups(self, request, model_admin):
+        return (request.GET.get(self.parameter_name), ''),
+
+    def queryset(self, request, queryset):
+        if self.parameter_name in request.GET:
+            return queryset.filter(cidade__iexact=request.GET.get(self.parameter_name).lower())
+        return queryset
+
 class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes',)
     ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
-    list_filter = ('estado', 'area_atuacao',)
+    list_filter = ('estado', 'area_atuacao', FiltroPorCidade,)
     fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
     inlines = [
@@ -525,7 +539,7 @@ class EntidadeDeFranca(Entidade):
 
 class EntidadeDeFrancaAdmin(EntidadeSemEmailAdmin):
 
-    # Exibe apenas entidades aprovadas que não estejam sendo gerenciadas por ninguém e que não possuam e-mail
+    # Exibe apenas entidades aprovadas da cidade de Franca
     def get_queryset(self, request):
         return self.model.objects.filter(aprovado=True, cidade__iexact="franca", estado="SP").annotate(anotacoes=Count('anotacaoentidade_set'))
 
