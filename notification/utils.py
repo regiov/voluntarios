@@ -12,6 +12,7 @@ except ImportError:
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.template import engines
 
@@ -98,7 +99,12 @@ def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, **k
     Generic funtion to send a message to an e-mail.
     """
     try:
-        send_mail(subject, msg_str, from_email, [to], **kwargs)
+        #send_mail(subject, msg_str, from_email, [to], **kwargs)
+        if hasattr(settings, 'NOTIFICATION_REPLY_TO'):
+            email = EmailMessage(subject, msg_str, from_email, [to], reply_to=[settings.NOTIFICATION_REPLY_TO],)
+        else:
+            email = EmailMessage(subject, msg_str, from_email, [to],)
+        email.send(fail_silently=False)
     except Exception as e:
         error = type(e).__name__ + str(e.args)
         msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, to, msg_str)
