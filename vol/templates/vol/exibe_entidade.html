@@ -58,14 +58,14 @@
 <br>
 {% endif %}
 
-<p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p>
+<!-- p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p -->
 
 {% if user.is_authenticated %}
   {% if entidade in user.entidades %}
   <br/>
   <a href="{% url 'cadastro_entidade_id' entidade.id %}" class="btn btn-primary">Editar cadastro</a>
   {% else %}
-    {% if entidade.has_valid_email and entidade.email_principal_confirmado and not entidade.gerenciada %}
+    {% if entidade.has_valid_email and entidade.email_principal_confirmado and entidade.email_principal_sem_problema and not entidade.gerenciada %}
     <br/>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirm-action">Gerenciar cadastro desta entidade</button>
     <br/>

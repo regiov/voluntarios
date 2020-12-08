@@ -504,6 +504,14 @@ class Entidade(models.Model):
         return False
 
     @cached_property
+    def email_principal_sem_problema(self):
+        '''Indica se o endereço de e-mail principal não tem problema'''
+        email = self.email_principal_obj
+        if email:
+            return not email.com_problema
+        return False
+
+    @cached_property
     def emails(self):
         '''Retorna os endereços de e-mail'''
         emails = ''
@@ -520,7 +528,7 @@ class Entidade(models.Model):
         '''Retorna os endereços de e-mail confirmados'''
         emails = ''
         i = 0
-        for email in self.email_set.filter(confirmado=True).order_by('id'):
+        for email in self.email_set.filter(confirmado=True, com_problema=False).order_by('id'):
             if i > 0:
                 emails = emails + u' ou '
             emails = emails + email.html()
@@ -913,6 +921,7 @@ class Email(models.Model):
     data_confirmacao = models.DateTimeField(u'Data da última confirmação', null=True, blank=True)
     resp_cadastro    = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_email_set', on_delete=models.PROTECT, null=True, blank=True)
     data_cadastro    = models.DateTimeField(u'Data do cadastro', auto_now_add=True, null=True, blank=True)
+    com_problema     = models.BooleanField(u'Com problema', default=False)
 
     objects = EmailManager()
 

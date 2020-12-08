@@ -229,7 +229,7 @@ class RevisaoVoluntarioAdmin(admin.ModelAdmin):
 
 class EmailEntidadeInline(admin.TabularInline):
     model = Email
-    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao', 'resp_cadastro', 'data_cadastro']
+    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao', 'resp_cadastro', 'data_cadastro', 'com_problema']
     readonly_fields = ['confirmado', 'data_confirmacao', 'resp_cadastro', 'data_cadastro']
     extra = 0
 
@@ -240,8 +240,8 @@ class EmailNovoEntidadeInline(admin.TabularInline):
 
 class ReadOnlyEmailEntidadeInline(admin.TabularInline):
     model = Email
-    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
-    readonly_fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao']
+    fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao', 'com_problema']
+    readonly_fields = ['endereco', 'principal', 'confirmado', 'data_confirmacao', 'com_problema']
     extra = 0
 
     def has_add_permission(self, request, obj):
