@@ -103,7 +103,7 @@ def cadastro_usuario(request):
             logout(request)
             try:
                 user.delete()
-                messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
+                messages.info(request, u'Seu cadastro foi totalmente removido. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.CONTACT_EMAIL + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
                 try:
                     registro_remocao = RemocaoUsuario()
                     registro_remocao.save()
@@ -113,7 +113,7 @@ def cadastro_usuario(request):
                     # portanto só cairá aqui se houver erro nas outras ações
                     pass
             except Exception as e:
-                messages.warning(request, u'Não foi possível remover o seu cadastro. Caso em algum momento você tenha auxiliado na parte administrativa do site, é possível que haja referências importantes a você no histórico de nosso banco de dados. Neste caso entre em contato conosco se realmente deseja remover seu cadastro. Caso nunca tenha trabalhado na parte administrativa do site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> para verificarmos o que houve.')
+                messages.warning(request, u'Não foi possível remover o seu cadastro. Caso em algum momento você tenha auxiliado na parte administrativa do site, é possível que haja referências importantes a você no histórico de nosso banco de dados. Neste caso entre em contato conosco se realmente deseja remover seu cadastro. Caso nunca tenha trabalhado na parte administrativa do site, por favor <a href="mailto:' + settings.CONTACT_EMAIL + '">entre em contato conosco</a> para verificarmos o que houve.')
 
             # Redireciona para página de exibição de mensagem
             return mensagem(request, u'Remoção de cadastro')
@@ -211,7 +211,7 @@ def cadastro_voluntario(request, msg=None):
                 del request.user.is_voluntario
                 request.user.voluntario = None # Só assim para desacoplar de fato!
                 # Redireciona para página de exibição de mensagem
-                messages.info(request, u'Seu perfil de voluntário foi removido. Note que isto não remove seu cadastro de usuário, ou seja, você continuará podendo entrar no site, podendo inclusive cadastrar um novo perfil de voluntário quando desejar. Se a intenção for remover também seu cadastro de usuário, basta acessar sua <a href="' + reverse('cadastro_usuario') + '">página de dados pessoais</a>. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.NOTIFY_USER_FROM + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
+                messages.info(request, u'Seu perfil de voluntário foi removido. Note que isto não remove seu cadastro de usuário, ou seja, você continuará podendo entrar no site, podendo inclusive cadastrar um novo perfil de voluntário quando desejar. Se a intenção for remover também seu cadastro de usuário, basta acessar sua <a href="' + reverse('cadastro_usuario') + '">página de dados pessoais</a>. Caso tenha havido algum problema ou insatisfação em decorrência de seu cadastramento no site, por favor <a href="mailto:' + settings.CONTACT_EMAIL + '">entre em contato conosco</a> relatando o ocorrido para que possamos melhorar os serviços oferecidos.')
                 return mensagem(request, u'Remoção de Perfil de Voluntário')
             
             form = FormVoluntario(request.POST, instance=request.user.voluntario)

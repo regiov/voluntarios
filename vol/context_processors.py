@@ -6,7 +6,7 @@ from vol.models import Entidade, Necessidade
 
 def general(request):
     # e-mail de contato
-    context = dict(EMAIL_CONTATO=settings.NOTIFY_USER_FROM)
+    context = dict(EMAIL_CONTATO=settings.CONTACT_EMAIL)
 
     # últimas entidades cadastradas
     query1 = Entidade.objects.filter(aprovado=True)
