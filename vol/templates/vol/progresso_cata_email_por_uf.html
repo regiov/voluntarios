@@ -9,7 +9,7 @@
 {% for estado in estados %}
   <br/>
 
-  <h2><a href="{% url 'progresso_cata_email_por_municipio' estado.sigla %}">{{ estado.nome }}</a> (progresso: {{ estado.progresso }}%)</h2>
+  <h2><a href="{% url 'progresso_cata_email_por_municipio' estado.sigla %}">{{ estado.nome }}</a> ({{ estado.progresso }}%)</h2>
   <hr style="margin:0;"/>
   {% localize off %}
   <div class="progress">

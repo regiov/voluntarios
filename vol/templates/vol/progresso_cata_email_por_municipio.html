@@ -9,7 +9,7 @@
 {% for cidade in cidades %}
   <br/>
 
-  <h2><a href="{% url 'admin:vol_entidadesememail_changelist' %}?estado={{ uf }}&cidade={{ cidade.nome }}">{{ cidade.nome }}</a> (progresso: {{ cidade.progresso }}%)</h2>
+  <h2><a href="{% url 'admin:vol_entidadesememail_changelist' %}?estado={{ uf }}&cidade={{ cidade.nome }}">{{ cidade.nome }}</a> ({{ cidade.progresso }}%)</h2>
   <hr style="margin:0;"/>
   {% localize off %}
   <div class="progress">
