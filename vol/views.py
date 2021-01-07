@@ -1157,6 +1157,11 @@ def redirect_login(request):
         # Caso contrário exibe página de cadastro
         return cadastro_voluntario(request, msg=u'Para finalizar o cadatro de voluntário, complete o formulário abaixo:')
     elif request.user.link == 'entidade_nova':
+        if request.user.is_voluntario:
+            # Existem casos de voluntários que se cadastram pelo caminho de entidades.
+            # Nestes casos, ao cadastrar um perfil de voluntário, melhor parar de redirecionar
+            # para a página de gerenciamento de entidades, redirecionando para busca de entidades
+            return redirect(reverse('busca_entidades'))
         # Exibe página de cadastro de entidade
         return cadastro_entidade(request)
 
