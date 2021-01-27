@@ -18,7 +18,7 @@ Depois de instalar os programas acima, crie um banco de dados:
 createdb NOME_DO_BANCO
 ```
 
-Acesso o banco de dados via linha de comando como superusuário (normalmente "postgres") para habilitar a extensão postgis:
+Acesse o banco de dados via linha de comando como superusuário (normalmente "postgres") para habilitar a extensão postgis:
 
 ```
 sudo su - postgres
@@ -40,7 +40,7 @@ cd website/website
 cp settings.py local_settings.py
 ```
 
-Edite o arquivo *local_settings.py*, removendo todas as configurações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação.
+Edite o arquivo *local_settings.py*, removendo todas as configurações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação, substituindo *SET IN LOCAL SETTINGS* pela sua configuração local.
 
 Crie as tabelas através do Django migrations, lembrando de antes criar as migrações iniciais para os módulos notification e vol:
 
