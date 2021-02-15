@@ -59,36 +59,40 @@
 
 <form id="form-entidade" method="POST" action="">{% csrf_token %}
 
-{% include "vol/campo_formulario.html" with campo=form.nome_fantasia %}
-{% include "vol/campo_formulario.html" with campo=form.razao_social %}
-{% include "vol/campo_formulario.html" with campo=form.cnpj %}
-{% include "vol/campo_formulario.html" with campo=form.area_atuacao %}
+{% include "vol/campo_formulario.html" with campo=form.nome_fantasia required=True %}
+{% include "vol/campo_formulario.html" with campo=form.razao_social required=True %}
+{% include "vol/campo_formulario.html" with campo=form.cnpj required=True %}
+{% include "vol/campo_formulario.html" with campo=form.area_atuacao required=True %}
 {% include "vol/campo_formulario.html" with campo=form.descricao %}
-{% include "vol/campo_formulario.html" with campo=form.num_vol %}
-{% include "vol/campo_formulario.html" with campo=form.num_vol_ano %}
+{% include "vol/campo_formulario.html" with campo=form.num_vol required=True %}
+{% include "vol/campo_formulario.html" with campo=form.num_vol_ano required=True %}
 
 {% include "vol/campo_formulario.html" with campo=form.website %}
+{% include "vol/campo_formulario.html" with campo=form.facebook %}
+{% include "vol/campo_formulario.html" with campo=form.instagram %}
+{% include "vol/campo_formulario.html" with campo=form.twitter %}
+{% include "vol/campo_formulario.html" with campo=form.youtube %}
 
 <fieldset>
 <legend>Responsável</legend>
-{% include "vol/campo_formulario.html" with campo=form.nome_resp %}
-{% include "vol/campo_formulario.html" with campo=form.sobrenome_resp %}
-{% include "vol/campo_formulario.html" with campo=form.cargo_resp %}
+{% include "vol/campo_formulario.html" with campo=form.nome_resp required=True %}
+{% include "vol/campo_formulario.html" with campo=form.sobrenome_resp required=True %}
+{% include "vol/campo_formulario.html" with campo=form.cargo_resp required=True %}
 </fieldset>
 
 <fieldset>
 <legend>Endereço</legend>
-{% include "vol/campo_formulario.html" with campo=form.cep %}
-{% include "vol/campo_formulario.html" with campo=form.logradouro %}
-{% include "vol/campo_formulario.html" with campo=form.bairro %}
-{% include "vol/campo_formulario.html" with campo=form.cidade %}
-{% include "vol/campo_formulario.html" with campo=form.estado %}
+{% include "vol/campo_formulario.html" with campo=form.cep required=True %}
+{% include "vol/campo_formulario.html" with campo=form.logradouro required=True %}
+{% include "vol/campo_formulario.html" with campo=form.bairro required=True %}
+{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
+{% include "vol/campo_formulario.html" with campo=form.estado required=True %}
 </fieldset>
 
 <fieldset>
 <legend>Contato</legend>
 
-<label>Telefones</label>
+<label>* Telefones</label>
 {{ telformset.management_form }}
 <div class="table-responsive form-group required{% if telformset.errors %} has-error{% endif %}">
 <table width="100%" class="table table-condensed">
@@ -107,7 +111,7 @@
 </table>
 </div>
 
-<label>E-mails</label>
+<label>* E-mails</label>
 {{ emailformset.management_form }}
 <div class="table-responsive form-group required{% if emailformset.errors %} has-error{% endif %}">
 <table width="100%" class="table table-condensed">
@@ -163,7 +167,7 @@
   </div>
 </div>
 {% endif %}
-
+<p class="help-block dica">(*) campos obrigatórios</p>
 </form>
 
 <script type="text/javascript">

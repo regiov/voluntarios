@@ -500,8 +500,8 @@ class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
     list_filter = ('estado', 'area_atuacao', FiltroPorCidade,)
-    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
-    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website']
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'facebook', 'instagram', 'twitter', 'youtube']
+    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'facebook', 'instagram', 'twitter', 'youtube']
     inlines = [
         EmailNovoEntidadeInline, TelEntidadeInline, DocumentoInline, AntigaAnotacaoEntidadeInline, NovaAnotacaoEntidadeInline,
     ]
@@ -554,7 +554,7 @@ class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'data_cadastro', 'resp_bloqueio', 'data_bloqueio',)
     ordering = ('data_cadastro',)
     actions = ['unlock_selected']
-    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'aprovado']
+    fields = ['nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'facebook', 'instagram', 'twitter', 'youtube', 'aprovado']
     readonly_fields = ['area_atuacao']
     inlines = [
         EmailNovoEntidadeInline, TelEntidadeInline, ReadOnlyVinculoEntidadeInline, DocumentoInline, AnotacaoEntidadeInline,

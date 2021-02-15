@@ -26,6 +26,10 @@
 {% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
 {% if entidade.emails_confirmados %}<p><i class="fas fa-envelope" title="e-mail"></i> {{ entidade.emails_confirmados|safe }}</a></p>{% endif %}
 {% if entidade.website %}<p><i class="fas fa-globe" title="website"></i> <a href="{% if entidade.website|length > 4 and entidade.website|slice:":4" != 'http' %}http://{% endif %}{{ entidade.website }}" target="_blank">{{ entidade.website }}</a></p>{% endif %}
+{% if entidade.facebook %}<p><i class="fab fa-facebook" title="Facebook"></i> <a href="{% if entidade.facebook|length > 4 and entidade.facebook|slice:":4" != 'http' %}http://{% endif %}{{ entidade.facebook }}" target="_blank">{{ entidade.facebook }}</a></p>{% endif %}
+{% if entidade.instagram %}<p><i class="fab fa-instagram" title="Instagram"></i> <a href="https://www.instagram.com/{% if entidade.instagram|slice:":1" == '@' %}{{ entidade.instagram|slice:"1:" }}{% else %}{{ entidade.instagram }}{% endif %}" target="_blank">{{ entidade.instagram }}</a></p>{% endif %}
+{% if entidade.twitter %}<p><i class="fab fa-twitter" title="Twitter"></i> <a href="{% if entidade.twitter|length > 4 and entidade.twitter|slice:":4" != 'http' %}https://twitter.com/{% endif %}{{ entidade.twitter }}" target="_blank">{{ entidade.twitter }}</a></p>{% endif %}
+{% if entidade.youtube %}<p><i class="fab fa-youtube" title="Youtube"></i> <a href="{% if entidade.youtube|length > 4 and entidade.youtube|slice:":4" != 'http' %}http://{% endif %}{{ entidade.youtube }}" target="_blank">{{ entidade.youtube }}</a></p>{% endif %}
 {% for doc in entidade.documento_set.all %}{% if doc.tipodoc.codigo == 'folder' %}<p><i class="fas fa-download" title="folder"></i> <a href="{{ doc.doc.url }}">{{ doc.tipodoc.nome|lower }}</a>{% endif %}{% endfor %}
 </div>
 {% with doacoes=entidade.necessidadeartigo_set.all %}

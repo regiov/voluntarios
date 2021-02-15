@@ -145,7 +145,7 @@ class FormEntidade(forms.ModelForm):
     "Formulário para cadastro de entidade"
     nome_fantasia = forms.CharField(label=u'Nome fantasia',
                                     max_length=100,
-                                    help_text=u'(apelido)',
+                                    help_text=u'(sigla, apelido)',
                                     widget=forms.TextInput(attrs={'class':'form-control', 'size':30}))
     razao_social = forms.CharField(label=u'Razão social',
                                    max_length=120,
@@ -210,12 +210,32 @@ class FormEntidade(forms.ModelForm):
     nome_contato = forms.CharField(label=u'Falar com',
                                    max_length=100,
                                    widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
-                                   help_text="",
+                                   help_text="nome da pessoa com quem os voluntários devem falar",
                                    required=False)
     website = forms.CharField(label=u'Website',
                               max_length=110,
                               widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
                               help_text="",
+                              required=False)
+    facebook = forms.CharField(label=u'Página no Facebook',
+                               max_length=110,
+                               widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                               help_text="link para a página",
+                               required=False)
+    instagram = forms.CharField(label=u'Instagram',
+                                max_length=40,
+                                widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                                help_text="nome da conta",
+                                required=False)
+    twitter = forms.CharField(label=u'Twitter',
+                              max_length=20,
+                              widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                              help_text="nome da conta",
+                              required=False)
+    youtube = forms.CharField(label=u'Canal no Youtube',
+                              max_length=110,
+                              widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                              help_text="link para o canal",
                               required=False)
     doacoes = forms.ModelMultipleChoiceField(label=u'Artigos aceitos como doação',
                                              queryset=TipoArtigo.objects.all().order_by('ordem'),
@@ -231,8 +251,8 @@ class FormEntidade(forms.ModelForm):
     class Meta:
         model = Entidade
         fields = ('nome_fantasia', 'razao_social', 'cnpj', 'area_atuacao', 'descricao', 'num_vol', 'num_vol_ano',
-                  'nome_resp', 'sobrenome_resp', 'cargo_resp', 'cep', 'logradouro', 'bairro',
-                  'cidade', 'estado', 'nome_contato', 'website', 'doacoes', 'obs_doacoes')
+                  'nome_resp', 'sobrenome_resp', 'cargo_resp', 'cep', 'logradouro', 'bairro', 'cidade', 'estado',
+                  'nome_contato', 'website', 'facebook', 'instagram', 'twitter', 'youtube', 'doacoes', 'obs_doacoes')
 
     def __init__(self, *args, **kwargs):
 
