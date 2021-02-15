@@ -18,10 +18,11 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/brands.css" integrity="sha384-BKw0P+CQz9xmby+uplDwp82Py8x1xtYPK3ORn/ZSoe6Dk3ETP59WCDnX+fI1XCKK" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css" integrity="sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+" crossorigin="anonymous">
 
+    {% comment %}main.css é o estilo original que veio com template. Ao invés de alterá-lo, melhor sobrepor as regras desejadas utilizando o arquivo vol-versao.css{% endcomment %}
     <link href="{% static 'css/main-2.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 
-    <link href="{% static 'css/vol-2.3.css' %}" rel="stylesheet">
+    <link href="{% static 'css/vol-2.4.css' %}" rel="stylesheet">
 
     <!--[if lt IE 9]>
       {% comment %}This script is the defacto way to enable use 
@@ -90,7 +91,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                     </button>
 
                     <a class="navbar-brand" href="/">
-                    	<table><tr><td class="logo-img"><img src="{% static '/images/logo.png' %}" alt="logo"><td><table class="hidden-sm hidden-xs"><tr><td class="logo-cell"><h1><span class="logo-name">Seja um Voluntário</span></h1></td><tr><td class="logo-url">www.voluntarios.com.br</td></tr></table></td></tr></table>
+                    	<table><tr><td class="logo-img"><img src="{% static '/images/logo.png' %}" alt="logo"><td><table class="hidden-sm hidden-xs"><tr><td class="logo-cell"><h1>Voluntários</h1></td></table></td></tr></table>
                     </a>
                     
                 </div>
