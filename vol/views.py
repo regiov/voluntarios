@@ -91,6 +91,16 @@ def escolha_cadastro(request):
     context = {}
     return HttpResponse(template.render(context, request))
 
+def link_usuario_novo(request):
+    '''Link para cadastro de novo usuário'''
+    if request.user.is_authenticated:
+        messages.info(request, u'<strong>Você já possui cadastro no sistema. Utilize o menu para escolher o que deseja fazer agora (ex: cadastrar um perfil de voluntário, cadastrar uma entidade, etc.).</strong>')
+        # Redireciona para página de cadastro
+        return redirect('/usuario')
+    # Redireciona para cadastro básico
+    messages.info(request, u'<strong>Para utilizar o sistema, seja como voluntário, seja como responsável por uma ou mais entidades, é preciso antes possuir um cadastro básico de usuário preenchendo os campos abaixo:</strong>')
+    return redirect('/aut/signup')
+
 @login_required
 @transaction.atomic
 def cadastro_usuario(request):

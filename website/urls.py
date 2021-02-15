@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^cadastro/?$', views.escolha_cadastro, name='escolha_cadastro'),
 
     # Usuário
+    url(r'^usuario/novo/?$', views.link_usuario_novo, name='link_usuario_novo'),
     url(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
 
     # Voluntários
