@@ -759,7 +759,7 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     list_select_related = ('entidade', 'usuario',)
     list_display = ('momento', 'razao_social', 'anotacao', 'nome_responsavel',)
     ordering = ('momento',)
-    search_fields = ('razao_social',)
+    search_fields = ('entidade__razao_social', 'anotacao',)
     fields = ['momento', 'razao_social', 'anotacao', 'nome_responsavel']
     readonly_fields = ['momento', 'razao_social', 'anotacao', 'nome_responsavel']
     actions = ['marcar_como_revisada']
