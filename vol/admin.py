@@ -29,6 +29,8 @@ from vol.views import envia_confirmacao_email_entidade
 from allauth.account.models import EmailAddress
 from allauth.account.utils import send_email_confirmation
 
+from .utils import notifica_aprovacao_voluntario
+
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
 
@@ -127,7 +129,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     list_filter = ('aprovado',)
     preserve_filters = True
     readonly_fields = ('usuario', 'data_aniversario_orig', 'ciente_autorizacao', 'site', 'importado',)
-    actions = ['aprovar']
+    actions = ['aprovar', 'notificar_aprovacao']
     inlines = [
         AreaInteresseInline,
     ]
@@ -175,6 +177,22 @@ class VoluntarioAdmin(admin.ModelAdmin):
             extra_msg = u'%s não modificado(s) por já estar(em) aprovado(s).' % (total_recs-num_updates)
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     aprovar.short_description = "Aprovar Voluntários selecionados"
+
+    def notificar_aprovacao(self, request, queryset):
+        num_messages = 0
+        for obj in queryset:
+            if obj.aprovado:
+                notifica_aprovacao_voluntario(obj.usuario)
+                num_messages = num_messages + 1
+        main_msg = ''
+        if num_messages > 0:
+            main_msg = u'%s voluntário(s) notificado(s). ' % num_messages
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_messages:
+            extra_msg = u'%s voluntário(s) não notificado(s) por ainda não terem sido aprovados.' % (total_recs-num_messages)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    notificar_aprovacao.short_description = "Reenviar notificação de aprovação de cadastro"
 
 class RevisaoVoluntario(Voluntario):
     """Modelo criado para avaliar as análises de cadastro de voluntários via interface administrativa"""
