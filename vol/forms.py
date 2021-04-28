@@ -263,15 +263,29 @@ class FormEntidade(forms.ModelForm):
             # Eventuais artigos já marcados como aceitos para doação
             self.initial['doacoes'] = list(self.instance.necessidadeartigo_set.all().values_list('tipoartigo_id', flat=True))
 
-            if self.instance.cnpj is not None and len(self.instance.cnpj) > 0 and self.instance.aprovado:
+            # Proibe edição de CNPJ válido de entidades já aprovadas
+            if self.instance.cnpj is not None and len(self.instance.cnpj) > 0 and self.instance.cnpj_valido() and self.instance.aprovado:
                 self.fields['cnpj'].widget.attrs['readonly'] = True
                 self.fields['cnpj'].help_text = ''
 
     def clean_cnpj(self):
-        # Garante que o CNPJ não seja alterado quando já preenchido
         instance = getattr(self, 'instance', None)
-        if instance and instance.pk and instance.cnpj and len(instance.cnpj) > 0:
-            return instance.cnpj
+        # Alteração de entidade existente
+        if instance and instance.pk:
+            if instance.cnpj and len(instance.cnpj) > 0:
+                if instance.cnpj_valido():
+                    # Garante que o CNPJ não seja alterado quando já preenchido e válido
+                    return instance.cnpj
+                else:
+                    # Obriga correção do CNPJ
+                    raise forms.ValidationError(u'CNPJ incorreto')
+        # Cadastro de entidade nova
+        else:
+            if len(self.cleaned_data['cnpj']) > 0:
+                # Verifica o CNPJ caso esteja preenchido
+                entidade_tmp = Entidade(cnpj=self.cleaned_data['cnpj'])
+                if entidade_tmp.cnpj_valido() == False:
+                    raise forms.ValidationError(u'CNPJ incorreto')
         return self.cleaned_data['cnpj']
 
     def clean_num_vol(self):
