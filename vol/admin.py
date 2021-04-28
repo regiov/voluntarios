@@ -788,7 +788,9 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     razao_social.admin_order_field = 'entidade__razao_social'
 
     def nome_responsavel(self, instance):
-        return  instance.usuario.nome
+        if instance.usuario:
+            return  instance.usuario.nome
+        return u'Robô'
     nome_responsavel.short_description = u'Responsável'
     nome_responsavel.admin_order_field = 'usuario__nome'
 
