@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, UFS
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, UFS
 
 from allauth.account.models import EmailAddress
 
@@ -1517,6 +1517,9 @@ def painel(request):
     # Total de entidades revisadas no dia
     total_ents_dia = Entidade.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
 
+    # Total de pendências em entidades aprovadas
+    total_pendencias_ents = AnotacaoEntidade.objects.filter(req_acao=True, entidade__aprovado=True, rev__isnull=True).count()
+
     # Total de entidades revisadas pelo usuário
     total_ents_pessoal = Entidade.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
@@ -1565,6 +1568,7 @@ def painel(request):
                'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
                'total_ents': total_ents,
                'total_ents_dia': total_ents_dia,
+               'total_pendencias_ents': total_pendencias_ents,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}

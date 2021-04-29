@@ -36,6 +36,8 @@
 
 <h3>Cadastros revisados hoje: <span style="margin-left:15px;">{{ total_ents_dia }}</span></h3>
 
+<h3>Pendências em aberto: <span style="margin-left:15px;">{% if total_ents and perms.vol.change_entidade %}<a href="{% url 'admin:vol_anotacaoaguardandorevisao_changelist' %}?entidade__aprovado__exact=1">{{ total_pendencias_ents }}</a>{% else %}{{ total_pendencias_ents }}{% endif %}</span></h3>
+
 <br/>
 
 <h2>Histórico pessoal de atividades</h2>
