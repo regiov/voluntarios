@@ -816,6 +816,11 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return self.model.objects.filter(req_acao=True, rev__isnull=True)
 
+    # Exibe orientações sobre o que fazer
+    def changelist_view(self, request, extra_context=None):
+         messages.info(request, u'Para resolver uma pendência, clique no ícone da entidade para editar o cadastro e em seguida volte nesta lista, marque a pendência correspondente, selecione a ação "marcar anotação como revisada" e depois clique no botão "ir".')
+         return super().changelist_view(request, extra_context)
+
     @transaction.atomic
     def marcar_como_revisada(self, request, queryset):
         num_updates = 0
