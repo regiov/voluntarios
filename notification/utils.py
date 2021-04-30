@@ -72,7 +72,7 @@ def notify_user_msg(user, message, context={}, from_email=settings.NOTIFY_USER_F
         content = template.render(context=context)
     try:
         user.email_user(subject, content, from_email)
-        event = Event(rtype='U', user=user, message=message)
+        event = Event(rtype='U', user=user, message=message, email=user.email)
         event.save()
     except Exception as e:
         error = type(e).__name__ + str(e.args)
@@ -137,7 +137,7 @@ def notify_email_msg(to, msg_obj, context={}, from_email=settings.NOTIFY_USER_FR
     if notify_email(to, subject, content, from_email):
         if content_obj:
             try:
-                event = Event(rtype='E', content_object=content_obj, message=msg_obj)
+                event = Event(rtype='E', content_object=content_obj, message=msg_obj, email=to)
                 event.save()
             except Exception as e:
                 error = type(e).__name__ + str(e.args)

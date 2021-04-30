@@ -24,6 +24,7 @@ class Event(models.Model):
     rtype    = models.CharField(u'Recipient type (S=support, U=user, E=generic)', max_length=1)
     message  = models.ForeignKey(Message, null=True, blank=True, on_delete=models.CASCADE)
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
+    email    = models.CharField(u'E-mail', max_length=90, null=True, blank=True)
     subject  = models.CharField(u'Message subject', null=True, blank=True, max_length=200)
     content  = models.TextField(u'Message content', null=True, blank=True)
     repeat   = models.IntegerField(u'Repetitions', default=0)
