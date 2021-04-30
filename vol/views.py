@@ -1785,3 +1785,12 @@ def progresso_cata_email_por_municipio(request, sigla):
     context = {'uf': sigla, 'cidades': cidades}
     template = loader.get_template('vol/progresso_cata_email_por_municipio.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def exibe_pendencias_entidades(request):
+    '''Exibe lista de pendências em cadastros de entidades na interface adm.'''
+    # Mostra mensagem com orientações
+    messages.info(request, u'Para resolver uma pendência, clique no ícone da entidade para editar o cadastro e em seguida volte nesta lista, marque a pendência correspondente, selecione a ação "marcar anotação como revisada" e depois clique no botão "ir".')
+    # E ativa filtro para entidades aprovadas
+    return redirect(reverse('admin:vol_anotacaoaguardandorevisao_changelist') + '?entidade__aprovado__exact=1')

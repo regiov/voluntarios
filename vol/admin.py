@@ -778,7 +778,7 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     list_display = ('momento', 'razao_social', 'anotacao', 'nome_responsavel',)
     list_display_links = None
     ordering = ('momento',)
-    search_fields = ('entidade__razao_social', 'anotacao',)
+    search_fields = ('entidade__razao_social', 'entidade__nome_fantasia', 'anotacao',)
     list_filter = ('entidade__aprovado',)
     preserve_filters = True
     fields = ['momento', 'razao_social', 'anotacao', 'nome_responsavel']
@@ -815,11 +815,6 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     # Exibe apenas anotações aguardando revisão
     def get_queryset(self, request):
         return self.model.objects.filter(req_acao=True, rev__isnull=True)
-
-    # Exibe orientações sobre o que fazer
-    def changelist_view(self, request, extra_context=None):
-         messages.info(request, u'Para resolver uma pendência, clique no ícone da entidade para editar o cadastro e em seguida volte nesta lista, marque a pendência correspondente, selecione a ação "marcar anotação como revisada" e depois clique no botão "ir".')
-         return super().changelist_view(request, extra_context)
 
     @transaction.atomic
     def marcar_como_revisada(self, request, queryset):
