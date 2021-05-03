@@ -479,7 +479,7 @@ class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     def enviar_confirmacao(self, request, queryset):
         num_messages = 0
         for obj in queryset:
-            if not obj.confirmado:
+            if not obj.email_principal_confirmado:
                 envia_confirmacao_email_entidade(request, obj.email_principal_obj)
                 num_messages = num_messages + 1
         main_msg = ''
