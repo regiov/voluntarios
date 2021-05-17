@@ -1042,7 +1042,7 @@ def busca_doacoes(request):
 
     if 'pesquisa_ajuda' in request.GET or 'pesquisa_entidade' in request.GET:
 
-        doacoes = Necessidade.objects.select_related('entidade').filter(entidade__isnull=False)
+        doacoes = Necessidade.objects.select_related('entidade').filter(entidade__isnull=False, entidade__aprovado=True)
 
         if 'pesquisa_ajuda' in request.GET:
 
