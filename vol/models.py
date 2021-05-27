@@ -416,13 +416,8 @@ class Entidade(models.Model):
     instagram          = models.CharField(u'Instagram', max_length=40, null=True, blank=True)
     twitter            = models.CharField(u'Twitter', max_length=20, null=True, blank=True)
     youtube            = models.CharField(u'Canal no youtube', max_length=110, null=True, blank=True)
-    despesas           = models.CharField(u'Despesas', max_length=100, null=True, blank=True)
-    beneficiados       = models.CharField(u'Beneficiados', max_length=100, null=True, blank=True)
     voluntarios        = models.CharField(u'Voluntários', max_length=100, null=True, blank=True)
-    reg_cnas           = models.CharField(u'Registro CNAS', max_length=50, null=True, blank=True)
     fundacao           = models.DateField(u'Fundação', null=True, blank=True)
-    auditores          = models.CharField(u'Auditores', max_length=100, null=True, blank=True)
-    premios            = models.CharField(u'Prêmios', max_length=100, null=True, blank=True)
     num_vol            = models.IntegerField(u'Número de voluntários trabalhando atualmente', null=True, blank=True) 
     num_vol_ano        = models.IntegerField(u'Número de voluntários necessários ao longo do ano', null=True, blank=True) 
 
