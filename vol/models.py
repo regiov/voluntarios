@@ -396,11 +396,13 @@ class StatusCnpj(models.Model):
     movido para o histórico, e o resultado da nova consulta é gravado na entidade.
     Como estes campos são usados no model Entidade, todos eles devem aceitar nulo.
     Não fosse por isso apenas o campo erro_consulta_cnpj deveria aceitar nulo.'''
-    situacao_cnpj               = models.CharField(u'Situação do CNPJ na Receita Federal', max_length=50, null=True, blank=True)
-    motivo_situacao_cnpj        = models.TextField(u'Motivo da situação do CNPJ na Receita Federal', null=True, blank=True)
-    data_situacao_cnpj          = models.DateField(u'Data da situação do CNPJ na Receita Federal', null=True, blank=True)
-    situacao_especial_cnpj      = models.CharField(u'Situação especial do CNPJ na Receita Federal', max_length=50, null=True, blank=True)
-    data_situacao_especial_cnpj = models.DateField(u'Data da situação especial do CNPJ na Receita Federal', null=True, blank=True)
+    # Possíveis valores já detectados para o campo abaixo: BAIXADA, SUSPENSA, INAPTA, ATIVA
+    situacao_cnpj               = models.CharField(u'Situação na Receita Federal', max_length=50, null=True, blank=True)
+    motivo_situacao_cnpj        = models.TextField(u'Motivo da situação', null=True, blank=True)
+    data_situacao_cnpj          = models.DateField(u'Data da situação', null=True, blank=True)
+    # Possíveis valores já detectados para o campo abaixo: INTERVENCAO
+    situacao_especial_cnpj      = models.CharField(u'Situação especial na Receita', max_length=50, null=True, blank=True)
+    data_situacao_especial_cnpj = models.DateField(u'Data da situação especial', null=True, blank=True)
     ultima_atualizacao_cnpj     = models.DateTimeField(u'Data da última atualização dos dados do CNPJ', null=True, blank=True)
     data_consulta_cnpj          = models.DateTimeField(u'Data da consulta ao CNPJ', null=True, blank=True)
     erro_consulta_cnpj          = models.CharField(u'Erro na consulta do CNPJ', max_length=200, null=True, blank=True)

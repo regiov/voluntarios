@@ -304,6 +304,13 @@ class ReadOnlyVinculoEntidadeInline(admin.TabularInline):
     readonly_fields = ['usuario', 'data_inicio', 'data_fim', 'confirmado']
     extra = 0
 
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 class NecessidadeInline(admin.TabularInline):
     model = Necessidade
     fields = ['qtde_orig', 'descricao', 'valor_orig', 'data_solicitacao',]
@@ -382,7 +389,7 @@ class NovaAnotacaoEntidadeInline(admin.TabularInline):
         return False
 
 class BaseEntidadeAdmin(admin.ModelAdmin):
-    exclude = ('coordenadas', 'despesas', 'beneficiados', 'voluntarios', 'reg_cnas', 'auditores', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em',)
+    exclude = ('coordenadas', 'voluntarios', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em', 'situacao_cnpj', 'motivo_situacao_cnpj', 'data_situacao_cnpj', 'situacao_especial_cnpj', 'data_situacao_especial_cnpj', 'ultima_atualizacao_cnpj', 'data_consulta_cnpj', 'erro_consulta_cnpj',)
 
     # Gravações automáticas na Entidade
     def save_model(self, request, obj, form, change):
@@ -696,6 +703,53 @@ class RevisaoEntidadeAdmin(BaseEntidadeAdmin):
             del actions['delete_selected']
         return actions
 
+class EntidadeComProblemaNaReceita(Entidade):
+    """Modelo criado para gerenciar entidades com problema de CNPJ via interface adm"""
+    class Meta:
+        proxy = True
+        verbose_name = u'Entidade com problema na Receita Federal'
+        verbose_name_plural = u'Entidades com problema na Receita Federal'
+
+class EntidadeComProblemaNaReceitaAdmin(EntidadeAdmin):
+    list_display = ('razao_social', 'situacao_cnpj', 'data_situacao_cnpj', 'motivo_situacao_cnpj', 'situacao_especial_cnpj',)
+    ordering = ('razao_social',)
+    search_fields = ('razao_social', 'cnpj',)
+    list_filter = ()
+    readonly_fields = ['nome_fantasia', 'razao_social', 'cnpj', 'fundacao', 'area_atuacao', 'descricao', 'logradouro', 'bairro', 'cidade', 'estado', 'cep', 'pais', 'nome_resp', 'sobrenome_resp', 'cargo_resp', 'nome_contato', 'website', 'facebook', 'instagram', 'twitter', 'youtube']
+    actions = ['reprovar']
+    inlines = [
+        ReadOnlyVinculoEntidadeInline, EmailNovoEntidadeInline, TelEntidadeInline, DocumentoInline, AntigaAnotacaoEntidadeInline, NovaAnotacaoEntidadeInline,
+    ]
+
+    def get_exclude(self, request, obj=None):
+        return self.exclude + ('geocode_status', 'importado', 'obs_doacoes', 'num_vol', 'num_vol_ano',)
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Exibe apenas entidades aprovadas que estejam com problema na receita
+    def get_queryset(self, request):
+        return self.model.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False).exclude(situacao_cnpj='ATIVA')
+
+    @transaction.atomic
+    def reprovar(self, request, queryset):
+        num_updates = 0
+        for obj in queryset:
+            if obj.aprovado:
+                obj.aprovado = False
+                obj.save(update_fields=['aprovado'])
+                num_updates = num_updates + 1
+        main_msg = ''
+        if num_updates > 0:
+            main_msg = u'%s entidade(s) reprovada(s). ' % num_updates
+        extra_msg = ''
+        total_recs = len(queryset)
+        if total_recs > num_updates:
+            extra_msg = u'%s não modificada(s) por já estar(em) reprovada(s).' % (total_recs-num_updates)
+        self.message_user(request, "%s%s" % (main_msg, extra_msg))
+    reprovar.short_description = "Reprovar entidades selecionadas"
+
 class EmailDescoberto(Email):
     """Modelo criado para listar e-mails recém descobertos de entidades"""
     class Meta:
@@ -873,6 +927,7 @@ admin.site.register(Entidade, EntidadeAdmin)
 admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
 admin.site.register(EntidadeDeFranca, EntidadeDeFrancaAdmin)
 admin.site.register(EntidadeAguardandoAprovacao, EntidadeAguardandoAprovacaoAdmin)
+admin.site.register(EntidadeComProblemaNaReceita, EntidadeComProblemaNaReceitaAdmin)
 admin.site.register(RevisaoEntidade, RevisaoEntidadeAdmin)
 admin.site.register(TipoDocumento, TipoDocumentoAdmin)
 admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
