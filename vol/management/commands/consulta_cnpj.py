@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # Estipula um número máximo de consultas pra não exagerar
-        max_consultas = 3
+        max_consultas = 500
 
         # Primeiro pega entidades que nunca foram consultadas
         entidades = Entidade.objects.filter(cnpj__isnull=False, data_consulta_cnpj__isnull=True)
