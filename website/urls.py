@@ -145,6 +145,7 @@ urlpatterns = [
     url(r'^painel/cata-email/progresso/uf$', views.progresso_cata_email_por_uf, name='progresso_cata_email_por_uf'),
     url(r'^painel/cata-email/progresso/uf/(?P<sigla>[\w]{2})/?$', views.progresso_cata_email_por_municipio, name='progresso_cata_email_por_municipio'),
     url(r'^painel/entidades/pendencias$', views.exibe_pendencias_entidades, name='exibe_pendencias_entidades'),
+    url(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
 ]
 
 if settings.DEBUG:

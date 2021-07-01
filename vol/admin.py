@@ -310,7 +310,6 @@ class ReadOnlyVinculoEntidadeInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
-
 class NecessidadeInline(admin.TabularInline):
     model = Necessidade
     fields = ['qtde_orig', 'descricao', 'valor_orig', 'data_solicitacao',]
@@ -730,7 +729,7 @@ class EntidadeComProblemaNaReceitaAdmin(EntidadeAdmin):
 
     # Exibe apenas entidades aprovadas que estejam com problema na receita
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False).exclude(situacao_cnpj='ATIVA')
+        return self.model.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False, erro_consulta_cnpj__isnull=True).exclude(situacao_cnpj='ATIVA')
 
     @transaction.atomic
     def reprovar(self, request, queryset):

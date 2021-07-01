@@ -1520,6 +1520,9 @@ def painel(request):
     # Total de pendências em entidades aprovadas
     total_pendencias_ents = AnotacaoEntidade.objects.filter(req_acao=True, entidade__aprovado=True, rev__isnull=True).count()
 
+    # Total de entidades com problema na receita
+    total_problemas_cnpj = Entidade.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False, erro_consulta_cnpj__isnull=True).exclude(situacao_cnpj='ATIVA').count()
+
     # Total de entidades revisadas pelo usuário
     total_ents_pessoal = Entidade.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
@@ -1569,6 +1572,7 @@ def painel(request):
                'total_ents': total_ents,
                'total_ents_dia': total_ents_dia,
                'total_pendencias_ents': total_pendencias_ents,
+               'total_problemas_cnpj': total_problemas_cnpj,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas}
@@ -1794,3 +1798,10 @@ def exibe_pendencias_entidades(request):
     messages.info(request, u'Para resolver uma pendência, clique no ícone da entidade para editar o cadastro e em seguida volte nesta lista, marque a pendência correspondente, selecione a ação "marcar anotação como revisada" e depois clique no botão "ir".')
     # E ativa filtro para entidades aprovadas
     return redirect(reverse('admin:vol_anotacaoaguardandorevisao_changelist') + '?entidade__aprovado__exact=1')
+
+@login_required
+@staff_member_required
+def exibe_entidades_com_problema_na_receita(request):
+    '''Exibe lista de entidades com problema na receita federal na interface adm.'''
+    # E ativa filtro para entidades aprovadas
+    return redirect(reverse('admin:vol_entidadecomproblemanareceita_changelist'))
