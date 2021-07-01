@@ -389,8 +389,27 @@ class EntidadeManager(models.Manager):
             ret = None
         return ret
 
+class StatusCnpj(models.Model):
+    '''Status de CNPJ. Modelo abstrato para uso no histórico de status e na entidade.
+    O conteúdo dos campos na entidade deve sempre ser o da última consulta. Ao realizar
+    uma nova consulta, se já houver algum conteúdo na entidade esse conteúdo deve ser
+    movido para o histórico, e o resultado da nova consulta é gravado na entidade.
+    Como estes campos são usados no model Entidade, todos eles devem aceitar nulo.
+    Não fosse por isso apenas o campo erro_consulta_cnpj deveria aceitar nulo.'''
+    situacao_cnpj               = models.CharField(u'Situação do CNPJ na Receita Federal', max_length=50, null=True, blank=True)
+    motivo_situacao_cnpj        = models.TextField(u'Motivo da situação do CNPJ na Receita Federal', null=True, blank=True)
+    data_situacao_cnpj          = models.DateField(u'Data da situação do CNPJ na Receita Federal', null=True, blank=True)
+    situacao_especial_cnpj      = models.CharField(u'Situação especial do CNPJ na Receita Federal', max_length=50, null=True, blank=True)
+    data_situacao_especial_cnpj = models.DateField(u'Data da situação especial do CNPJ na Receita Federal', null=True, blank=True)
+    ultima_atualizacao_cnpj     = models.DateTimeField(u'Data da última atualização dos dados do CNPJ', null=True, blank=True)
+    data_consulta_cnpj          = models.DateTimeField(u'Data da consulta ao CNPJ', null=True, blank=True)
+    erro_consulta_cnpj          = models.CharField(u'Erro na consulta do CNPJ', max_length=200, null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
 @track_data('aprovado')
-class Entidade(models.Model):
+class Entidade(StatusCnpj):
     """Entidade."""
     """obs: id corresponde ao colocweb em registros importados."""
 
@@ -542,16 +561,25 @@ class Entidade(models.Model):
         except Exception:
             return False
 
+    def cnpj_puro(self):
+        return self.cnpj.strip().replace('-', '').replace('.', '').replace('/', '')
+
     def cnpj_valido(self):
+
+        if not self.cnpj:
+            return None
+
         cnpj = self.cnpj.strip()
 
         if len(cnpj) == 0:
             return None
 
-        cnpj = cnpj.replace('-', '').replace('.', '').replace('/', '')
+        cnpj = self.cnpj_puro()
+        
         if not cnpj.isdigit():
             # Caracter estranho presente
             return False
+
         if len(cnpj) != 14:
             # Tamanho incorreto
             return False
@@ -734,6 +762,88 @@ class Entidade(models.Model):
                     break
 
         return status
+
+    def atualizar_consulta_cnpj(self, situacao=None, motivo_situacao=None, data_situacao=None, situacao_especial=None, data_situacao_especial=None, ultima_atualizacao=None, erro_consulta=None):
+
+        if self.data_consulta_cnpj is not None:
+
+            # Se a última atualização é a mesma, assume que não mudaram os dados, então só atualiza a data da consulta
+            if self.ultima_atualizacao_cnpj == ultima_atualizacao:
+                self.data_consulta_cnpj = timezone.now()
+                self.save(update_fields=['data_consulta_cnpj'])
+                return
+            
+            # Se tem uma consulta já feita com outra data de atualização, copia os dados dela para o histórico
+            novo_historico = HistoricoStatusCnpj(entidade=self, situacao_cnpj=self.situacao_cnpj, motivo_situacao_cnpj=self.motivo_situacao_cnpj, data_situacao_cnpj=self.data_situacao_cnpj, situacao_especial_cnpj=self.situacao_especial_cnpj, data_situacao_especial_cnpj=self.data_situacao_especial_cnpj, ultima_atualizacao_cnpj=self.ultima_atualizacao_cnpj, erro_consulta_cnpj=self.erro_consulta_cnpj)
+            novo_historico.save()
+
+        # Grava a nova consulta na entidade
+        self.situacao_cnpj = situacao
+        self.motivo_situacao_cnpj = motivo_situacao
+        self.data_situacao_cnpj = data_situacao
+        self.situacao_especial_cnpj = situacao_especial
+        self.data_situacao_especial_cnpj = data_situacao_especial
+        self.ultima_atualizacao_cnpj = ultima_atualizacao
+        self.erro_consulta_cnpj = erro_consulta
+        self.data_consulta_cnpj = timezone.now()
+        self.save(update_fields=['situacao_cnpj', 'motivo_situacao_cnpj', 'data_situacao_cnpj', 'situacao_especial_cnpj', 'data_situacao_especial_cnpj', 'ultima_atualizacao_cnpj', 'erro_consulta_cnpj', 'data_consulta_cnpj'])
+
+    @transaction.atomic
+    def consulta_cnpj(self):
+        '''Verifica os dados do cnpj na receita federal através de serviço web de terceiros'''
+        if not self.cnpj_valido():
+            return False
+
+        url = 'https://www.receitaws.com.br/v1/cnpj/' + self.cnpj_puro()
+
+        j = None
+        try:
+            resp = urllib.request.urlopen(url)
+            j = json.loads(resp.read().decode('utf-8'))
+        except Exception as e:
+            erro = type(e).__name__ + str(e.args)
+            self.atualizar_consulta_cnpj(erro_consulta=erro)
+            return False
+
+        if not j:
+            self.atualizar_consulta_cnpj(erro_consulta='NO_RESPONSE')
+            return False
+
+        if 'status' in j:
+            status = j['status']
+            if status == 'ERROR':
+                if 'message' in j:
+                    self.atualizar_consulta_cnpj(erro_consulta=j['message'])
+                else:
+                    self.atualizar_consulta_cnpj(erro_consulta='UNKNOWN_ERROR')
+                return False
+        else:
+            self.atualizar_consulta_cnpj(erro_consulta='NO_STATUS')
+            return False
+
+        if 'situacao' and 'data_situacao' and 'motivo_situacao' and 'situacao_especial' and 'data_situacao_especial' and 'ultima_atualizacao' in j:
+            data_situacao = j['data_situacao']
+            data1 = data_situacao.split('/')
+            if len(data1) != 3:
+                self.atualizar_consulta_cnpj(erro_consulta='WRONG_DATE1')
+                return False
+            data_situacao = data1[2] + '-' + data1[1] + '-' + data1[0]
+            data_situacao_especial = j['data_situacao_especial']
+            if not data_situacao_especial:
+                data_situacao_especial = None
+            else:
+                data2 = data_situacao_especial.split('/')
+                if len(data2) != 3:
+                    self.atualizar_consulta_cnpj(erro_consulta='WRONG_DATE2')
+                    return False
+                else:
+                    data_situacao_especial = data2[2] + '-' + data2[1] + '-' + data2[0]
+            self.atualizar_consulta_cnpj(situacao=j['situacao'], motivo_situacao=j['motivo_situacao'], data_situacao=data_situacao, situacao_especial=j['situacao_especial'], data_situacao_especial=data_situacao_especial, ultima_atualizacao=j['ultima_atualizacao'])
+        else:
+            self.atualizar_consulta_cnpj(erro_consulta='MISSING_DATA')
+            return False
+        
+        return True
 
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
@@ -1125,3 +1235,14 @@ class ForcaTarefa(models.Model):
 
     def __str__(self):
         return self.tarefa
+
+class HistoricoStatusCnpj(StatusCnpj):
+    '''Histórico de status de CNPJ'''
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = u'Histórico de status de CNPJ'
+        verbose_name_plural = u'Historicos de status de CNPJ'
+
+    def __str__(self):
+        return self.situacao + u' ' + str(self.data_situacao)
