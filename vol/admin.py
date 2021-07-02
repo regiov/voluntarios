@@ -520,7 +520,7 @@ class FiltroPorCidade(admin.SimpleListFilter):
         return queryset
 
 class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
-    list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes',)
+    list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes', 'situacao_cnpj',)
     ordering = ('estado', 'cidade', 'razao_social',)
     search_fields = ('razao_social', 'cnpj', 'email_set__endereco', 'cidade',)
     list_filter = ('estado', 'area_atuacao', FiltroPorCidade,)
@@ -710,7 +710,7 @@ class EntidadeComProblemaNaReceita(Entidade):
         verbose_name_plural = u'Entidades com problema na Receita Federal'
 
 class EntidadeComProblemaNaReceitaAdmin(EntidadeAdmin):
-    list_display = ('razao_social', 'situacao_cnpj', 'data_situacao_cnpj', 'motivo_situacao_cnpj', 'situacao_especial_cnpj',)
+    list_display = ('razao_social', 'situacao_cnpj', 'data_situacao_cnpj', 'motivo_situacao_cnpj', 'situacao_especial_cnpj','tem_cartao_cnpj',)
     ordering = ('razao_social',)
     search_fields = ('razao_social', 'cnpj',)
     list_filter = ()
@@ -729,7 +729,12 @@ class EntidadeComProblemaNaReceitaAdmin(EntidadeAdmin):
 
     # Exibe apenas entidades aprovadas que estejam com problema na receita
     def get_queryset(self, request):
-        return self.model.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False, erro_consulta_cnpj__isnull=True).exclude(situacao_cnpj='ATIVA')
+        return self.model.objects.filter(aprovado=True, data_consulta_cnpj__isnull=False, erro_consulta_cnpj__isnull=True).exclude(situacao_cnpj='ATIVA').annotate(num_cartoes_cnpj=Count('documento', filter=Q(documento__tipodoc__codigo='cnpj')))
+
+    def tem_cartao_cnpj(self, instance):
+        return instance.num_cartoes_cnpj > 0
+    tem_cartao_cnpj.boolean = True
+    tem_cartao_cnpj.short_description = u'Tem cartão'
 
     @transaction.atomic
     def reprovar(self, request, queryset):
