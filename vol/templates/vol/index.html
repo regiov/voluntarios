@@ -54,24 +54,31 @@
     </section>
     <!--/#services-->
 
-    <section id="action" class="responsive">
-        <div class="vertical-center">
+    <section id="action">
              <div class="container">
                 <div class="row">
-                    <div class="action take-tour">
                         <div class="col-sm-7">
                             <h1 class="title"><span>Guia do voluntariado</span></h1>
-                            <p>Preparamos uma cartilha respondendo às principais dúvidas sobre trabalho voluntário, com modelos de documentos, legislação sobre o assunto e contando um pouco sobre nós.</p>
+                            <p>Preparamos um guia respondendo às principais dúvidas sobre trabalho voluntário, com modelos de documentos, legislação sobre o assunto e também contando um pouco sobre nós.</p>
                         </div>
                         <div class="col-sm-5">
-                            <div class="tour-button">
-                                <a href="{{ MEDIA_PREFIX }}/media/docs/guia-voluntariado-v1.pdf" class="btn btn-common" target="_blank">Faça download do guia</a>
+                            <div class="tour-button text-center">
+                                <a href="{{ MEDIA_PREFIX }}/media/docs/guia-voluntariado-v1.pdf" class="btn btn-common" target="_blank">Download do guia</a>
                              </div>
                         </div>
-                    </div>
+                </div>
+                <div class="row spaced-row">
+                        <div class="col-sm-7">
+                            <h1 class="title"><span>Cartilha sobre entidades</span></h1>
+                            <p>Aqui você pode aprender um pouco mais sobre os diferentes tipos de entidades que existem bem como sua relação com o trabalho voluntário do ponto de vista jurídico. Este documento é voltado tanto a voluntários quanto a entidades.</p>
+                        </div>
+                        <div class="col-sm-5">
+                            <div class="tour-button text-center">
+                                <a href="{{ MEDIA_PREFIX }}/media/docs/cartilha-entidades-v5.pdf" class="btn btn-common" target="_blank">Download da cartilha</a>
+                             </div>
+                        </div>
                 </div>
             </div>
-        </div>
    </section>
    <!--/#action-->
 
@@ -133,42 +140,5 @@
        </div>
    </section>
    <!--/#testimonials-->
-
-   <section id="instagram" class="responsive">
-     <div class="container">
-          <div class="row">
-              <div class="col-sm-12">
-                  <div class="testimonial bottom">
-                      <h1 class="title">Acompanhe nossas mensagens</h1>
-                  </div>
-              </div>
-          </div>
-        <div class="row">
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvywK0zAoKP/" target="_blank"><img alt="instagram1" class="img-fluid" id="insta1" src="{% static 'images/misc/insta1.jpg' %}"></a>
-          </div>
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvwytEMACGK/" target="_blank"><img alt="instagram2" class="img-fluid" id="insta2" src="{% static 'images/misc/insta2.jpg' %}"></a> 
-          </div>
-          <!-- Force next columns to break to new line -->
-          <div class="w-100"></div>
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvtzXrAAED0/" target="_blank"><img alt="instagram3" class="img-fluid" id="insta3" src="{% static 'images/misc/insta3.jpg' %}"></a>
-          </div>
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvrmOtTgXlo/" target="_blank"><img alt="instagram4" class="img-fluid" id="insta4" src="{% static 'images/misc/insta4.jpg' %}"></a>
-          </div>
-          <!-- Force next columns to break to new line -->
-          <div class="w-100"></div>
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvjTjnmALRw/" target="_blank"><img alt="instagram5" class="img-fluid" id="insta5" src="{% static 'images/misc/insta5.jpg' %}"></a>
-          </div>
-          <div class="col-6 col-sm-4 col-md-2 text-center">
-            <a href="https://www.instagram.com/p/BvhRZwLAWes/" target="_blank"><img alt="instagram6" class="img-fluid" id="insta6" src="{% static 'images/misc/insta6.jpg' %}"></a>
-          </div>
-        </div>
-     </div>
-   </section>
-   <!--/#instagram-->
 
 {% endblock content_container %}
