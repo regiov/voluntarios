@@ -27,7 +27,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, UFS
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS
 
 from allauth.account.models import EmailAddress
 
@@ -405,7 +405,7 @@ def busca_voluntarios(request):
             voluntarios = paginador.page(1)
         except EmptyPage:
             # Se a página está fora dos limites (ex 9999), exibe a última
-            voluntarios = paginador.page(paginator.num_pages)
+            voluntarios = paginador.page(paginador.num_pages)
         pagina_atual = voluntarios.number
         max_links_visiveis = 10
         intervalo = 10/2
@@ -1089,7 +1089,7 @@ def busca_doacoes(request):
             doacoes = paginador.page(1)
         except EmptyPage:
             # Se a página está fora dos limites (ex 9999), exibe a última
-            doacoes = paginador.page(paginator.num_pages)
+            doacoes = paginador.page(paginador.num_pages)
         pagina_atual = doacoes.number
         max_links_visiveis = 10
         intervalo = 10/2
@@ -1805,3 +1805,21 @@ def exibe_entidades_com_problema_na_receita(request):
     '''Exibe lista de entidades com problema na receita federal na interface adm.'''
     # E ativa filtro para entidades aprovadas
     return redirect(reverse('admin:vol_entidadecomproblemanareceita_changelist'))
+
+@login_required
+@staff_member_required
+def exibe_funcao(request, id_funcao):
+    '''Exibe função, com toda eventual hierarquia abaixo dela.'''
+    try:
+        funcao = Funcao.objects.get(id=id_funcao)
+    except Funcao.DoesNotExist:
+        raise Http404
+
+    # Garante que apenas usuários vinculados à entidade editem seus dados
+    entidades = request.user.entidades() # Entidades vinculadas ao usuário
+    if funcao.entidade.pk not in entidades.values_list('pk', flat=True):
+        raise PermissionDenied
+
+    context = {'funcao': funcao}
+    template = loader.get_template('vol/funcao.html')
+    return HttpResponse(template.render(context, request))

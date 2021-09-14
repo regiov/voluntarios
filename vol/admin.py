@@ -19,7 +19,9 @@ from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo
+from mptt.admin import DraggableMPTTAdmin, TreeRelatedFieldListFilter
+
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -919,6 +921,12 @@ class AcessoAConteudoAdmin(admin.ModelAdmin):
 
 class TipoArtigoAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(Funcao)
+class FuncaoAdmin(DraggableMPTTAdmin):
+    '''Interface administrativa para funções'''
+    list_display = ('tree_actions', 'indented_title', 'qtde_pessoas', 'responsaveis',)
+    raw_id_fields = ('entidade',)
 
 admin.site.register(Usuario, MyUserAdmin)
 admin.site.unregister(FlatPage)

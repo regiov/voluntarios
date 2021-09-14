@@ -130,6 +130,7 @@ urlpatterns = [
 
     # Páginas administrativas
     url(r'^indicadores$', views.indicadores, name='indicadores'),
+    url(r'^funcao/(?P<id_funcao>\d+)/?$', views.exibe_funcao, name='exibe_funcao'),
 
     # Interface adm
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
