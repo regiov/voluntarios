@@ -27,6 +27,8 @@ from django.contrib.auth.models import (
 from allauth.account import app_settings as allauth_settings
 from allauth.account.models import EmailAddress
 
+from mptt.models import MPTTModel, TreeForeignKey
+
 from notification.utils import notify_support
 
 from .utils import track_data
@@ -1248,3 +1250,27 @@ class HistoricoStatusCnpj(StatusCnpj):
 
     def __str__(self):
         return self.situacao + u' ' + str(self.data_situacao)
+
+class Funcao(MPTTModel):
+    """Árvrore de funções a serem desempenhadas numa entidade"""
+    entidade     = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    nome         = models.CharField('Nome', max_length=200)
+    # Ordenação de funções do mesmo nível
+    ordem        = models.SmallIntegerField()
+    descricao    = models.TextField(u'Descrição', null=True, blank=True)
+    # Quantidade de pessoas que podem desempenhar a tarefa (apenas para tarefas de último nível)
+    qtde_pessoas = models.IntegerField(u'Qtde de pessoas', null=True, blank=True, default=0)
+    # Enquanto não criamos uma nova tabela para vincular pessoas a funções, podemos listar as pessoas aqui
+    responsaveis = models.TextField(u'Responsáveis', null=True, blank=True)
+    # Função superior
+    parent       = TreeForeignKey('self', verbose_name='Função superior', on_delete=models.PROTECT, null=True, blank=True, related_name='children')
+
+    class Meta:
+        verbose_name = 'Função'
+        verbose_name_plural = 'Funções'
+
+    class MPTTMeta:
+        order_insertion_by = ['ordem']
+
+    def __str__(self):
+        return self.nome

@@ -48,15 +48,16 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.gis',
     'django.contrib.postgres',
-    'bootstrapform',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'website.apps.MyFlatPagesConfig',
-    'tinymce',
-    'notification',
-    'vol',
-    'trans',
+    'mptt',           # para representações hierárquicas no banco
+    'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
+    'allauth',               #
+    'allauth.account',       # para gerenciar autenticação
+    'allauth.socialaccount', #
+    'website.apps.MyFlatPagesConfig', # para customizar páginas planas
+    'tinymce',       # para poder visualizar e gravar html em campos texto
+    'notification',  # para encapsular notificações por e-mail
+    'vol',           # app principal
+    'trans',         # para sobrepor traduções de outros apps
     #'debug_toolbar',
 ]
 
