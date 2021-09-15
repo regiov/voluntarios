@@ -5,7 +5,7 @@
 
 <p><b>{{ funcao.nome }}</b></p>
 {% recursetree funcao.get_descendants %}
-<p{% if node.level %} style="margin-left: {% widthratio node.level 1 20 %}px;"{% endif %}>&#8627;&nbsp;<b>{{ node.nome }}{% if node.is_leaf_node %}: {% endif %}</b>{% if node.is_leaf_node %}{% if node.responsaveis %}{{ node.responsaveis }}{% else %}?{% endif %}{% endif %}</p>
+<p{% if node.level %} style="margin-left: {% widthratio node.level 1 20 %}px;"{% endif %}>&#8627;&nbsp;<b>{{ node.nome }}{% if node.is_leaf_node %}{% if False %}:{% endif %} {% endif %}</b>{% if False and node.is_leaf_node %}{% if node.responsaveis %}{{ node.responsaveis }}{% else %}?{% endif %}{% endif %}</p>
 {{ children }}
 {% endrecursetree %}
 
