@@ -18,9 +18,11 @@
 {% if entidade.descricao %}<p class="text-justify"><label>Descrição:</label> {{ entidade.descricao }}</p>{% endif %}
 {% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
 <h3 class="secao-entidade"><span>Mais informações & contato</span></h3>
+{% if entidade.cidade or entidade.estado %}
 <p><i class="fas fa-home" style="vertical-align: top;" title="endereço"></i>
-<span style="display: inline-block;">{% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{% if entidade.logradouro and entidade.bairro %}<br>{% endif %}{{ entidade.bairro }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}CEP {{ entidade.cep }}<br>{% endif %}{{ entidade.cidade }}{% if entidade.cidade and entidade.estado %} - {% endif %}{{ entidade.estado }}</span>
+<span style="display: inline-block;">{% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{% if entidade.logradouro and entidade.bairro %}<br>{% endif %}{{ entidade.bairro|default:"" }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}CEP {{ entidade.cep }}<br>{% endif %}{{ entidade.cidade|default:"" }}{% if entidade.cidade and entidade.estado %} - {% endif %}{{ entidade.estado|default:"" }}</span>
 </p>
+{% endif %}
 
 {% if entidade.nome_contato %}<p><i class="fas fa-user" title="contato"></i> {{ entidade.nome_contato|default:"-" }}</p>{% endif %}
 {% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
