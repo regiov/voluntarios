@@ -66,7 +66,7 @@ Se você não souber o nome da entidade deixe em branco e apenas digite sua cida
     <thead><th>Entidade</th><th>Área de Atuação</th><th>Cidade/Estado</th><th>Bairro</th></thead>
     <tbody>
     {% for entidade in entidades %}
-      <tr><td><a href="{% url 'exibe_entidade' entidade.id %}">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td><td>{{ entidade.area_atuacao.nome|default:"-" }}</td><td>{{ entidade.cidade }}-{{ entidade.estado }}</td><td>{{ entidade.bairro }}</td></tr>
+      <tr><td><a href="{% url 'exibe_entidade' entidade.id %}">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td><td>{{ entidade.area_atuacao.nome|default:"-" }}</td><td>{% if entidade.cidade or entidade.estado %}{{ entidade.cidade }}{% if entidade.cidade and entidade.estado %}-{% endif %}{{ entidade.estado }}{% else %}-{% endif %}</td><td>{{ entidade.bairro|default:'-' }}</td></tr>
     {% endfor %}
     </tbody>
     </table>
