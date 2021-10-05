@@ -141,6 +141,8 @@
     {{ form.descricao }}
   </div>
 
+  {% include "vol/campo_formulario.html" with campo=form.invisivel div_id="invisivel" after_field="<b>Não quero aparecer em buscas por voluntários.</b>" %}
+  
   {% comment %}Exibe apenas quando cadastro estiver sendo criado{% endcomment %}
   {% if not request.user.is_voluntario %}
   {% include "vol/campo_formulario.html" with campo=form.ciente_autorizacao div_id="ciente-autorizacao" after_field="<b>Estou ciente que, por ser menor de 18 anos, preciso de autorização dos pais ou representante legal para exercer trabalho voluntário.</b>" invisible=True %}

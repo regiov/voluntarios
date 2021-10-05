@@ -300,7 +300,7 @@ def cadastro_voluntario(request, msg=None):
     return HttpResponse(template.render(context, request))
 
 def tem_acesso_a_voluntarios(request):
-    '''Lógica de controle de acesso a busca e visualização de voluntários'''
+    '''Lógica de controle de acesso à busca e visualização de voluntários'''
     if not request.user.is_authenticated:
         messages.info(request, u'Para realizar buscas na base de dados de voluntários é preciso estar cadastrado no sistema como usuário, além de estar vinculado a pelo menos uma entidade com cadastro aprovado. Clique <a href="' + reverse('link_entidade_nova') + '">aqui</a> para dar início a este procedimento.')
         return False
@@ -335,8 +335,8 @@ def busca_voluntarios(request):
 
     if 'Envia' in request.GET:
 
-        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado
-        voluntarios = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(aprovado=True)
+        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
+        voluntarios = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(Q(invisivel=False) | Q(invisivel__isnull=True), aprovado=True)
 
         # Filtro por área de interesse
         fasocial = request.GET.get('fasocial')

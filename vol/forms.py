@@ -90,12 +90,17 @@ class FormVoluntario(forms.ModelForm):
                                             widget=forms.CheckboxInput(attrs={'style':'margin-right:5px;'}),
                                             help_text="",
                                             required=False)
+    invisivel = forms.BooleanField(label=u'',
+                                   # Acrescenta margem para o label não ficar muito colado
+                                   widget=forms.CheckboxInput(attrs={'style':'margin-right:5px;'}),
+                                   help_text="",
+                                   required=False)
 
     class Meta:
         model = Voluntario
         fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone", "empregado",
                   "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho",
-                  "area_interesse", "ciente_autorizacao")
+                  "area_interesse", "ciente_autorizacao", "invisivel")
 
     def clean_data_aniversario(self):
         val = self.cleaned_data['data_aniversario']

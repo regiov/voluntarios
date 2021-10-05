@@ -243,6 +243,7 @@ class Voluntario(models.Model):
     data_cadastro         = models.DateTimeField(u'Data do cadastro', auto_now_add=True)
     importado             = models.BooleanField(u'Importado da base anterior', default=False)
     aprovado              = models.BooleanField(u'Aprovado', null=True, blank=True)
+    # Campo incluído em 05/10/2021 às 10:37. Voluntários que se cadastraram antes dessa data tem este campo nulo e aparecem nas buscas.
     invisivel             = models.BooleanField(u'Invisível nas buscas', null=True, blank=True)
     # Estes 3 campos (*_analise) só são preenchidos na primeira aprovação/rejeição de perfil de voluntário
     # somente através da interface expressa.
