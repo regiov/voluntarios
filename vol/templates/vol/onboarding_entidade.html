@@ -1,0 +1,41 @@
+{% extends "vol/base_admin.html" %}
+{% load static %}
+
+{% block title %}Onboarding{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Recepção de entidade</h1>
+
+{% include "vol/mensagens.html" %}
+
+<h2 class="nome-entidade"><a class="link-externo" href="{% url 'exibe_entidade' entidade.id %}" target="_blank"><span>{{ entidade.nome_fantasia|default:entidade.razao_social }}</span></a></h2>
+
+{% with status=entidade.onboarding_status %}
+<div class="registro">
+  <p><label>Situação:</label> {{ entidade.nome_onboarding_status }}</p>
+
+{% if entidade.data_envio_onboarding is None and entidade.resp_onboarding == request.user %}
+<form method="POST" action="">
+  {% csrf_token %}
+  {% include "vol/campo_formulario.html" with campo=form.assunto %}
+  {% include "vol/campo_formulario.html" with campo=form.mensagem %}
+
+  <input class="btn btn-primary" type="submit" name="gravar" value="Gravar para continuar depois">
+  <input class="btn btn-primary" type="submit" name="enviar" value="Enviar">
+</form>
+{% else %}
+  <p><label>Mensagem de boas-vindas</label></p>
+  {% if entidade.data_envio_onboarding %}<p><label>Enviada inicialmente em: </label> {{ entidade.data_envio_onboarding|date:"d-m-Y" }} <br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span></p>{% endif %}
+  <p><label>Assunto: </label> {{ entidade.assunto_msg_onboarding }}</p>
+  <pre>{{ entidade.msg_onboarding|default:"(em branco)" }}</pre>
+  {% if entidade.resp_onboarding == request.user %}
+    {% if status == 4 or status == 5 %}
+      {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+</div>
+{% endwith %}
+
+{% endblock content %}

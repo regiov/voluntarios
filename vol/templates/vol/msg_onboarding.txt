@@ -1,0 +1,18 @@
+Olá {% if nome_contato %}{{ nome_contato }}{% else %}[[ nome do contato na entidade ]]{% endif %},
+
+Nós do site voluntarios.com.br temos o prazer de dar as boas vindas e parabenizar por sua inclusão em nosso banco de entidades.
+
+Meu nome é {{ nome_responsavel }}. Faço parte da equipe que ajuda a conectar voluntários às entidades em todo Brasil para que, juntos, possamos fazer a diferença em nossa sociedade. Esperamos que essa parceria traga ótimos frutos a todos!
+
+Estamos fazendo um trabalho de divulgação das entidades através das nossas redes sociais, assim, gostaria também de aproveitar esta oportunidade para perguntar se vocês possuem uma ou mais fotos ou vídeos que possamos compartilhar em nossos canais - preferencialmente mostrando algum trabalho voluntário feito na sua entidade, incluindo uma breve descrição sobre a foto ou vídeo. Desta forma buscaremos promover ainda mais sua entidade bem como o próprio trabalho voluntário, engajando pessoas também pelas redes sociais.
+
+[[ depois de olhar o cadastro da entidade, visitar o site deles e redes sociais, se for o caso, incluir perguntas adicionais sobre a entidade já pensando em contéudo para a postagem. Ex: quantas pessoas vocês atendem? há vagas de trabalho voluntário disponíveis no momento? podemos usar material que vocês já publicaram na rede social x? ]]
+
+Agradeço desde já, e coloco-me à disposição.
+
+Atenciosamente,
+
+{{ nome_responsavel }}
+Equipe de Apoio
+voluntarios.com.br
+protocolo: oe-{{ id_entidade }}

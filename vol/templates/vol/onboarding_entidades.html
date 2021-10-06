@@ -1,0 +1,56 @@
+{% extends "vol/base_admin.html" %}
+{% load static %}
+
+{% block title %}Onboarding{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Gerenciamento de recepção de entidades</h1>
+
+{% include "vol/mensagens.html" %}
+
+<form method="GET" action="">
+  <p>Somente entidades cadastradas há menos de <input type="text" name="dias" value="{{ dias }}" size="5"/> dias <input id="filtrar" class="btn btn-primary" type="submit" name="filtrar" value="Filtrar"></p>
+</form>
+{% if entidades|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+    <thead>
+      <th>Nome</th>
+      <th>cadastro</th>
+      <th>e-mail principal</th>
+      <th>situação</th>
+      <th>&nbsp;</th>
+      <th>responsável</th>
+    </thead>
+  <tbody>
+  {% for entidade in entidades %}
+  {% with status=entidade.onboarding_status %}<tr>
+      <td><a class="link-externo" href="{% url 'exibe_entidade' entidade.id %}" target="_blank">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td>
+      <td>{{ entidade.data_cadastro|date:"d-m-Y" }}</td>
+      <td>{{ entidade.email_principal|default:"-" }}</td>
+      <td><span class="{% if status == 1 or status == 4 %}text-danger{% elif status == 8 %}text-success{% endif %}">
+	  {{ entidade.nome_onboarding_status }}
+	</span>
+	{% if status == 5 %}<br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span>
+	{% elif status == 8 %} <img src="{% static 'images/misc/icon-yes.svg' %}" title="ok"/>
+	{% endif %}
+	{% if entidade.resp_onboarding == request.user %}
+	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
+	  {% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
+	  {% endif %}
+	{% endif %}
+      </td>
+      <td>{% if status > 1 %}<a href="{% url 'onboarding_entidade' entidade.id %}"><i class="fas fa-envelope" title="ver mensagem"></i></a>{% endif %}</td>
+      <td>{% if entidade.resp_onboarding %}{{ entidade.resp_onboarding.nome }}{% else %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="assumir" value="quero assumir"></form>{% endif %}</td>
+  </tr>{% endwith %}
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+
+{% else %}
+  <h2>Nenhuma entidade dentro dos critérios de seleção.</h2>
+{% endif %}
+
+{% endblock content %}
