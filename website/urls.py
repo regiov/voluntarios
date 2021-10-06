@@ -37,6 +37,8 @@ urlpatterns = [
 
     url(r'^cadastro/?$', views.escolha_cadastro, name='escolha_cadastro'),
 
+    url(r'^logo/?$', views.logo_rastreado, name='logo_rastreado'),
+
     # Usuário
     url(r'^usuario/novo/?$', views.link_usuario_novo, name='link_usuario_novo'),
     url(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
@@ -147,6 +149,8 @@ urlpatterns = [
     url(r'^painel/cata-email/progresso/uf/(?P<sigla>[\w]{2})/?$', views.progresso_cata_email_por_municipio, name='progresso_cata_email_por_municipio'),
     url(r'^painel/entidades/pendencias$', views.exibe_pendencias_entidades, name='exibe_pendencias_entidades'),
     url(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
+    url(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
+    url(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
 ]
 
 if settings.DEBUG:

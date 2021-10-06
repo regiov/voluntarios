@@ -7,10 +7,11 @@ from math import ceil, log10
 from copy import deepcopy
 
 from django.shortcuts import render, redirect
-from django.template import loader
+from django.template import loader, engines
 from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core import mail
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
 from django.db.models.functions import TruncMonth, TruncWeek
@@ -25,13 +26,14 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
+from django.utils.http import urlencode
 from django.apps import apps
 
 from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail
+from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario, notifica_aprovacao_entidade
@@ -1808,6 +1810,156 @@ def exibe_entidades_com_problema_na_receita(request):
 
 @login_required
 @staff_member_required
+def onboarding_entidades(request):
+    '''Exibe lista de entidades para fins de gerenciamento de onboarding'''
+    metodos = ['GET', 'POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    # Somente entidades cadastradas há menos de x dias
+    if request.method == 'GET':
+        dias = request.GET.get('dias', 90)
+    elif request.method == 'POST':
+        dias = request.POST.get('dias', 90)
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(days=int(dias))
+    ref = now-delta
+    entidades = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref.date()).order_by('-data_cadastro')
+    context = {'dias': dias, 'entidades': entidades}
+    template = loader.get_template('vol/onboarding_entidades.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def onboarding_entidade(request, id_entidade):
+    '''Exibe página de onboarding de entidade'''
+    metodos = ['GET', 'POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    assunto_msg = None
+    msg = None
+
+    # Assunto da mensagem
+    if not entidade.assunto_msg_onboarding:
+        assunto_msg = entidade.menor_nome() + ' - Bem-vind@!'
+    else:
+        assunto_msg = entidade.assunto_msg_onboarding
+
+    # Conteúdo da mensagem
+    if not entidade.msg_onboarding:
+        msg = loader.render_to_string('vol/msg_onboarding.txt',
+                                      {'nome_responsavel': request.user.get_short_name(),
+                                       'nome_contato': entidade.nome_contato,
+                                       'id_entidade': entidade.pk})
+    else:
+        msg = entidade.msg_onboarding
+
+    form = FormOnboarding(initial={'assunto': assunto_msg, 'mensagem': msg})
+
+    if request.method == 'POST':
+        if 'assumir' in request.POST:
+            # Assumir uma recepção de entidade envolve gravar o responsável, a data e já direcionar para a página da mensagem
+            if entidade.resp_onboarding is not None:
+                messages.error(request, u'Já há um responsável pela recepção desta entidade!')
+            else:
+                entidade.resp_onboarding = request.user
+                entidade.data_resp_onboarding = timezone.now()
+                entidade.save(update_fields=['resp_onboarding', 'data_resp_onboarding'])
+        else:
+
+            form = FormOnboarding(data=request.POST)
+
+            # Todas as outras ações só podem ser feitas pelo responsável pela recepção
+            if entidade.resp_onboarding != request.user:
+                messages.error(request, u'Somente o responsável pela recepção desta entidade pode trabalhar nesta tarefa!')
+            else:
+
+                # Gravação pura e simples do assunto e da mensagem, redirecionando para a lista
+                if 'gravar' in request.POST:
+                        if 'mensagem' in request.POST and 'assunto' in request.POST:
+                            entidade.assunto_msg_onboarding = request.POST['assunto']
+                            entidade.msg_onboarding = request.POST['mensagem']
+                            entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding'])
+                            messages.info(request, u'Mensagem gravada para envio posterior')
+                            return redirect(reverse('onboarding_entidades'))
+
+                # Envio ou renvio da mensagem
+                if 'enviar' in request.POST or 'reenviar' in request.POST:
+
+                    error = False
+
+                    if not hasattr(settings, 'ONBOARDING_EMAIL_HOST_USER') or not hasattr(settings, 'ONBOARDING_EMAIL_HOST_PASSWORD') or not hasattr(settings, 'ONBOARDING_EMAIL_FROM'):
+
+                        messages.error(request, u'Ausência de configuração para envio do e-mail!')
+                        error = True
+
+                    if not error and 'enviar' in request.POST:
+
+                        if 'assunto' in request.POST and 'mensagem' in request.POST:
+
+                            # obs: no caso de reenvio, usa assunto_msg e msg que já foram pegados do banco mais acima
+                            assunto_msg = request.POST['assunto']
+                            msg = request.POST['mensagem']
+
+                        else:
+                            messages.error(request, u'Ausência de parâmetros para envio do e-mail!')
+                            error = True
+
+                    if not error and '[[' in msg or ']]' in msg:
+
+                        # obs: não é para cair aqui em caso de reenvio, mas por segurança vamos verificar aqui tb
+                        messages.error(request, u'Remova os trechos delimitados por [[ ... ]] na mensagem. Eles foram feitos para incluir conteúdo específico personalizado.')
+                        error = True
+
+                    if not error:
+                        
+                        html_msg = loader.render_to_string('vol/onboarding_template.html',
+                                                           {'mensagem': msg,
+                                                            'nome_responsavel': request.user.nome,
+                                                            'link_logo': request.build_absolute_uri(reverse('logo_rastreado')) + '?' + urlencode({'oe': entidade.hmac_key()})})
+                        try:
+                            entidade.assunto_msg_onboarding = assunto_msg
+                            entidade.msg_onboarding = msg
+                            if entidade.data_envio_onboarding is None or entidade.falha_envio_onboarding is not None:
+                                entidade.data_envio_onboarding = timezone.now()
+                            with mail.get_connection(
+                                host=settings.EMAIL_HOST, 
+                                port=settings.EMAIL_PORT, 
+                                username=settings.ONBOARDING_EMAIL_HOST_USER, 
+                                password=settings.ONBOARDING_EMAIL_HOST_PASSWORD, 
+                                use_tls=settings.EMAIL_USE_TLS
+                                ) as connection:
+                                email_msg = mail.EmailMultiAlternatives(assunto_msg,
+                                                                        msg,
+                                                                        settings.ONBOARDING_EMAIL_FROM,
+                                                                        [entidade.email_principal],
+                                                                        connection=connection)
+                                email_msg.attach_alternative(html_msg, "text/html")
+                                email_msg.send()
+                                # Melhor não rastrear por Message-Id, pois pode-se ter que enviar várias vezes
+                                # o mesmo e-mail, sendo que a cada vez será um id diferente. O rastreamento
+                                # é feito hoje por um protocolo no corpo da mensagem.
+                                #msg_id = email_msg.extra_headers.get('Message-Id', None)
+                            entidade.falha_envio_onboarding = None
+                            entidade.total_envios_onboarding = entidade.total_envios_onboarding + 1
+                            messages.info(request, u'Mensagem enviada com sucesso!')
+                        except Exception as e:
+                            entidade.falha_envio_onboarding = str(e)
+                            messages.error(request, u'Ops, falha no envio da mensagem! A equipe de suporte será notificada.')
+                            notify_support(u'Falha no envio de msg de onboarding', request.user.nome + "\n\n" + str(e), request)
+                        entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding', 'data_envio_onboarding', 'falha_envio_onboarding', 'total_envios_onboarding'])
+                        return redirect(reverse('onboarding_entidades'))
+ 
+    context = {'entidade': entidade, 'form': form}
+    template = loader.get_template('vol/onboarding_entidade.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
 def exibe_funcao(request, id_funcao):
     '''Exibe função, com toda eventual hierarquia abaixo dela.'''
     try:
@@ -1823,3 +1975,19 @@ def exibe_funcao(request, id_funcao):
     context = {'funcao': funcao}
     template = loader.get_template('vol/funcao.html')
     return HttpResponse(template.render(context, request))
+
+def logo_rastreado(request):
+    '''Retorna o logotipo, rastreando a origem da requisição'''
+    if request.method == 'GET':
+        if 'oe' in request.GET:
+            # onboarding de entidade
+            entidade = Entidade.objects.from_hmac_key(request.GET['oe'])
+            if entidade and entidade.data_visualiza_onboarding is None:
+                entidade.data_visualiza_onboarding = timezone.now()
+                entidade.save(update_fields=['data_visualiza_onboarding'])
+    logo_path = settings.STATIC_ROOT + os.sep + 'images' + os.sep + 'logo.png'
+    try:
+        with open(logo_path, "rb") as f:
+            return HttpResponse(f.read(), content_type="image/png")
+    except IOError:
+        return redirect(settings.STATIC_URL + 'images/logo.png')

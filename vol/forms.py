@@ -452,3 +452,14 @@ class FormEmail(forms.ModelForm):
         if len(val) == 0:
             raise forms.ValidationError(u'Faltou o e-mail')
         return val
+
+class FormOnboarding(forms.Form):
+    "Formulário para envio de mensagem de boas vindas às entidades"
+    assunto = forms.CharField(label=u'Assunto',
+                              widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                              required=False)
+    mensagem = forms.CharField(label=u'Mensagem',
+                               max_length=7000,
+                               widget=forms.Textarea(attrs={'class':'form-control', 'rows':20, 'cols':30}),
+                               help_text="",
+                               required=False)
