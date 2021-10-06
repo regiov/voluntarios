@@ -2,7 +2,7 @@
 {% if messages %}
 {% autoescape off %}
 {% for message in messages %}
-<p>{{ message }}</p>
+<p class="{% if message.level == 20 %}text-success bg-success{% elif message.level == 30 %}text-warning bg-warning{% elif message.level == 40 %}text-danger bg-danger{% endif %}" style="padding: 15px;">{{ message }}</p>
 {% endfor %}
 {% endautoescape %}
 {% endif %}
