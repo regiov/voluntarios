@@ -414,6 +414,16 @@ class StatusCnpj(models.Model):
     class Meta:
         abstract = True
 
+ONBOARDING_STATUS = {1: 'ninguém cuidando',
+                     2: 'mensagem em preparação',
+                     3: 'aguardando envio',
+                     4: 'falha no envio',
+                     5: 'aguardando retorno',
+                     6: 'sem resposta',
+                     7: 'aguardando divulgação',
+                     8: 'divulgada',
+                     }
+
 @track_data('aprovado')
 class Entidade(StatusCnpj):
     """Entidade."""
@@ -474,6 +484,19 @@ class Entidade(StatusCnpj):
     # Campos utilizados para gerenciar lock de registro na interface administrativa
     resp_bloqueio      = models.ForeignKey(Usuario, verbose_name=u'Em edição por', related_name='resp_bloqueio_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
     data_bloqueio      = models.DateTimeField(u'Início da edição', null=True, blank=True)
+
+    # Campos para gerenciamento de onboading
+    resp_onboarding            = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo onboarding', related_name='resp_onboarding_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_resp_onboarding       = models.DateTimeField(u'Data da atribuição do responsável pelo onboarding', null=True, blank=True)
+    assunto_msg_onboarding     = models.CharField(u'Assunto da mensagem de boas-vindas', max_length=100, null=True, blank=True)
+    msg_onboarding             = models.TextField(u'Mensagem de boas-vindas', null=True, blank=True)
+    data_envio_onboarding      = models.DateTimeField(u'Data de envio da primeira mensagem de boas-vindas', null=True, blank=True)
+    total_envios_onboarding    = models.IntegerField(u'Número de envios de mensagem de boas-vindas', default=0)
+    falha_envio_onboarding     = models.TextField(u'Erro no envio da última mensagem de boas-vindas', null=True, blank=True)
+    data_visualiza_onboarding  = models.DateTimeField(u'Data da primeira visualização da mensagem de boas-vindas', null=True, blank=True)
+    data_ret_envio_onboarding  = models.DateTimeField(u'Data de retorno à mensagem de boas-vindas', null=True, blank=True)
+    # campo p/ cancelamento da divulgação?
+    link_divulgacao_onboarding = models.CharField(u'Link para postagem de divulgação da entidade', max_length=255, null=True, blank=True)
 
     objects = EntidadeManager()
 
@@ -850,6 +873,31 @@ class Entidade(StatusCnpj):
             return False
         
         return True
+
+    def onboarding_status(self):
+        if self.resp_onboarding is None:
+            return 1
+        else:
+            if not self.msg_onboarding or ('[[' in self.msg_onboarding or ']]' in self.msg_onboarding):
+                return 2
+            if self.data_envio_onboarding is None:
+                return 3
+            if self.falha_envio_onboarding:
+                return 4
+            if self.data_ret_envio_onboarding is None:
+                now = timezone.now()
+                tolerancia = now - datetime.timedelta(days=60) # 2 meses
+                if self.data_envio_onboarding > tolerancia:
+                    return 5
+                else:
+                    return 6
+            else:
+                if self.link_divulgacao_onboarding is None:
+                    return 7
+                return 8
+
+    def nome_onboarding_status(self):
+        return ONBOARDING_STATUS[self.onboarding_status()]
 
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""

@@ -390,7 +390,7 @@ class NovaAnotacaoEntidadeInline(admin.TabularInline):
         return False
 
 class BaseEntidadeAdmin(admin.ModelAdmin):
-    exclude = ('coordenadas', 'voluntarios', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em', 'situacao_cnpj', 'motivo_situacao_cnpj', 'data_situacao_cnpj', 'situacao_especial_cnpj', 'data_situacao_especial_cnpj', 'ultima_atualizacao_cnpj', 'data_consulta_cnpj', 'erro_consulta_cnpj',)
+    exclude = ('coordenadas', 'voluntarios', 'qtde_visualiza', 'ultima_visualiza', 'ultima_revisao', 'data_analise', 'resp_analise', 'data_bloqueio', 'resp_bloqueio', 'confirmado', 'confirmado_em', 'situacao_cnpj', 'motivo_situacao_cnpj', 'data_situacao_cnpj', 'situacao_especial_cnpj', 'data_situacao_especial_cnpj', 'ultima_atualizacao_cnpj', 'data_consulta_cnpj', 'erro_consulta_cnpj', 'resp_onboarding', 'data_resp_onboarding', 'assunto_msg_onboarding', 'msg_onboarding', 'data_envio_onboarding', 'total_envios_onboarding', 'falha_envio_onboarding', 'data_visualiza_onboarding', 'data_ret_envio_onboarding', 'link_divulgacao_onboarding',)
 
     # Gravações automáticas na Entidade
     def save_model(self, request, obj, form, change):
