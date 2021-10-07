@@ -29,7 +29,7 @@
       <td><a class="link-externo" href="{% url 'exibe_entidade' entidade.id %}" target="_blank">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td>
       <td>{{ entidade.data_cadastro|date:"d-m-Y" }}</td>
       <td>{{ entidade.email_principal|default:"-" }}</td>
-      <td><span class="{% if status == 1 or status == 4 %}text-danger{% elif status == 8 %}text-success{% endif %}">
+      <td><span class="{% if status == 1 or status == 4 or status == 7 %}text-danger{% elif status == 8 %}text-success{% endif %}">
 	  {{ entidade.nome_onboarding_status }}
 	</span>
 	{% if status == 5 %}<br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span>
