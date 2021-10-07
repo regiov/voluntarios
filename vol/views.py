@@ -1849,16 +1849,32 @@ def onboarding_entidade(request, id_entidade):
     else:
         assunto_msg = entidade.assunto_msg_onboarding
 
+    # Assinatura
+    assinatura = entidade.assinatura_onboarding
+    if assinatura is None:
+        resp = entidade.resp_onboarding
+        if resp is None:
+            if request.method == 'POST' and 'assumir' in request.POST:
+                resp = request.user
+        if resp:
+            entidades_recepcionadas_pela_pessoa = Entidade.objects.filter(resp_onboarding=resp, assinatura_onboarding__isnull=False).order_by('-data_resp_onboarding')
+            if len(entidades_recepcionadas_pela_pessoa) > 0:
+                # Pega última assinatura
+                assinatura = entidades_recepcionadas_pela_pessoa[0].assinatura_onboarding
+            else:
+                assinatura = resp.nome
+
     # Conteúdo da mensagem
     if not entidade.msg_onboarding:
         msg = loader.render_to_string('vol/msg_onboarding.txt',
                                       {'nome_responsavel': request.user.get_short_name(),
                                        'nome_contato': entidade.nome_contato,
+                                       'assinatura': assinatura,
                                        'id_entidade': entidade.pk})
     else:
         msg = entidade.msg_onboarding
 
-    form = FormOnboarding(initial={'assunto': assunto_msg, 'mensagem': msg})
+    form = FormOnboarding(initial={'assunto': assunto_msg, 'mensagem': msg, 'assinatura': assinatura})
 
     if request.method == 'POST':
         if 'assumir' in request.POST:
@@ -1883,7 +1899,8 @@ def onboarding_entidade(request, id_entidade):
                         if 'mensagem' in request.POST and 'assunto' in request.POST:
                             entidade.assunto_msg_onboarding = request.POST['assunto']
                             entidade.msg_onboarding = request.POST['mensagem']
-                            entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding'])
+                            entidade.assinatura_onboarding = request.POST['assinatura']
+                            entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding', 'assinatura_onboarding'])
                             messages.info(request, u'Mensagem gravada para envio posterior')
                             return redirect(reverse('onboarding_entidades'))
 
@@ -1899,11 +1916,12 @@ def onboarding_entidade(request, id_entidade):
 
                     if not error and 'enviar' in request.POST:
 
-                        if 'assunto' in request.POST and 'mensagem' in request.POST:
+                        if 'assunto' in request.POST and 'mensagem' in request.POST and 'assinatura' in request.POST:
 
                             # obs: no caso de reenvio, usa assunto_msg e msg que já foram pegados do banco mais acima
                             assunto_msg = request.POST['assunto']
                             msg = request.POST['mensagem']
+                            assinatura = request.POST['assinatura']
 
                         else:
                             messages.error(request, u'Ausência de parâmetros para envio do e-mail!')
@@ -1916,10 +1934,12 @@ def onboarding_entidade(request, id_entidade):
                         error = True
 
                     if not error:
-                        
+
+                        msg_com_assinatura = msg + "\n" + assinatura + "\n" + 'Equipe de Apoio' + "\n" + 'voluntarios.com.br' + "\n" + 'protocolo: oe-' + str(entidade.id)
+
                         html_msg = loader.render_to_string('vol/onboarding_template.html',
-                                                           {'mensagem': msg,
-                                                            'nome_responsavel': request.user.nome,
+                                                           {'mensagem': msg_com_assinatura,
+                                                            'assinatura': assinatura,
                                                             'link_logo': request.build_absolute_uri(reverse('logo_rastreado')) + '?' + urlencode({'oe': entidade.hmac_key()})})
                         try:
                             entidade.assunto_msg_onboarding = assunto_msg
@@ -1934,7 +1954,7 @@ def onboarding_entidade(request, id_entidade):
                                 use_tls=settings.EMAIL_USE_TLS
                                 ) as connection:
                                 email_msg = mail.EmailMultiAlternatives(assunto_msg,
-                                                                        msg,
+                                                                        msg_com_assinatura,
                                                                         settings.ONBOARDING_EMAIL_FROM,
                                                                         [entidade.email_principal],
                                                                         connection=connection)
@@ -1951,7 +1971,7 @@ def onboarding_entidade(request, id_entidade):
                             entidade.falha_envio_onboarding = str(e)
                             messages.error(request, u'Ops, falha no envio da mensagem! A equipe de suporte será notificada.')
                             notify_support(u'Falha no envio de msg de onboarding', request.user.nome + "\n\n" + str(e), request)
-                        entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding', 'data_envio_onboarding', 'falha_envio_onboarding', 'total_envios_onboarding'])
+                        entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding', 'assinatura_onboarding', 'data_envio_onboarding', 'falha_envio_onboarding', 'total_envios_onboarding'])
                         return redirect(reverse('onboarding_entidades'))
  
     context = {'entidade': entidade, 'form': form}

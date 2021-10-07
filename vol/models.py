@@ -488,10 +488,12 @@ class Entidade(StatusCnpj):
     data_bloqueio      = models.DateTimeField(u'Início da edição', null=True, blank=True)
 
     # Campos para gerenciamento de onboading
+    # obs: mudar para modelo próprio no futuro??
     resp_onboarding            = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo onboarding', related_name='resp_onboarding_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
     data_resp_onboarding       = models.DateTimeField(u'Data da atribuição do responsável pelo onboarding', null=True, blank=True)
     assunto_msg_onboarding     = models.CharField(u'Assunto da mensagem de boas-vindas', max_length=100, null=True, blank=True)
     msg_onboarding             = models.TextField(u'Mensagem de boas-vindas', null=True, blank=True)
+    assinatura_onboarding      = models.CharField(u'Assinatura na mensagem', max_length=100, null=True, blank=True)
     data_envio_onboarding      = models.DateTimeField(u'Data de envio da primeira mensagem de boas-vindas', null=True, blank=True)
     total_envios_onboarding    = models.IntegerField(u'Número de envios de mensagem de boas-vindas', default=0)
     falha_envio_onboarding     = models.TextField(u'Erro no envio da última mensagem de boas-vindas', null=True, blank=True)

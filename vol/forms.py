@@ -462,4 +462,7 @@ class FormOnboarding(forms.Form):
                                max_length=7000,
                                widget=forms.Textarea(attrs={'class':'form-control', 'rows':20, 'cols':30}),
                                help_text="",
-                               required=False)
+                               required=False) # para poder apagar o conteúdo e gerar de novo com outro modelo
+    assinatura = forms.CharField(label=u'Nome na assinatura',
+                                 widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                                 required=False)

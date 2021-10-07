@@ -11,8 +11,3 @@ Estamos fazendo um trabalho de divulgação das entidades através das nossas re
 Agradeço desde já, e coloco-me à disposição.
 
 Atenciosamente,
-
-{{ nome_responsavel }}
-Equipe de Apoio
-voluntarios.com.br
-protocolo: oe-{{ id_entidade }}

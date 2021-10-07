@@ -20,6 +20,7 @@
   {% csrf_token %}
   {% include "vol/campo_formulario.html" with campo=form.assunto %}
   {% include "vol/campo_formulario.html" with campo=form.mensagem %}
+  {% include "vol/campo_formulario.html" with campo=form.assinatura %}
 
   <input class="btn btn-primary" type="submit" name="gravar" value="Gravar para continuar depois">
   <input class="btn btn-primary" type="submit" name="enviar" value="Enviar">
@@ -28,7 +29,10 @@
   <p><label>Mensagem de boas-vindas</label></p>
   {% if entidade.data_envio_onboarding %}<p><label>Enviada inicialmente em: </label> {{ entidade.data_envio_onboarding|date:"d-m-Y" }} <br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span></p>{% endif %}
   <p><label>Assunto: </label> {{ entidade.assunto_msg_onboarding }}</p>
-  <pre>{{ entidade.msg_onboarding|default:"(em branco)" }}</pre>
+{% comment %}Manter o conteúdo do pre como está, senão vão aparecem espaços na hora de exibir o conteúdo{% endcomment %}
+<pre>{{ entidade.msg_onboarding|default:"(em branco)" }}
+{{ entidade.assinatura_onboarding|default:"" }}
+</pre>
   {% if entidade.resp_onboarding == request.user %}
     {% if status == 4 or status == 5 %}
       {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
