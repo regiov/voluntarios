@@ -33,7 +33,7 @@
 	  {{ entidade.nome_onboarding_status }}
 	</span>
 	{% if status == 5 %}<br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span>
-	{% elif status == 8 %} <a href="{{ entidade.link_divulgacao_onboarding }}" target="_blank"><img src="{% static 'images/misc/icon-yes.svg' %}" title="ok"/></a>
+	{% elif status == 8 %} <a href="{{ entidade.link_divulgacao_onboarding }}" target="_blank"><img src="{% static 'images/misc/icon-yes.svg' %}" title="ver postagem" alt="ok"/></a>
 	{% endif %}
 	{% if entidade.resp_onboarding == request.user %}
 	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
