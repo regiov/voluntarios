@@ -414,7 +414,8 @@ class StatusCnpj(models.Model):
     class Meta:
         abstract = True
 
-ONBOARDING_STATUS = {1: 'ninguém cuidando',
+ONBOARDING_STATUS = {0: 'cadastro anterior ao serviço',
+                     1: 'ninguém cuidando',
                      2: 'mensagem em preparação',
                      3: 'aguardando envio',
                      4: 'falha no envio',
@@ -422,6 +423,7 @@ ONBOARDING_STATUS = {1: 'ninguém cuidando',
                      6: 'sem resposta',
                      7: 'aguardando divulgação',
                      8: 'divulgada',
+                     9: 'cancelado',
                      }
 
 @track_data('aprovado')
@@ -497,6 +499,7 @@ class Entidade(StatusCnpj):
     data_ret_envio_onboarding  = models.DateTimeField(u'Data de retorno à mensagem de boas-vindas', null=True, blank=True)
     # campo p/ cancelamento da divulgação?
     link_divulgacao_onboarding = models.CharField(u'Link para postagem de divulgação da entidade', max_length=255, null=True, blank=True)
+    cancelamento_onboarding    = models.CharField(u'Motivo de cancelamento do onboarding', max_length=50, null=True, blank=True)
 
     objects = EntidadeManager()
 
@@ -875,7 +878,11 @@ class Entidade(StatusCnpj):
         return True
 
     def onboarding_status(self):
+        if self.cancelamento_onboarding:
+            return 9
         if self.resp_onboarding is None:
+            if self.data_cadastro is None or self.data_cadastro < datetime.datetime(2020,9,21, tzinfo=datetime.timezone.utc):
+                return 0
             return 1
         else:
             if not self.msg_onboarding or ('[[' in self.msg_onboarding or ']]' in self.msg_onboarding):
@@ -897,7 +904,10 @@ class Entidade(StatusCnpj):
                 return 8
 
     def nome_onboarding_status(self):
-        return ONBOARDING_STATUS[self.onboarding_status()]
+        status = self.onboarding_status()
+        if status == 9:
+            return self.cancelamento_onboarding
+        return ONBOARDING_STATUS[status]
 
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
