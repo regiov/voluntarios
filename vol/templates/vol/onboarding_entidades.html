@@ -41,7 +41,7 @@
 	  {% endif %}
 	{% endif %}
       </td>
-      <td>{% if status > 1 %}<a href="{% url 'onboarding_entidade' entidade.id %}"><i class="fas fa-envelope" title="ver mensagem"></i></a>{% endif %}</td>
+      <td>{% if status > 1 and entidade.msg_onboarding %}<a href="{% url 'onboarding_entidade' entidade.id %}"><i class="fas fa-envelope" title="ver mensagem"></i></a>{% endif %}</td>
       <td>{% if entidade.resp_onboarding %}{{ entidade.resp_onboarding.nome }}{% else %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="assumir" value="quero assumir"></form>{% endif %}</td>
   </tr>{% endwith %}
   {% endfor %}
