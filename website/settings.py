@@ -259,6 +259,7 @@ NOREPLY_EMAIL = 'SET IN LOCAL SETTINGS'
 
 # Configurações do serviço de recepção de entidades
 ONBOARDING_EMAIL_FROM = 'SET IN LOCAL SETTINGS' # remetente das mensagens de boas vindas
+ONBOARDING_IMAP_SERVER = 'SET IN LOCAL SETTINGS' # servidor IMAP para verificar caixa postal
 ONBOARDING_EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS' # usuário da caixa postal de envio (smtp)
 ONBOARDING_EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS' # senha da caixa postal de envio (smtp)
 ONBOARDING_MAX_DAYS_WAITING_RESPONSE = 60 # número de dias em que se aguarda uma resposta da entidade
