@@ -43,35 +43,36 @@ class Command(BaseCommand):
                     code, data = conn.login(settings.ONBOARDING_EMAIL_HOST_USER, settings.ONBOARDING_EMAIL_HOST_PASSWORD)
                     if code != 'OK':
                         raise RuntimeError('Failed to login: ' + code)
-                    code, dummy= conn.select('INBOX', readonly=True)
+                    code, dummy = conn.select('INBOX', readonly=True)
                     if code != 'OK':
                         raise RuntimeError('Failed to select inbox: ' + code)
-                    code, data= conn.search(None, 'ALL')
+                    code, search_data = conn.search(None, 'ALL')
                     if code == 'OK':
-                        msgid_list= data[0].split()
+                        msgid_list = search_data[0].split()
                     else:
                         raise RuntimeError('Failed to get message IDs')
                     p = re.compile(r'protocolo: oe-([\d]+)[^\d].*')
                     for msgid in msgid_list:
-                        code, data = conn.fetch(msgid, '(RFC822)')
+                        code, msg_data = conn.fetch(msgid, '(RFC822)')
                         if code == 'OK':
-                            msg = email.message_from_string(data[0][1].decode('utf-8', errors='ignore'))
+                            msg = email.message_from_string(msg_data[0][1].decode('utf-8', errors='ignore'))
                             for part in msg.walk():
                                 body = part.get_payload(decode=True)
-                                match = p.search(body)
-                                if match:
-                                    id_entidade = int(match.group(1))
-                                    entidade = Entidade.objects.get(id_entidade)
-                                    if entidade.data_ret_envio_onboarding is None:
-                                        # Pega a data da mensagem
-                                        raw = email.message_from_bytes(msg_data[0][1])
-                                        datestring = raw['date']
-                                        datetime_obj = email.utils.parsedate_to_datetime(datestring)
-                                        entidade.data_ret_envio_onboarding = datetime_obj
-                                        entidade.save(update_fields=['data_ret_envio_onboarding'])
-                                        # Sinaliza detecção de resposta
-                                        qtde_respostas = qtde_respostas + 1
-                                    break
+                                if body:
+                                    match = p.search(body.decode('utf-8', errors='ignore'))
+                                    if match:
+                                        id_entidade = int(match.group(1))
+                                        entidade = Entidade.objects.get(id_entidade)
+                                        if entidade.data_ret_envio_onboarding is None:
+                                            # Pega a data da mensagem
+                                            raw = email.message_from_bytes(msg_data[0][1])
+                                            datestring = raw['date']
+                                            datetime_obj = email.utils.parsedate_to_datetime(datestring)
+                                            entidade.data_ret_envio_onboarding = datetime_obj
+                                            entidade.save(update_fields=['data_ret_envio_onboarding'])
+                                            # Sinaliza detecção de resposta
+                                            qtde_respostas = qtde_respostas + 1
+                                        break
                             if qtde_respostas == qtde_entidades_que_nao_responderam:
                                 # não processa as outras mensagens caso já tenha detectado
                                 # o número máximo de respostas esperadas
