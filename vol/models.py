@@ -881,29 +881,29 @@ class Entidade(StatusCnpj):
 
     def onboarding_status(self):
         if self.cancelamento_onboarding:
-            return 9
+            return 9 # cancelado
         if self.resp_onboarding is None:
             if self.data_cadastro is None or self.data_cadastro < datetime.datetime(2020,9,21, tzinfo=datetime.timezone.utc):
-                return 0
-            return 1
+                return 0 # anterior ao serviço
+            return 1 # aguardando responsável
         else:
             if not self.msg_onboarding or ('[[' in self.msg_onboarding or ']]' in self.msg_onboarding):
-                return 2
+                return 2 # msg em preparação
             if self.data_envio_onboarding is None:
-                return 3
+                return 3 # aguardando envio
             if self.falha_envio_onboarding:
-                return 4
+                return 4 # falha no envio
             if self.data_ret_envio_onboarding is None:
                 now = timezone.now()
-                tolerancia = now - datetime.timedelta(days=60) # 2 meses
+                tolerancia = now - datetime.timedelta(days=settings.ONBOARDING_MAX_DAYS_WAITING_RESPONSE)
                 if self.data_envio_onboarding > tolerancia:
-                    return 5
+                    return 5 # sem resposta
                 else:
-                    return 6
+                    return 6 # aguardando resposta
             else:
                 if self.link_divulgacao_onboarding is None:
-                    return 7
-                return 8
+                    return 7 # aguardando divulgação
+                return 8 # divulgado
 
     def nome_onboarding_status(self):
         status = self.onboarding_status()
