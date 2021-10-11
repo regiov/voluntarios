@@ -35,7 +35,7 @@
 </pre>
   {% if entidade.resp_onboarding == request.user %}
     {% if status == 4 or status == 5 %}
-      {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
+      {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
     {% endif %}
   {% endif %}
 {% endif %}

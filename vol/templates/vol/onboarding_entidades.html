@@ -40,7 +40,7 @@
 	{% endif %}
 	{% if entidade.resp_onboarding == request.user %}
 	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
-	  {% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
+	  {% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
 	  {% endif %}
 	{% endif %}
       </td>
