@@ -1857,7 +1857,7 @@ def onboarding_entidade(request, id_entidade):
             if request.method == 'POST' and 'assumir' in request.POST:
                 resp = request.user
         if resp:
-            entidades_recepcionadas_pela_pessoa = Entidade.objects.filter(resp_onboarding=resp, assinatura_onboarding__isnull=False).order_by('-data_resp_onboarding')
+            entidades_recepcionadas_pela_pessoa = Entidade.objects.filter(resp_onboarding=resp, assinatura_onboarding__isnull=False).exclude(assinatura_onboarding='').order_by('-data_resp_onboarding')
             if len(entidades_recepcionadas_pela_pessoa) > 0:
                 # Pega última assinatura
                 assinatura = entidades_recepcionadas_pela_pessoa[0].assinatura_onboarding
@@ -1931,6 +1931,18 @@ def onboarding_entidade(request, id_entidade):
 
                         # obs: não é para cair aqui em caso de reenvio, mas por segurança vamos verificar aqui tb
                         messages.error(request, u'Remova os trechos delimitados por [[ ... ]] na mensagem. Eles foram feitos para incluir conteúdo específico personalizado.')
+                        error = True
+
+                    if not assunto:
+                        messages.error(request, u'Falta o assunto!')
+                        error = True
+
+                    if not msg:
+                        messages.error(request, u'Falta a mensagem!')
+                        error = True
+
+                    if not assinatura:
+                        messages.error(request, u'É preciso colocar sua assinatura para personalizar a mensagem. Por que você removeu??')
                         error = True
 
                     if not error:
