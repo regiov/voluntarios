@@ -138,7 +138,7 @@ urlpatterns = [
     url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
 
     # Painel de controle
-    url(r'^painel$', views.painel, name='painel'),
+    url(r'^painel/?$', views.painel, name='painel'),
     url(r'^painel/voluntarios/revisao$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
     url(r'^painel/voluntarios/revisao/panorama$', views.panorama_revisao_voluntarios, name='panorama_revisao_voluntarios'),
     url(r'^painel/voluntarios/revisao/carga$', views.carga_revisao_voluntarios, name='carga_revisao_voluntarios'),
