@@ -33,6 +33,7 @@ class Command(BaseCommand):
             max_tentativas = 1
             tentativa = 0
             qtde_respostas = 0
+            qtde_mensagens = 0
 
             while tentativa <= max_tentativas and not stop:
 
@@ -53,6 +54,7 @@ class Command(BaseCommand):
                         raise RuntimeError('Failed to get message IDs')
                     p = re.compile(r'protocolo: oe-([\d]+)[^\d].*')
                     for msgid in msgid_list:
+                        qtde_mensagens = qtde_mensagens + 1
                         code, msg_data = conn.fetch(msgid, '(RFC822)')
                         if code == 'OK':
                             msg = email.message_from_string(msg_data[0][1].decode('utf-8', errors='ignore'))
@@ -85,6 +87,9 @@ class Command(BaseCommand):
                 except Exception as e:
                     if tentativa == max_tentativas:
                         notify_support(u'Falha na verificação da caixa postal de onboarding', str(e))
+
+            self.stdout.write(str(qtde_mensagens) + ' mensagens lidas.')
+            self.stdout.write(str(qtde_respostas) + ' respostas detectadas.')
 
             if qtde_respostas > 0:
                 msg = Message.objects.get(code='AVISO_RECEBIMENTO_RESPOSTA_ONBOARDING')
