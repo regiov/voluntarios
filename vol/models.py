@@ -450,7 +450,7 @@ class Entidade(StatusCnpj):
     
     website            = models.CharField(u'Website', max_length=110, null=True, blank=True)
     facebook           = models.CharField(u'Página no facebook', max_length=110, null=True, blank=True)
-    instagram          = models.CharField(u'Instagram', max_length=40, null=True, blank=True)
+    instagram          = models.CharField(u'Instagram', max_length=255, null=True, blank=True)
     twitter            = models.CharField(u'Twitter', max_length=20, null=True, blank=True)
     youtube            = models.CharField(u'Canal no youtube', max_length=110, null=True, blank=True)
     voluntarios        = models.CharField(u'Voluntários', max_length=100, null=True, blank=True)
