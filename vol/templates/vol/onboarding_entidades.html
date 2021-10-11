@@ -35,6 +35,9 @@
 	{% if status == 5 %}<br/><span class="dica">(n&deg; de envios: {{ entidade.total_envios_onboarding }})</span>
 	{% elif status == 8 %} <a href="{{ entidade.link_divulgacao_onboarding }}" target="_blank"><img src="{% static 'images/misc/icon-yes.svg' %}" title="ver postagem" alt="ok"/></a>
 	{% endif %}
+	{% if status == 5 or status == 6 %}
+	  {% if entidade.data_visualiza_onboarding %}<i class="fas fa-eye" title="vista pela entidade"></i>{% endif %}
+	{% endif %}
 	{% if entidade.resp_onboarding == request.user %}
 	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
 	  {% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
