@@ -36,6 +36,8 @@
 
 <h3>Cadastros revisados hoje: <span style="margin-left:15px;">{{ total_ents_dia }}</span></h3>
 
+<h3>Entidades aguardando boas vindas: <span style="margin-left:15px;"><a href="{% url 'onboarding_entidades' %}">{{ total_onboarding }}</a></span></h3>
+
 <h3>Pendências em aberto: <span style="margin-left:15px;">{% if total_pendencias_ents and perms.vol.change_entidade %}<a href="{% url 'exibe_pendencias_entidades' %}">{{ total_pendencias_ents }}</a>{% else %}{{ total_pendencias_ents }}{% endif %}</span></h3>
 
 <h3>Problemas na Receita Federal: <span style="margin-left:15px;">{% if total_problemas_cnpj and perms.vol.change_entidade %}<a href="{% url 'exibe_entidades_com_problema_na_receita' %}">{{ total_problemas_cnpj }}</a>{% else %}{{ total_problemas_cnpj }}{% endif %}</span></h3>

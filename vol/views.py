@@ -1519,6 +1519,9 @@ def painel(request):
     # Total de entidades revisadas no dia
     total_ents_dia = Entidade.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
 
+    # Total de entidades aguardando boas vindas
+    total_onboarding = Entidade.objects.filter(aprovado=True, data_cadastro__gt=datetime.datetime(2020,9,21, tzinfo=datetime.timezone.utc), data_envio_onboarding__isnull=True).count()
+
     # Total de pendências em entidades aprovadas
     total_pendencias_ents = AnotacaoEntidade.objects.filter(req_acao=True, entidade__aprovado=True, rev__isnull=True).count()
 
@@ -1573,6 +1576,7 @@ def painel(request):
                'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
                'total_ents': total_ents,
                'total_ents_dia': total_ents_dia,
+               'total_onboarding': total_onboarding,
                'total_pendencias_ents': total_pendencias_ents,
                'total_problemas_cnpj': total_problemas_cnpj,
                'total_ents_pessoal': total_ents_pessoal,
@@ -1815,6 +1819,14 @@ def onboarding_entidades(request):
     metodos = ['GET', 'POST']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
+
+    # Controle de exibição das orientações
+    codigo_conteudo = 'orientacoes-boas-vindas-entidades'
+    acessos = AcessoAConteudo.objects.filter(conteudo__codigo=codigo_conteudo, usuario=request.user).count()
+    if acessos == 0:
+        # Caso não tenha visualizado as orientações, redireciona pra ela
+        return exibe_conteudo(request, codigo_conteudo)
+    
     # Somente entidades cadastradas há menos de x dias
     if request.method == 'GET':
         dias = request.GET.get('dias', 90)
