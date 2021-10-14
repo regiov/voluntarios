@@ -40,7 +40,8 @@
 	{% endif %}
 	{% if entidade.resp_onboarding == request.user %}
 	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
-	  {% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
+	  {% comment %}{% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}{% endcomment %}
+          {% elif status == 7 %}<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#ModalFinalizar" data-link="{% url 'onboarding_entidade' entidade.id %}">finalizar</button>
 	  {% endif %}
 	{% endif %}
       </td>
@@ -57,3 +58,42 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block post_footer %}
+<div class="modal fade" id="ModalFinalizar" tabindex="-1" role="dialog" aria-labelledby="LabelModalFinalizar">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="LabelModalFinalizar">Registro da divulgação</h4>
+      </div>
+      <div class="modal-body">
+        <form id="FormFinalizar" method="POST" action="">{% comment %}O conteúdo do action é preenchido por javascript!{% endcomment %}
+	  {% csrf_token %}
+	  <input type="hidden" name="finalizar" value="1">
+          <div class="form-group">
+            <label for="link" class="control-label">Link da postagem:</label>
+            <input type="text" class="form-control" id="link" name="link">
+	    <span class="dica">(cole aqui o link de uma das postagens relacionadas à divulgação da entidade)</span>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="$('#FormFinalizar').submit();">Gravar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$('#ModalFinalizar').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget); // Botão que foi clicado para acionar o modal
+  var link_entidade = button.data('link'); // Pega o link de alteração da entidade em data-link
+  // coloca no valor do input hidden
+  var modal = $(this);
+  modal.find('#FormFinalizar').prop('action', link_entidade);
+})
+</script>
+
+{% endblock post_footer %}

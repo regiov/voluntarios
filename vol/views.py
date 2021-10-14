@@ -12,6 +12,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllo
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import mail
+from django.core.validators import URLValidator
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
 from django.db.models.functions import TruncMonth, TruncWeek
@@ -2002,6 +2003,21 @@ def onboarding_entidade(request, id_entidade):
                             notify_support(u'Falha no envio de msg de onboarding', request.user.nome + "\n\n" + str(e), request)
                         entidade.save(update_fields=['assunto_msg_onboarding', 'msg_onboarding', 'assinatura_onboarding', 'data_envio_onboarding', 'falha_envio_onboarding', 'total_envios_onboarding'])
                         return redirect(reverse('onboarding_entidades'))
+
+                elif 'finalizar' in request.POST:
+                    if 'link' not in request.POST or not request.POST['link']:
+                        messages.error(request, u'É preciso colar o link da postagem para finalizar!')
+                    else:
+                        link = request.POST['link']
+                        validate = URLValidator()
+                        try:
+                            validate(link)
+                            entidade.link_divulgacao_onboarding = link
+                            entidade.save(update_fields=['link_divulgacao_onboarding'])
+                        except ValidationError as e:
+                            messages.error(request, u'O link fornecido não é válido!')
+
+                    return redirect(reverse('onboarding_entidades'))
  
     context = {'entidade': entidade, 'form': form}
     template = loader.get_template('vol/onboarding_entidade.html')
