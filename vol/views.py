@@ -1828,10 +1828,15 @@ def onboarding_entidades(request):
         return exibe_conteudo(request, codigo_conteudo)
     
     # Somente entidades cadastradas há menos de x dias
+    dias = request.session.get('dias', 90)
     if request.method == 'GET':
-        dias = request.GET.get('dias', 90)
+        if 'dias' in request.GET:
+            dias = request.GET['dias']
+            request.session['dias'] = dias
     elif request.method == 'POST':
-        dias = request.POST.get('dias', 90)
+        if 'dias' in request.POST:
+            dias = request.POST['dias']
+            request.session['dias'] = dias
     now = datetime.datetime.now()
     delta = datetime.timedelta(days=int(dias))
     ref = now-delta
@@ -1945,7 +1950,7 @@ def onboarding_entidade(request, id_entidade):
                         messages.error(request, u'Remova os trechos delimitados por [[ ... ]] na mensagem. Eles foram feitos para incluir conteúdo específico personalizado.')
                         error = True
 
-                    if not assunto:
+                    if not assunto_msg:
                         messages.error(request, u'Falta o assunto!')
                         error = True
 
