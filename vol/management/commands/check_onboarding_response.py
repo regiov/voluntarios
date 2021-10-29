@@ -4,6 +4,7 @@ from datetime import timedelta
 import imaplib
 import email
 import re
+import traceback
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -86,7 +87,7 @@ class Command(BaseCommand):
                     stop = True
                 except Exception as e:
                     if tentativa == max_tentativas:
-                        notify_support(u'Falha na verificação da caixa postal de onboarding', str(e))
+                        notify_support(u'Falha na verificação da caixa postal de onboarding', traceback.format_exc())
 
             self.stdout.write(str(qtde_mensagens) + ' mensagens lidas.')
             self.stdout.write(str(qtde_respostas) + ' respostas detectadas.')
