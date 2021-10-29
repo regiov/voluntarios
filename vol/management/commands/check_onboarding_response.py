@@ -65,7 +65,7 @@ class Command(BaseCommand):
                                     match = p.search(body.decode('utf-8', errors='ignore'))
                                     if match:
                                         id_entidade = int(match.group(1))
-                                        entidade = Entidade.objects.get(id_entidade)
+                                        entidade = Entidade.objects.get(pk=id_entidade)
                                         if entidade.data_ret_envio_onboarding is None:
                                             # Pega a data da mensagem
                                             raw = email.message_from_bytes(msg_data[0][1])
