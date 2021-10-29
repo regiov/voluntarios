@@ -95,7 +95,7 @@ class Command(BaseCommand):
             if qtde_respostas > 0:
                 msg = Message.objects.get(code='AVISO_RECEBIMENTO_RESPOSTA_ONBOARDING')
                 try:
-                    usuario = Usuario.objects.get(email=settings.NOTIFY_RESPONSE_ARRIVAL)
+                    usuario = Usuario.objects.get(email=settings.ONBOARDING_NOTIFY_RESPONSE_ARRIVAL)
                     notify_user_msg(usuario, msg)
                 except Usuario.DoesNotExist:
                     notify_support(u'Falha no envio de notificação de chegada de resposta de onboarding', str(e))
