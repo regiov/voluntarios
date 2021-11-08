@@ -32,7 +32,15 @@
 {% comment %}Manter o conteúdo do pre como está, senão vão aparecem espaços na hora de exibir o conteúdo{% endcomment %}
 <pre>{{ entidade.msg_onboarding|default:"(em branco)" }}
 {{ entidade.assinatura_onboarding|default:"" }}
+Equipe de Apoio
+voluntarios.com.br
+protocolo: oe-{{ entidade.id }}
 </pre>
+<table style="border: solid 1px #CCCCCC; font-family: Arial, sans-serif; color: #2c3e50;">
+  <tr>
+    <td style="padding: 20px;"><img src="{% static 'images/logo.png' %}" alt="Site Voluntários"></td><td style="background-color: #FFC90E; color: #FFFFFF; padding: 10px;"><span style="font-size: 18pt;">{{  entidade.assinatura_onboarding|default:"" }}</span><br><span style="font-size: 15pt;">Equipe de Apoio</span><br><span style="font-size: 15pt; color: #2c3e50;">marketing@voluntarios.com.br</span></td>
+  </tr>
+</table>
   {% if entidade.resp_onboarding == request.user %}
     {% if status == 4 or status == 5 %}
       {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary" type="submit" name="reenviar" value="reenviar"></form>{% endif %}
