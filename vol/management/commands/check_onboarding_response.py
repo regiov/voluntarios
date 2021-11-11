@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from vol.models import Entidade, Usuario
 
-from notification.models import Message, Event
+from notification.models import Message
 from notification.utils import notify_user_msg, notify_support
 
 class Command(BaseCommand):
