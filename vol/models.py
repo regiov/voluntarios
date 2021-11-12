@@ -315,6 +315,9 @@ class Voluntario(models.Model):
         '''Indica se o campo empresa deve ser escondido (usado no template do formulário para deixar o campo empresa invisível)'''
         return self.empregado == False or (self.empregado is None and not self.empresa)
 
+    def tem_termo_de_adesao(self):
+        return TermoAdesao.objects.filter(voluntario=self).count() > 0
+
     def normalizar(self):
         if self.telefone:
             par = self.telefone.find(')')
@@ -1312,6 +1315,122 @@ class HistoricoStatusCnpj(StatusCnpj):
 
     def __str__(self):
         return self.situacao + u' ' + str(self.data_situacao)
+
+TIPO_DOC_IDENTIF = (
+    ( u'RG', u'RG' ),
+    ( u'RNE', u'RNE' ),
+    ( u'CNH', u'CNH' ),
+)
+
+ESTADO_CIVIL = (
+    ( u'S', u'solteira(o)' ),
+    ( u'C', u'casada(o)' ),
+    ( u'P', u'separada(o)' ),
+    ( u'D', u'divorciada(o)' ),
+    ( u'V', u'viúva(o)' ),
+)
+
+TERMOADESAO_SALT = 'ta'
+
+class TermoAdesaoManager(models.Manager):
+
+    def from_hmac_key(self, key):
+        "Retorna um termo de adesao com base na sua chave hmac"
+        # use try except (signing.SignatureExpired, signing.BadSignature, TermoAdesao.DoesNotExist)
+        max_age = (60 * 60 * 24 * 60) # 60 dias para aceitar
+        slug = signing.loads(key, max_age=max_age, salt=TERMOADESAO_SALT)
+        return TermoAdesao.objects.get(slug=slug)
+
+class TermoAdesao(models.Model):
+    """Termo de adesão de trabalho voluntário em entidade"""
+    slug                     = models.SlugField(max_length=10, unique=True)
+    entidade                 = models.ForeignKey(Entidade, on_delete=models.SET_NULL, null=True, blank=True)
+    nome_entidade            = models.CharField(u'Nome da entidade', max_length=120) 
+    cnpj_entidade            = models.CharField(u'CNPJ da entidade', max_length=36, null=True, blank=True) 
+    endereco_entidade        = models.TextField(u'Endereço da entidade', null=True, blank=True)
+    email_voluntario         = models.EmailField(verbose_name=u'E-mail do voluntário')
+    # O termo pode ser enviado para qualquer e-mail, mas para aceitar o voluntário deverá se cadastrar no site
+    voluntario               = models.ForeignKey(Voluntario, on_delete=models.SET_NULL, null=True, blank=True)
+    # Os campos abaixo são nulos para permitir que um termo seja criado somente com o e-mail,
+    # deixando os campos para serem preenchidos posteriormente pelo voluntário
+    nome_voluntario          = models.CharField(u'Nome do voluntário', max_length=255, null=True, blank=True)
+    nacionalidade_voluntario = models.CharField(u'Nacionalidade do voluntário', max_length=100, null=True, blank=True)
+    tipo_identif_voluntario  = models.CharField(u'Tipo de identidade do voluntário', choices=TIPO_DOC_IDENTIF, max_length=3, null=True, blank=True)
+    identif_voluntario       = models.CharField(u'Identidade do voluntário', max_length=20, null=True, blank=True)
+    cpf_voluntario           = models.CharField(u'CPF do voluntário', max_length=20, null=True, blank=True)
+    estado_civil_voluntario  = models.CharField(u'Estado civil do voluntário', choices=ESTADO_CIVIL, max_length=1, null=True, blank=True)
+    nascimento_voluntario    = models.DateField(u'Data de nascimento do voluntário', null=True, blank=True)
+    profissao_voluntario     = models.CharField(u'Profissão do voluntário', max_length=100, null=True, blank=True)
+    endereco_voluntario      = models.TextField(u'Endereço do voluntário', null=True, blank=True)
+    ddd_voluntario           = models.CharField(u'DDD do voluntário', max_length=4, null=True, blank=True)
+    telefone_voluntario      = models.CharField(u'Telefone do voluntário', max_length=60, null=True, blank=True)
+    # Campos preenchidos pela entidade
+    condicoes                = models.TextField(u'Condições') # Cláusulas
+    atividades               = models.TextField(u'Atividades') # atividades a serem desenvolvidas
+    texto_aceitacao          = models.TextField(u'Texto da aceitação') # ex: [] declaro estar de acordo com...
+    data_inicio              = models.DateField(u'Data de início')
+    data_fim                 = models.DateField(u'Data de fim', null=True, blank=True) # nulo para indeterminado
+    carga_horaria            = models.TextField(u'Dias e horários de execução das atividades')
+    # Campos de preenchimento automático
+    data_cadastro            = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    resp_cadastro            = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_set', on_delete=models.PROTECT)
+    resp_entidade            = models.ForeignKey(Usuario, verbose_name=u'Responsável por parte da entidade', related_name='resp_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    data_envio_vol           = models.DateTimeField(u'Data de envio do termo para o voluntário por e-mail', null=True, blank=True)
+    erro_envio_vol           = models.TextField(u'Erro no envio do e-mail para o voluntário', null=True, blank=True)
+    data_aceitacao_vol       = models.DateTimeField(u'Data de aceitação pelo voluntário', null=True, blank=True)
+    ip_aceitacao_vol         = models.GenericIPAddressField(u'Endereço IP usado na aceitação do voluntário', null=True, blank=True)
+
+    objects = TermoAdesaoManager()
+
+    class Meta:
+        verbose_name = 'Termo de adesão'
+        verbose_name_plural = 'Termos de adesão'
+
+    def __str__(self):
+        return self.nome_entidade + ' | ' + self.email_voluntario
+
+    def hmac_key(self):
+        "Retorna a chave hmac do termo de adesão"
+        if self.slug:
+            return signing.dumps(obj=self.slug, salt=TERMOADESAO_SALT)
+        raise ValueError(u'Termo de adesão sem slug')
+
+    def gen_slug(self):
+        """ Gera slug aleatório para o termo."""
+        size = 10
+        if not self.slug:
+            self.slug = get_random_string(size)
+            slug_is_wrong = True  
+            while slug_is_wrong:
+                slug_is_wrong = False
+                other_objs_with_slug = TermoAdesao.objects.filter(slug=self.slug)
+                if len(other_objs_with_slug) > 0:
+                    slug_is_wrong = True
+                if slug_is_wrong:
+                    self.slug = get_random_string(size)
+
+    def save(self, *args, **kwargs):
+        """ Add Slug creating/checking to save method. """
+        self.gen_slug()
+        super(TermoAdesao, self).save(*args, **kwargs)
+
+    def horas_do_ultimo_envio_vol(self):
+        if self.data_envio_vol is None:
+            return None
+        delta = timezone.now()-self.data_envio_vol
+        return delta.seconds//3600
+
+    def link_assinatura_vol(self, request, absolute=True):
+        link = reverse('assinatura_vol_termo_de_adesao')
+        if absolute:
+            link = request.build_absolute_uri(link)
+        return link + '?' + urllib.parse.urlencode({'h': self.hmac_key()})
+
+    def nome_estado_civil_voluntario(self):
+        for estado_civil in ESTADO_CIVIL:
+            if self.estado_civil_voluntario == estado_civil[0]:
+                return estado_civil[1]
+        return None
 
 class Funcao(MPTTModel):
     """Árvrore de funções a serem desempenhadas numa entidade"""
