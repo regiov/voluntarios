@@ -48,6 +48,7 @@ urlpatterns = [
     url(r'^voluntario.htm$', views.link_voluntario_novo),#old
 
     url(r'^voluntario/cadastro/?$', views.cadastro_voluntario, {'msg': None}, name='cadastro_voluntario'),
+    url(r'^voluntario/termos/?$', views.termos_de_adesao_de_voluntario, name='termos_de_adesao_de_voluntario'),
 
     url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
     url(r'^contato.htm$', views.busca_voluntarios),#old
@@ -73,6 +74,12 @@ urlpatterns = [
 
     url(r'^entidade/cadastro/(?P<id_entidade>\d+)/?$', views.cadastro_entidade, name='cadastro_entidade_id'),
     url(r'^entidade/cadastro/?$', views.cadastro_entidade, {'id_entidade': None}, name='cadastro_entidade'),
+
+    url(r'^entidade/(?P<id_entidade>\d+)/termos/novo/?$', views.novo_termo_de_adesao, name='novo_termo_de_adesao'),
+    url(r'^entidade/(?P<id_entidade>\d+)/termos/?$', views.termos_de_adesao_de_entidade, name='termos_de_adesao_de_entidade'),
+    url(r'^termo/(?P<slug_termo>[\w-]+)/enviar$', views.enviar_termo_de_adesao, name='enviar_termo_de_adesao'),
+    url(r'^t/avol/?$', views.assinatura_vol_termo_de_adesao, name='assinatura_vol_termo_de_adesao'),
+    url(r'^termo/(?P<slug_termo>[\w-]+)/?$', views.termo_de_adesao, name='termo_de_adesao'),
 
     url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
     url(r'^pesquisa.htm$', views.busca_entidades),#old

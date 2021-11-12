@@ -1,0 +1,34 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Novo termo de adesão{% endblock title %}
+
+{% block content %}
+<h1 class="margin-bottom">Novo(s) termo(s) de adesão</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% include "vol/erros.html" %}
+
+<label class="nowrap">Entidade: </label> {{ entidade.razao_social|default:entidade.nome_fantasia }}
+<hr>
+<form id="form-termo-adesao" method="POST" action="">{% csrf_token %}
+
+  {% if entidade.cnpj_valido %}
+  {% include "vol/campo_formulario.html" with campo=form.sou_responsavel required=True %}
+  {% else %}
+  {% include "vol/campo_formulario.html" with campo=form.tem_responsavel required=True %}
+  {% endif %}
+  {% include "vol/campo_formulario.html" with campo=form.email_voluntarios required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.data_inicio div_class="combo-data" required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.data_fim div_class="combo-data" required=False %}
+  {% include "vol/campo_formulario.html" with campo=form.condicoes required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.texto_aceitacao required=True %}
+
+  <div class="form-group">
+    <input class="btn btn-primary" type="submit" name="submit" value="Enviar para aceitação">
+  </div>
+</form>
+{% endblock content %}

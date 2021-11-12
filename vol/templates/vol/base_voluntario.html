@@ -1,0 +1,44 @@
+{% extends "vol/base.html" %}
+
+{% block content_container %}
+{% url 'cadastro_usuario' as cadastro_usuario %}
+{% url 'cadastro_voluntario' as cadastro_voluntario %}
+{% url 'termos_de_adesao_de_voluntario' as termos_de_adesao_de_voluntario %}
+<section id="content">
+  <div class="container">
+    <div class="row profile">
+      <div class="col-md-3 col-sm-4">
+	<div class="profile-sidebar">
+	  <!-- SIDEBAR MENU -->
+	  <div class="profile-usermenu">
+	    <ul class="nav">
+	      <li{% ifequal request.path cadastro_usuario %} class="active"{% endifequal %}>
+		<a href="{{ cadastro_usuario }}">
+		  <i class="fas fa-user"></i>
+		  Cadastro de usuário </a>
+	      </li>
+	      <li{% ifequal request.path cadastro_voluntario %} class="active"{% endifequal %}>
+		<a href="{{ cadastro_voluntario }}">
+		  <i class="fas fa-fist-raised"></i>
+		  Perfil de voluntário </a>
+	      </li>
+	      <li{% ifequal request.path termos_de_adesao_de_voluntario %} class="active"{% endifequal %}>
+		<a href="{{ termos_de_adesao_de_voluntario }}" target="_blank">
+		  <i class="fas fa-file"></i>
+		  Termos de adesão </a>
+	      </li>
+	    </ul>
+	  </div>
+	  <!-- END MENU -->
+	</div>
+      </div>
+      <div class="col-md-9 col-sm-8">
+        <div class="profile-content">
+<!--/#inicio-conteudo-->{% block content %}
+{% endblock content %}<!--/#fim-conteudo-->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content_container %}

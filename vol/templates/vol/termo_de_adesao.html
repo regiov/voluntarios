@@ -1,0 +1,70 @@
+{% extends exibir_no_contexto_do_voluntario|yesno:"vol/base_voluntario.html,vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Termo de adesão{% endblock title %}
+
+{% block head %}
+<script type="text/javascript" src="{% static 'js/jquery.qrcode.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.mask.min.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+
+   $("#cpf_voluntario").mask("999.999.999-99", {reverse: true});
+   $("#cnpj").mask("99.999.999/9999-99", {reverse: true});
+
+   {% if "print" in request.GET %}
+   $('#qrcode').qrcode({width: 64,height: 64,text: "{% url 'termo_de_adesao' slug_termo=termo.slug %}"});
+   {% endif %}
+});
+</script>
+{% endblock head %}
+
+{% block content %}
+<h1 class="margin-bottom">Termo de adesão de trabalho voluntário <span style="padding-left: 20px;">{% if "print" not in request.GET %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}?print=1"><small><i class="fas fa-print text-small" title="versão para impressão"></i></small></a>{% endif %}</span></h1>
+
+{% if "print" not in request.GET %}{% include "vol/mensagens.html" %}{% endif %}
+
+<pre class="text-justify" style="background-color: #FFFFFF;">{{ termo.condicoes }}
+</pre>
+
+<h2 class="secao-entidade"><span>Informações da entidade</span></h2>
+<label class="nowrap">Denominação: </label> {{ termo.nome_entidade }}
+{% if termo.cnpj_entidade %}<br/><label class="nowrap">CNPJ: </label> <span id="cnpj">{{ termo.cnpj_entidade }}</span>{% endif %}
+{% if termo.endereco_entidade %}<br/><label class="nowrap">Endereço: </label> {{ termo.endereco_entidade }}{% endif %}
+{% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.resp_entidade.nome }}{% endif %}
+
+<h2 class="secao-entidade"><span>Informações do voluntário</span></h2>
+<label class="nowrap">Nome completo: </label> {{ request.user.nome }}
+<br/>
+<label class="nowrap">Data de nascimento: </label> {{ termo.nascimento_voluntario }}
+<br/>
+<label class="nowrap">Nacionalidade: </label> {{ termo.nacionalidade_voluntario }}
+<br/>
+<label class="nowrap">Estado civil: </label> {{ termo.nome_estado_civil_voluntario }}
+<br/>  
+<label class="nowrap">Profissão: </label> {{ termo.profissao_voluntario }}
+<br/>
+<label class="nowrap">CPF: </label> <span id="cpf_voluntario">{{ termo.cpf_voluntario }}</span>
+<br/>
+<label class="nowrap">Identidade: </label> {{ termo.tipo_identif_voluntario }} {{ termo.identif_voluntario }}
+<br/>
+<label class="nowrap">Endereço: </label> {{ termo.endereco_voluntario }}
+<br/>  
+<label class="nowrap">Telefone: </label> ({{ termo.ddd_voluntario }}) {{ termo.telefone_voluntario }}
+
+<h2 class="secao-entidade"><span>Escopo do trabalho</span></h2>
+<label class="nowrap">Atividade a ser desenvolvida: </label> {{ termo.atividades }}
+<br/>
+<label class="nowrap">Carga horária: </label> {{ termo.carga_horaria }}
+<br/>
+<label class="nowrap">Pelo período de </label> {{ termo.data_inicio }} {% if termo.data_fim %}a {{ termo.data_fim }}{% else %}por prazo indeterminado{% endif %}
+<hr/>
+Cadastrado em {{ termo.data_cadastro|date:"d-m-Y à\s H:i\h" }}{% if termo.resp_entidade == termo.resp_cadastro %} por {{ termo.resp_entidade.nome }}{% endif %}
+<br/>
+Aceito em {{ termo.data_aceitacao_vol|date:"d-m-Y à\s H:i\h" }} por {{ termo.nome_voluntario }}
+<br/>
+Emitido por voluntarios.com.br
+<br/>
+<br/>
+<div id="qrcode"></div>
+{% endblock content %}

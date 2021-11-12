@@ -1,4 +1,4 @@
-{% load form_extras %}  <div{% if div_id %} id="{{ div_id }}"{% endif %} class="form-group required{% if campo.errors %} has-error{% endif %}"{% if invisible %} style="display: none;"{% endif %}>
+{% load form_extras %}  <div{% if div_id %} id="{{ div_id }}"{% endif %} class="form-group required{% if div_class %} {{ div_class }}{% endif %}{% if campo.errors %} has-error{% endif %}"{% if invisible %} style="display: none;"{% endif %}>
     <label{% if label_id %} id="{{ label_id }}"{% endif %} for="{{ campo.id_for_label }}" class="nowrap">{% if required %}* {% endif %}{% if label %}{{ label }}{% else %}{{ campo.label }}{% endif %}</label>
     {% if htmlattributes %}{{ campo|htmlattributes:htmlattributes }}{% else %}{{ campo }}{% endif %}{% if after_field %} {{ after_field }}{% endif %}
     {% if campo.help_text %}<p class="help-block dica">{{ campo.help_text }}</p>{% endif %}

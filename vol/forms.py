@@ -7,13 +7,54 @@ from datetime import date, timedelta
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.functional import lazy
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL
+
+def _limpa_cpf(val, obrigatorio=False):
+    if (val is None or len(val) == 0) and obrigatorio:
+        raise forms.ValidationError(u'Preenchimento do CPF obrigatório.')
+
+    if val:
+        dval = val.replace('-', '').replace('.', '')
+        if not dval.isdigit():
+            raise forms.ValidationError(u'Formato incorreto do CPF.')
+        if len(dval) != 11:
+            raise forms.ValidationError(u'Tamanho incorreto do CPF.')
+        if dval == dval[0]*11:
+            # 11111111111, 22222222222, etc, passam no teste do dígito mas são inválidos
+            raise forms.ValidationError(u'CPF inválido.')
+
+        # Verifica dígitos
+        s1 = 0
+        for i in range(0,9):
+            s1 = s1 + (10-i)*int(dval[i])
+
+        d1 = (s1*10)%11
+        if d1 > 9:
+            d1 = 0
+
+        if str(d1) != dval[9]:
+            raise forms.ValidationError(u'Primeiro dígito de verificação do CPF incorreto.')
+
+        s2 = 0
+        for i in range(0,10):
+            s2 = s2 + (11-i)*int(dval[i])
+
+        d2 = (s2*10)%11
+        if d2 > 9:
+            d2 = 0
+
+        if str(d2) != dval[10]:
+            raise forms.ValidationError(u'Segundo dígito de verificação do CPF incorreto.')
+
+    return val
 
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
     data_aniversario = forms.DateField(label=u'Data de nascimento',
-                                       widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-105, date.today().year-5)], empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}),
+                                       widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-105, date.today().year-5)], empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control combo-data'}),
                                        #input_date_formats=['%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y'],
                                        #initial=date(date.today().year-36, 5, 22),
                                        help_text="",
@@ -466,3 +507,161 @@ class FormOnboarding(forms.Form):
     assinatura = forms.CharField(label=u'Nome na assinatura',
                                  widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
                                  required=False)
+
+class FormCriarTermoAdesao(forms.Form):
+    "Formulário para cadastro de termo de adesão de voluntário"
+    email_voluntarios = forms.CharField(label=u'E-mail do(s) voluntário(s) envolvido(s)',
+                                        max_length=100,
+                                        widget=forms.TextInput(attrs={'class':'form-control', 'size':30}),
+                                        help_text="Separe por vírgula caso haja mais de um voluntário. Se houver diferença nas atividades, carga horária ou duração do termo, cadastre termos separados para cada um.",
+                                        error_messages={'invalid': u'Preencha com ao menos um e-mail de voluntário.'})
+    atividades = forms.CharField(label=u'Atividades',
+                                 max_length=7000,
+                                 widget=forms.Textarea(attrs={'class':'form-control', 'rows':2, 'cols':30}))
+    carga_horaria = forms.CharField(label=u'Carga horária',
+                                    max_length=50,
+                                    widget=forms.TextInput(attrs={'class':'form-control', 'size':50}),
+                                    help_text="(exemplo: X horas ou dias por semana)")
+    data_inicio = forms.DateField(label=u'Início',
+                                  initial=date.today,
+                                  widget=forms.SelectDateWidget(empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}))
+    data_fim = forms.DateField(label=u'Término',
+                               widget=forms.SelectDateWidget(empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}),
+                               help_text="(para duração indeterminada, deixe em branco)",
+                               required=False)
+    condicoes = forms.CharField(label=u'Condições',
+                                max_length=7000,
+                                widget=forms.Textarea(attrs={'class':'form-control', 'rows':10, 'cols':30}))
+    texto_aceitacao = forms.CharField(label=u'Texto do aceite',
+                                      max_length=255,
+                                      widget=forms.TextInput(attrs={'class':'form-control', 'size':500}))
+    # No casos em que a entidade não é formalmente constituída, há a opção de ter ou não um responsável por parte da entidade
+    tem_responsavel = forms.ChoiceField(label=u'Você deseja constar no termo como responsável por parte da entidade?',
+                                        # A classe list-inline do bootstrap faz com que as opções fiquem alinhadas horizontalmente
+                                        widget=forms.RadioSelect(attrs={'class': 'list-inline'}),
+                                        choices = [(True, 'sim'), (False, 'não')],
+                                        help_text="Via de regra o termo de adesão é assinado tanto pelo voluntário quanto por um responsável legal por parte da entidade, a não ser que a entidade não seja formalmente constituída, ou seja, não possua CNPJ, situação em que é possível optar por assinar ou não como responsável.",
+                                        required=False)
+    # Confirmação de que o usuário é responsável legal
+    sou_responsavel = forms.ChoiceField(label=u'Você é responsável legal por parte da entidade?',
+                                        # A classe list-inline do bootstrap faz com que as opções fiquem alinhadas horizontalmente
+                                        widget=forms.RadioSelect(attrs={'class': 'list-inline'}),
+                                        choices = [(True, 'sim'), (False, 'não')],
+                                        help_text="Para entidades formalmente constituídas (com CNPJ) o termo de adesão deve ser assinado tanto pelo voluntário quanto por um responsável legal por parte da entidade. No momento o sistema requer que a pessoa que esteja cadastrando o termo (você!) seja um dos responsáveis legais da entidade. Portanto se a sua resposta for \"não\", não será possível prosseguir. Entre em contato conosco se esse for o seu caso.",
+                                        required=False)
+
+    def clean_email_voluntarios(self):
+        # Deixar e-mail em caixa baixa para padronização
+        val = self.cleaned_data['email_voluntarios'].lower().replace(' ', '')
+        if len(val) == 0:
+            raise forms.ValidationError(u'É preciso incluir pelo menos um e-mail de voluntário')
+        emails = val.split(',')
+        for email in emails:
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise forms.ValidationError(u'Erro na validação do e-mail: ' + email + '. Verifique se digitou corretamente.')
+        return val
+
+    def clean_data_fim(self):
+        inicio = self.cleaned_data['data_inicio']
+        fim = self.cleaned_data['data_fim']
+        if fim and inicio > fim:
+            raise forms.ValidationError(u'A data de término do termo não pode ser menor que a de início!')
+        return fim
+
+class FormAssinarTermoAdesaoVol(forms.Form):
+    profissao_voluntario = forms.CharField(label=u'Profissão',
+                                           max_length=100,
+                                           widget=forms.TextInput(attrs={'class':'form-control', 'size':25}))
+    nacionalidade_voluntario = forms.CharField(label=u'Nacionalidade',
+                                               max_length=50,
+                                               widget=forms.TextInput(attrs={'class':'form-control', 'size':50}))
+    tipo_identif_voluntario = forms.ChoiceField(label=u'Identidade',
+                                                choices=TIPO_DOC_IDENTIF,
+                                                initial=u'RG',
+                                                widget=forms.Select(attrs={'class':'form-control'}))
+    identif_voluntario = forms.CharField(label=u'Número',
+                                         max_length=20,
+                                         widget=forms.TextInput(attrs={'class':'form-control', 'size':20}))
+    cpf_voluntario = forms.CharField(label=u'CPF',
+                                     max_length=20,
+                                     widget=forms.TextInput(attrs={'class':'form-control', 'size':20}))
+    estado_civil_voluntario = forms.ChoiceField(label=u'Estado civil',
+                                                choices=ESTADO_CIVIL,
+                                                widget=forms.Select(attrs={'class':'form-control'}))
+    endereco_voluntario = forms.CharField(label=u'Endereço',
+                                          max_length=7000,
+                                          widget=forms.Textarea(attrs={'class':'form-control', 'rows':2, 'cols':30}))
+    ddd_voluntario = forms.CharField(label=u'Telefone (ddd)',
+                                     max_length=2,
+                                     widget=forms.TextInput(attrs={'class':'form-control input-prefixo', 'size':2}))
+    telefone_voluntario = forms.CharField(label=u'Número',
+                                          max_length=15,
+                                          widget=forms.TextInput(attrs={'class':'form-control input-numero', 'size':10}))
+    aceitacao = forms.BooleanField(label=u'',
+                                   # Acrescenta margem para o label não ficar muito colado
+                                   widget=forms.CheckboxInput(attrs={'style':'margin-right:5px;'}),
+                                   required=False)
+
+    def clean_tipo_identif_voluntario(self):
+        val = self.cleaned_data['tipo_identif_voluntario'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o tipo de identidade')
+        tipos = []
+        for tipo in TIPO_DOC_IDENTIF:
+            tipos.append(tipo[0])
+        if val not in tipos:
+            raise forms.ValidationError(u'Verifique o tipo de identidade')
+        return val
+
+    def clean_cpf_voluntario(self):
+        val = self.cleaned_data['cpf_voluntario'].strip()
+        return _limpa_cpf(val, True)
+
+    def clean_estado_civil_voluntario(self):
+        val = self.cleaned_data['estado_civil_voluntario'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o estado civil')
+        tipos = []
+        for tipo in ESTADO_CIVIL:
+            tipos.append(tipo[0])
+        if val not in tipos:
+            raise forms.ValidationError(u'Estado civil inválido')
+        return val
+
+    def clean_ddd_voluntario(self):
+        # Pode não haver prefixo (há casos de 0800)
+        val = self.cleaned_data['ddd_voluntario'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o prefixo do telefone')
+        else:
+            if not val.isdigit():
+                raise forms.ValidationError(u'Utilize apenas números no prefixo')
+            if len(val) != 2:
+                raise forms.ValidationError(u'Utilize 2 dígitos no prefixo')
+        return val
+
+    def clean_telefone_voluntario(self):
+        val = self.cleaned_data['telefone_voluntario'].strip()
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o número do telefone')
+        num_digitos = sum(c.isdigit() for c in val)
+        if num_digitos < 8:
+            raise forms.ValidationError(u'O número do telefone deve conter pelo menos 8 dígitos')
+        return val
+
+    def clean_endereco_voluntario(self):
+        val = self.cleaned_data['endereco_voluntario']
+        if len(val) == 0:
+            raise forms.ValidationError(u'Faltou o endereço')
+        else:
+            if '???' in val:
+                raise forms.ValidationError(u'Favor preencher o endereço completo')
+        return val
+
+    def clean_aceitacao(self):
+        aceitou = self.cleaned_data['aceitacao']
+        if not aceitou:
+            raise forms.ValidationError(u'Para submeter é preciso marcar a opção de aceitação do termo no final do formulário')
+        return aceitou

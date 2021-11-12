@@ -1,4 +1,4 @@
-{% extends "vol/base_nosidebar.html" %}
+{% extends "vol/base_voluntario.html" %}
 {% load static %}
 
 {% block title %}Cadastro de Voluntário{% endblock title %}
@@ -74,7 +74,7 @@
 {% endblock head %}
 
 {% block content %}
-<h1 class="margin-bottom">{%if request.user.is_voluntario %}Cadastro de Voluntário{% else %}Cadastre-se como Voluntário{% endif %}</h1>
+<h1 class="margin-bottom">{%if request.user.is_voluntario %}Perfil de Voluntário{% else %}Cadastro de Voluntário{% endif %}</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -82,7 +82,7 @@
 
 <form id="form-voluntario" method="POST" action="">{% csrf_token %}
 
-{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_id="data_aniversario_container" label_id="data_aniversario_label" required=True %}
+{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_class="combo-data" required=True %}
 <table width="100%">
  <tr> 
   <td width="10%">

@@ -30,16 +30,17 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding
+from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario, notifica_aprovacao_entidade
 
-from notification.utils import notify_support, notify_email_template
+from notification.models import Message
+from notification.utils import notify_support, notify_email_template, notify_email_msg
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
@@ -173,7 +174,7 @@ def cadastro_usuario(request):
                 # Faz logout do usuário e não permite login até que o novo e-mail seja confirmado
                 logout(request)
                 # Redireciona para página de login
-                return redirect('/aut/signin')
+                return redirect('/aut/login')
     else:
         form = ChangeUserProfileForm(initial={'nome': request.user.nome, 'email': request.user.email})
     context = {'form': form}
@@ -206,8 +207,8 @@ def cadastro_voluntario(request, msg=None):
             area_interesse_formset = FormSetAreaInteresse(initial=AreaInteresse.objects.filter(voluntario=request.user.voluntario).order_by('area_atuacao__nome').values('area_atuacao'))
         else:
 
-            if msg is None:
-                msg = u'Estamos cadastrando pessoas que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa. Preencha o formulário abaixo para participar:'
+            #if msg is None:
+            #    msg = u'Estamos cadastrando pessoas que queiram dedicar parte de seu tempo para ajudar como voluntários a quem precisa. Preencha o formulário abaixo para participar:'
 
             form = FormVoluntario()
             area_interesse_formset = FormSetAreaInteresse()
@@ -291,8 +292,34 @@ def cadastro_voluntario(request, msg=None):
                         except AreaInteresse.DoesNotExist:
                             pass
                 if agradece_cadastro:
+                    # Caso haja termos de adesão sem voluntario e mas com o mesmo email do usuário, já vincula,
+                    # pois já houve confirmação do email no cadastro de usuário.
+                    # Obs: se o voluntário assinou um termo, removeu seu perfil, depois cadastrou de novo um perfil,
+                    # vai vincular de novo também.
+                    termos = TermoAdesao.objects.filter(voluntario__isnull=True, email_voluntario=request.user.email)
+                    for termo in termos:
+                        termo.voluntario = voluntario
+                        termo.save(update_fields=['voluntario'])
+                    if 'termo' in request.session:
+                        # Se o cadastro foi feito em função de um termo de adesão, redireciona para o termo
+                        # obs: lá ele é removido da sessão
+                        try:
+                            messages.info(request, u'Pronto! Você já pode preencher e assinar o termo de adesão.')
+                            termo = TermoAdesao.objects.get(slug=request.session['termo'])
+                            link_assinatura = termo.link_assinatura_vol(request, absolute=False)
+                            return redirect(link_assinatura)
+                        except TermoAdesao.DoesNotExist:
+                            # Nunca deveria cair aqui...
+                            messages.warning(request, u'Ops, salvamos seu perfil de voluntária(o), mas não conseguimos identificar o termo de adesão. Por favor, clique novamente no link fornecido por e-mail e caso o problema persista entre em contato conosco.')
+                            return mensagem(request, u'Cadastro de Voluntário')
                     # Redireciona para página de exibição de mensagem
-                    messages.info(request, u'Obrigado! Assim que o seu cadastro for validado ele estará disponível para as entidades. Enquanto isso, você já pode procurar por entidades <a href="' + reverse('mapa_entidades') + '">próximas a você</a> ou que atendam a <a href="' + reverse('busca_entidades') + '">outros critérios de busca</a>.')
+                    msg = u'Obrigado! '
+                    if voluntario.invisivel:
+                        msg = msg + u'Seu cadastro passará por uma validação, mas você já pode usufruir de várias funcionalidades no site, como por exemplo'
+                    else:
+                        msg = msg + u'Assim que o seu cadastro for validado ele estará disponível para as entidades. Enquanto isso, você já pode'
+                    msg = msg + u' procurar por entidades <a href="' + reverse('mapa_entidades') + '">próximas a você</a> ou que atendam a <a href="' + reverse('busca_entidades') + '">outros critérios de busca</a>.'
+                    messages.info(request, msg)
                     return mensagem(request, u'Cadastro de Voluntário')
                 messages.info(request, u'Alterações gravadas com sucesso!')
         else:
@@ -859,6 +886,304 @@ def cadastro_entidade(request, id_entidade=None):
     template = loader.get_template('vol/formulario_entidade.html')
     return HttpResponse(template.render(context, request))
 
+@login_required
+def termos_de_adesao_de_entidade(request, id_entidade):
+    '''Exibe lista de termos de adesão da entidade'''
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    # Garante que apenas usuários vinculados à entidade vejam e emitam termos de adesão
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    termos = TermoAdesao.objects.filter(entidade=entidade).order_by('-data_cadastro')
+
+    context = {'entidade': entidade,
+               'termos': termos}
+    template = loader.get_template('vol/termos_de_adesao_de_entidade.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def termos_de_adesao_de_voluntario(request):
+    '''Exibe lista de termos de adesão do voluntário'''
+    termos = TermoAdesao.objects.none()
+    if request.user.is_voluntario:
+        termos = TermoAdesao.objects.filter(voluntario=request.user.voluntario).order_by('-data_cadastro')
+
+    context = {'termos': termos}
+    template = loader.get_template('vol/termos_de_adesao_de_voluntario.html')
+    return HttpResponse(template.render(context, request))
+
+def _enviar_termo_de_adesao(request, termo):
+    '''Lógica de envio de termo de adesão por e-mail para o voluntário'''
+
+    msg = Message.objects.get(code='NOTIFICA_TERMO_DE_ADESAO_VOL')
+
+    link_assinatura = termo.link_assinatura_vol(request)
+
+    try:
+        notify_email_msg(termo.email_voluntario, msg, context={'termo': termo, 'link_assinatura': link_assinatura})
+        termo.data_envio_vol = timezone.now()
+        termo.erro_envio_vol = None
+    except Exception as e:
+        termo.erro_envio_vol = str(e)
+
+    termo.save()
+    
+    return True
+
+@login_required
+@transaction.atomic
+def enviar_termo_de_adesao(request, slug_termo):
+    '''Envia termo de adesão para voluntário'''
+    try:
+        termo = TermoAdesao.objects.get(slug=slug_termo)
+    except TermoAdesao.DoesNotExist:
+        raise Http404
+
+    if termo.entidade_id not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    _enviar_termo_de_adesao(request, termo)
+
+    return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
+
+@login_required
+@transaction.atomic
+def novo_termo_de_adesao(request, id_entidade):
+    '''Novo termo de adesão para voluntário'''
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    # Garante que apenas usuários vinculados à entidade vejam e emitam termos de adesão
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+
+        form = FormCriarTermoAdesao(request.POST)
+
+        if form.is_valid():
+            ok = False
+            # Validações que dependem da entidade
+            if entidade.cnpj_valido():
+                if not form.cleaned_data['sou_responsavel']:
+                    messages.error(request, u'Para emitir termos na versão atual do sistema é necessário ser responsável legal pela entidade. Entre em contato conosco se isto for um problema.')
+                else:
+                    ok = True
+            else:
+                if form.cleaned_data['tem_responsavel'] is None:
+                    messages.error(request, u'Favor indicar se você deseja constar como responsável por parte da entidade neste termo.')
+
+            if ok:
+                enviados = []
+                for email in form.cleaned_data['email_voluntarios'].lower().replace(' ', '').split(','):
+                    # Evita criar mais de um termo para a mesma pessoa caso esteja repetida na lista
+                    if email not in enviados:
+                        novo_termo = TermoAdesao(entidade=entidade,
+                                                 nome_entidade=entidade.razao_social,
+                                                 cnpj_entidade=entidade.cnpj,
+                                                 endereco_entidade=entidade.endereco(),
+                                                 email_voluntario=email,
+                                                 condicoes=form.cleaned_data['condicoes'],
+                                                 atividades=form.cleaned_data['atividades'],
+                                                 texto_aceitacao=form.cleaned_data['texto_aceitacao'],
+                                                 data_inicio=form.cleaned_data['data_inicio'],
+                                                 data_fim=form.cleaned_data['data_fim'],
+                                                 carga_horaria=form.cleaned_data['carga_horaria'],
+                                                 resp_cadastro=request.user)
+                        if entidade.cnpj_valido():
+                            # Se a entidade possui existência formal, assume que o usuário é representante legal
+                            novo_termo.resp_entidade = request.user
+                        else:
+                            # Caso contrário, somente registra o usuário como responsável se ele quiser
+                            if form.cleaned_data['tem_responsavel']:
+                                novo_termo.resp_entidade = request.user
+                        # Se já houver um voluntário cadastrado no sistema com o e-mail, vincula ele ao termo
+                        try:
+                            voluntario = Voluntario.objects.get(usuario__email=email)
+                            novo_termo.voluntario = voluntario
+                        except Voluntario.DoesNotExist:
+                            pass # sem problema
+                        novo_termo.save()
+                        _enviar_termo_de_adesao(request, novo_termo)
+                        enviados.append(email)
+                return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': id_entidade}))
+    else:
+
+        condicoes_default = "Pelo presente Termo de Adesão e ciente da Lei n. 9.608/1998 que rege o trabalho voluntário, decido espontaneamente realizar atividade voluntária nesta organização.\nDeclaro, ainda, que estou ciente de que o trabalho não será remunerado e que não configurará vínculo empregatício ou gerará qualquer obrigação de natureza trabalhista, previdenciária ou afim.\nDeclaro, por fim, que estou ciente de que eventuais danos pessoais ou materiais causados no exercício do trabalho voluntário serão de total e integral responsabilidade minha e não serão imputados à esta organização."
+        texto_aceitacao_default = "Declaro estar de acordo com todas as condições deste termo e que as informações por mim prestadas estão completas e são verdadeiras."
+        
+        termos = TermoAdesao.objects.filter(entidade=entidade).order_by('-data_cadastro')
+        if len(termos) > 0:
+            ultimo_termo = termos[0]
+            condicoes_default = ultimo_termo.condicoes
+            texto_aceitacao_default = ultimo_termo.texto_aceitacao
+        
+        form = FormCriarTermoAdesao(initial={'condicoes': condicoes_default, 'texto_aceitacao': texto_aceitacao_default})
+
+    context = {'entidade': entidade,
+               'form': form}
+    template = loader.get_template('vol/formulario_criacao_termo_de_adesao.html')
+    return HttpResponse(template.render(context, request))
+
+def termo_de_adesao(request, slug_termo):
+    '''Exibe termo de adesão'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    try:
+        termo = TermoAdesao.objects.get(slug=slug_termo)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    if termo.data_aceitacao_vol is None:
+        if termo.email_voluntario == request.user.email:
+            link_assinatura = termo.link_assinatura_vol(request, absolute=False)
+            return redirect(link_assinatura)
+        return mensagem(request, u'Este termo ainda não foi aceito. Utilize o link fornecido por e-mail para acessá-lo.')
+
+    exibir_no_contexto_do_voluntario = False
+
+    if 'print' in request.GET:
+        template = loader.get_template('vol/termo_de_adesao_para_impressao.html')
+    else:
+        # Se o termo for do próprio usuário logado, mostra página no contexto do voluntário
+        if request.user.is_authenticated and request.user.is_voluntario and request.user.voluntario == termo.voluntario:
+            exibir_no_contexto_do_voluntario = True
+
+        template = loader.get_template('vol/termo_de_adesao.html')
+
+    context = {'termo': termo,
+               'exibir_no_contexto_do_voluntario': exibir_no_contexto_do_voluntario}
+
+    return HttpResponse(template.render(context, request))
+
+def _get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def assinatura_vol_termo_de_adesao(request):
+    '''Assinatura do termo de adesão pelo voluntário'''
+    metodos = ['GET', 'POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    if request.method == 'GET':
+        if 'h' not in request.GET:
+            return HttpResponseBadRequest('Ausência do parâmetro h')
+        hmac_key = request.GET['h']
+    if request.method == 'POST':
+        if 'h' not in request.POST:
+            return HttpResponseBadRequest('Ausência do parâmetro h')
+        hmac_key = request.POST['h']
+    termo = TermoAdesao.objects.from_hmac_key(hmac_key)
+    if termo is None:
+        messages.error(request, u'Não foi possível identificar o termo de adesão. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+        return mensagem(request, u'Assinatura de termo de adesão')
+    if termo.data_aceitacao_vol is not None:
+        # Se o termo já foi aceito, simplesmente exibe ele
+        messages.info(request, u'Este termo de adesão já foi aceito.')
+        return termo_de_adesao(request, termo.slug)
+    if not request.user.is_authenticated:
+        # Redireciona para página de cadastro de usuário
+        messages.info(request, u'Para visualizar e aceitar o termo de adesão, é preciso possuir cadastro no sistema juntamente com um perfil de voluntário. Se você já possui cadastro, faça o login, caso contrário clique no link para se cadastrar e depois siga as instruções.')
+        link_assinatura = termo.link_assinatura_vol(request, absolute=False)
+        request.session['termo'] = termo.slug
+        return redirect('/aut/login' + '?next=' + link_assinatura)
+    if not request.user.is_voluntario:
+        # Redireciona para página de cadastro de voluntário
+        messages.info(request, u'Para visualizar e aceitar o termo de adesão, é preciso possuir um perfil de voluntário cadastrado no sistema. Complete o formulário abaixo para em seguida visualizar o termo.')
+        if 'termo' not in request.session:
+            request.session['termo'] = termo.slug
+        return redirect('/voluntario/cadastro')
+
+    if 'termo' in request.session:
+        # Neste ponto esta variável não é mais necessária
+        del request.session['termo']
+        request.session.modified = True
+
+    # Assume que o usuário que possui o link de assinatura é quem está logado
+    voluntario = request.user.voluntario
+
+    ip = _get_client_ip(request)
+
+    if request.method == 'POST':
+
+        form = FormAssinarTermoAdesaoVol(request.POST)
+
+        if form.is_valid():
+
+            termo.voluntario = voluntario
+            termo.nome_voluntario = request.user.nome # fixo
+            termo.nascimento_voluntario = voluntario.data_aniversario # fixo
+            termo.profissao_voluntario = form.cleaned_data['profissao_voluntario']
+            termo.nacionalidade_voluntario = form.cleaned_data['nacionalidade_voluntario']
+            termo.tipo_identif_voluntario = form.cleaned_data['tipo_identif_voluntario']
+            termo.identif_voluntario = form.cleaned_data['identif_voluntario']
+            termo.cpf_voluntario = form.cleaned_data['cpf_voluntario']
+            termo.estado_civil_voluntario = form.cleaned_data['estado_civil_voluntario']
+            termo.endereco_voluntario = form.cleaned_data['endereco_voluntario']
+            termo.ddd_voluntario = form.cleaned_data['ddd_voluntario']
+            termo.telefone_voluntario = form.cleaned_data['telefone_voluntario']
+            termo.ip_aceitacao_vol = ip
+            termo.data_aceitacao_vol = timezone.now()
+            
+            termo.save()
+            messages.info(request, u'Termo de adesão aceito com sucesso!')
+            return redirect(reverse('termo_de_adesao', kwargs={'slug_termo': termo.slug}))
+    else:
+
+        # termos já preenchidos pelo usuário
+        termos = TermoAdesao.objects.filter(voluntario=voluntario, data_aceitacao_vol__isnull=False).order_by('-data_cadastro')
+        if len(termos) > 0:
+            ultimo_termo = termos[0]
+            profissao_voluntario = ultimo_termo.profissao_voluntario
+            nacionalidade_voluntario = ultimo_termo.nacionalidade_voluntario
+            tipo_identif_voluntario = ultimo_termo.tipo_identif_voluntario
+            identif_voluntario = ultimo_termo.identif_voluntario
+            cpf_voluntario = ultimo_termo.cpf_voluntario
+            estado_civil_voluntario = ultimo_termo.estado_civil_voluntario
+            endereco_voluntario = ultimo_termo.endereco_voluntario
+            ddd_voluntario = ultimo_termo.ddd_voluntario
+            telefone_voluntario = ultimo_termo.telefone_voluntario
+        else:
+            profissao_voluntario = voluntario.profissao
+            nacionalidade_voluntario = u'brasileira'
+            tipo_identif_voluntario = 'RG'
+            identif_voluntario = ''
+            cpf_voluntario = ''
+            estado_civil_voluntario = None
+            endereco_voluntario = u'???, ' + voluntario.cidade + ', ' + voluntario.estado
+            ddd_voluntario = voluntario.ddd
+            telefone_voluntario = voluntario.telefone
+
+        form = FormAssinarTermoAdesaoVol(initial={'profissao_voluntario': profissao_voluntario,
+                                                  'nacionalidade_voluntario': nacionalidade_voluntario,
+                                                  'tipo_identif_voluntario': tipo_identif_voluntario,
+                                                  'identif_voluntario': identif_voluntario,
+                                                  'cpf_voluntario': cpf_voluntario,
+                                                  'estado_civil_voluntario': estado_civil_voluntario,
+                                                  'endereco_voluntario': endereco_voluntario,
+                                                  'ddd_voluntario': ddd_voluntario,
+                                                  'telefone_voluntario': telefone_voluntario})
+
+    context = {'hmac_key': hmac_key,
+               'termo': termo,
+               'voluntario': voluntario,
+               'form': form,
+               'ip': ip}
+    template = loader.get_template('vol/formulario_aceitacao_vol_termo_de_adesao.html')
+    return HttpResponse(template.render(context, request))
+
 def busca_entidades(request):
     '''Página de busca de entidades'''
     # Obs: Existe pelo menos um site externo que faz buscas com POST
@@ -1161,7 +1486,7 @@ def frase_mural(request):
 
 @login_required
 def redirect_login(request):
-    "Redireciona usuário após login bem sucedido"
+    "Redireciona usuário após login bem sucedido quando não há o parâmetro next"
     # Se o link original de cadastro era para voluntário
     if request.user.link == 'voluntario_novo':
         if request.user.is_voluntario:
@@ -1190,6 +1515,15 @@ def anonymous_email_confirmation(request):
     messages.info(request, u'Agora você já pode identificar-se no sistema e prosseguir.')
     # Sinal para omitir link de cadastro na página de login
     request.session['omit_reg_link'] = 1
+    if 'termo' in request.session:
+        try:
+            termo = TermoAdesao.objects.get(slug=request.session['termo'])
+            link_assinatura = termo.link_assinatura_vol(request, absolute=False)
+        except TermoAdesao.DoesNotExist:
+            # Nunca deveria cair aqui...
+            pass
+        if link_assinatura:
+            return redirect('/aut/login' + '?next=' + link_assinatura)
     return redirect(reverse('redirlogin'))
 
 @login_required

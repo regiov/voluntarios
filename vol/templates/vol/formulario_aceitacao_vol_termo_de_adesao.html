@@ -1,0 +1,95 @@
+{% extends "vol/base_voluntario.html" %}
+{% load static %}
+
+{% block title %}Assinatura de termo de adesão{% endblock title %}
+
+{% block head %}
+<script type="text/javascript" src="{% static 'js/jquery.mask.min.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+
+   $("#id_cpf_voluntario").mask("999.999.999-99");
+   $("#cnpj").mask("99.999.999/9999-99", {reverse: true});
+
+});
+</script>
+{% endblock head %}
+
+{% block content %}
+<h1 class="margin-bottom">Termo de adesão</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% include "vol/erros.html" %}
+
+<pre class="text-justify">{{ termo.condicoes }}
+</pre>
+
+<h2 class="secao-entidade"><span>Informações da entidade</span></h2>
+<label class="nowrap">Denominação: </label> {{ termo.nome_entidade }}
+{% if termo.cnpj_entidade %}<br/><label class="nowrap">CNPJ: </label> <div id="cnpj" style="display:inline-block;">{{ termo.cnpj_entidade }}</div>{% endif %}
+{% if termo.endereco_entidade %}<br/><label class="nowrap">Endereço: </label> {{ termo.endereco_entidade }}{% endif %}
+{% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.resp_entidade.nome }}{% endif %}
+
+<h2 class="secao-entidade"><span>Informações do voluntário</span></h2>
+<label class="nowrap">Nome completo: </label> {{ request.user.nome }}
+<br/>
+<label class="nowrap">Data de nascimento: </label> {{ voluntario.data_aniversario }}
+
+<form id="form-termo-adesao" method="POST" action="">{% csrf_token %}
+<input type="hidden" name="h" value="{{ hmac_key }}"/>
+<table width="100%">
+ <tr> 
+  <td width="50%">
+   {% include "vol/campo_formulario.html" with campo=form.nacionalidade_voluntario required=True %}
+  </td>
+  <td width="50%" style="padding-left: 10px;">
+   {% include "vol/campo_formulario.html" with campo=form.estado_civil_voluntario required=True %}
+  </td>
+ </tr>
+</table>
+  
+  {% include "vol/campo_formulario.html" with campo=form.profissao_voluntario required=True %}
+  {% include "vol/campo_formulario.html" with campo=form.cpf_voluntario required=True %}
+<table width="100%">
+ <tr> 
+  <td width="10%">
+   {% include "vol/campo_formulario.html" with campo=form.tipo_identif_voluntario required=True %}
+  </td>
+  <td width="90%" style="padding-left: 10px;">
+   {% include "vol/campo_formulario.html" with campo=form.identif_voluntario required=True %}
+  </td>
+ </tr>
+</table>
+  {% include "vol/campo_formulario.html" with campo=form.endereco_voluntario required=True %}
+<table width="100%">
+ <tr> 
+  <td width="10%">
+   {% include "vol/campo_formulario.html" with campo=form.ddd_voluntario required=True %}
+  </td>
+  <td width="90%" style="padding-left: 10px;">
+   {% include "vol/campo_formulario.html" with campo=form.telefone_voluntario required=True %}
+  </td>
+ </tr>
+</table>
+
+<h2 class="secao-entidade"><span>Escopo do trabalho</span></h2>
+<label class="nowrap">Atividade a ser desenvolvida: </label> {{ termo.atividades }}
+<br/>
+<label class="nowrap">Carga horária: </label> {{ termo.carga_horaria }}
+<br/>
+<label class="nowrap">Pelo período de </label> {{ termo.data_inicio }} {% if termo.data_fim %}a {{ termo.data_fim }}{% else %}por prazo indeterminado{% endif %}
+<hr/>
+
+{% with texto_aceitacao=termo.texto_aceitacao %}
+{% include "vol/campo_formulario.html" with campo=form.aceitacao after_field=texto_aceitacao %}
+{% endwith %}
+
+<p class="text-justify"><b>Importante:</b> Este termo, juntamente com todos os dados acima, ficará armazenado no banco de dados do Voluntários, registrando também o endereço IP utilizado no momento da aceitação ({{ ip }}). O termo poderá ser acessado a qualquer tempo pela entidade ou por você através do site, ou por qualquer pessoa que possua o link único que será gerado e fornecido à seguir. Caso haja alguma dúvida, discordância ou correção a ser feita, entre em contato com a entidade antes de submeter os dados.</p>
+<br/>
+<br/>
+  <div class="form-group">
+    <input class="btn btn-primary" type="submit" name="submit" value="Submeter o termo">
+  </div>
+</form>
+{% endblock content %}

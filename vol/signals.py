@@ -16,6 +16,11 @@ def my_user_signed_up(request, user, **kwargs):
         fields.append('link')
         del request.session['link']
         request.session.modified = True
+    elif 'termo' in request.session:
+        # Armazena origem do cadastro, para posteriormente
+        # direcionar usuário corretamente após login
+        user.link = 'termo'
+        fields.append('link')
     user.save(update_fields=fields)
 
 def voluntario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):

@@ -22,7 +22,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
     <link href="{% static 'css/main-3.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 
-    <link href="{% static 'css/vol-2.6.css' %}" rel="stylesheet">
+    <link href="{% static 'css/vol-2.7.css' %}" rel="stylesheet">
 
     <!--[if lt IE 9]>
       {% comment %}This script is the defacto way to enable use 
@@ -68,6 +68,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
 
 <body>
 {% block body %}
+    {% block content_header %}
     <header id="header">
 
         <div id="pre-navbar" class="navbar navbar-inverse">
@@ -109,7 +110,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                             <ul role="menu" class="sub-menu">
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='por-que-ser-voluntario/' %}">Por que ser voluntário</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='bom-voluntario/' %}">Como ser um bom voluntário</a></li>
-                                <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'cadastro_voluntario' %}" rel="nofollow">Alterar cadastro de voluntário</a>{% else %}<a href="{% url 'link_voluntario_novo' %}" rel="nofollow">Cadastre-se</a>{% endif %}</li>
+                                <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'cadastro_voluntario' %}" rel="nofollow">Gerencie seu perfil de voluntário</a>{% else %}<a href="{% url 'link_voluntario_novo' %}" rel="nofollow">Cadastre-se como voluntário</a>{% endif %}</li>
                                 <li><a href="{% url 'busca_entidades' %}">Encontre uma entidade</a></li>
                                 <li><a href="{% url 'mapa_entidades' %}">Mapa de entidades</a></li>
                                 <li><a href="{% url 'busca_doacoes' %}">Pedidos de doação</a></li>
@@ -137,7 +138,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             </div>
         </div>
     </header>
-    <!--/#header-->
+    {% endblock content_header %}
 
 {% block content_container %}
     <section id="content">
@@ -183,9 +184,9 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             </div>
         </div>
     </section>
-    <!--/#content-->
 {% endblock content_container %}
 
+    {% block content_footer %}
     <footer id="footer">
         <div class="container">
             <div class="row">
@@ -199,7 +200,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
             </div>
         </div>
     </footer>
-    <!--/#footer-->
+    {% endblock content_footer %}
 {% block post_footer %}
 {% endblock post_footer %}
 {% endblock body %}

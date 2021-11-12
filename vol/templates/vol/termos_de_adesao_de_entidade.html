@@ -1,0 +1,45 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Termos de Adesão{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Gerenciamento de termos de adesão de voluntários</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% if termos|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Voluntário</th><th>enviado</th><th>assinado</th><th>início</th><th>fim</th><th>&nbsp;</th></thead>
+  <tbody>
+  {% for termo in termos %}
+  <tr>
+    <td>{% if termo.nome_voluntario %}{{ termo.nome_voluntario }}{% else %}{{ termo.voluntario.usuario.nome|default:termo.email_voluntario }}{% endif %} <a href="mailto:{{ termo.email_voluntario }}" style="margin-left: 10px;"><i class="fas fa-envelope" title="contactar"></i></a></td>
+    <td>
+      {% if termo.erro_envio_vol or not termo.data_envio_vol %}
+      <img src="{% static 'images/misc/icon-deletelink.svg' %}" title="{% if termo.data_envio_vol %}erro no envio{% else %}envio pendente{% endif %}"/>&nbsp;<a href="{% url 'enviar_termo_de_adesao' slug_termo=termo.slug %}" class="btn btn-primary btn-sm">{% if termo.data_envio_vol %}re{% endif %}enviar</a>
+      {% else %}
+      <img src="{% static 'images/misc/icon-yes.svg' %}" title="{{ termo.data_envio_vol|date:"d-m-Y" }}"/>
+        {% if not termo.data_aceitacao_vol and termo.horas_do_ultimo_envio_vol > 0 %}
+          &nbsp;<a href="{% url 'enviar_termo_de_adesao' slug_termo=termo.slug %}" class="btn btn-primary btn-sm">reenviar</a>
+        {% endif %}
+      {% endif %}</td>
+    <td>{% if termo.data_aceitacao_vol %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="sim"/>{% else %}<img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando aceitação"/>{% endif %}</td>
+    <td>{{ termo.data_inicio|date:"d-m-Y" }}</td>
+    <td>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
+    <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+
+{% else %}
+  <p>Nenhum termo cadastrado.</p>
+{% endif %}
+
+<a href="{% url 'novo_termo_de_adesao' entidade.id %}" class="btn btn-primary">Novo termo</a>
+
+{% endblock content %}
