@@ -396,7 +396,12 @@ msgstr "Adicionar e-mail"
 
 #: templates/account/email.html:62
 msgid "Do you really want to remove the selected e-mail address?"
-msgstr "Deseja mesmo remover o endereço de e-mail seleccionado?"
+msgstr "Deseja mesmo remover o endereço de e-mail selecionado?"
+
+#: templates/account/email/base_message.txt:1
+#, python-format
+msgid "Hello from %(site_name)s!"
+msgstr "Olá do %(site_name)s!"
 
 #: templates/account/email/email_confirmation_message.txt:1
 #| msgid ""
@@ -414,6 +419,20 @@ msgid ""
 msgstr ""
 "Olá!\n"
 "\n"
+"Você está recebendo esta mensagem porque o usuário %(user_display)s \n"
+"do site %(site_name)s informou este endereço ao se cadastrar.\n"
+"\n"
+"Para confirmar que isso está correto e ter pleno acesso ao site, clique em\n"
+"%(activate_url)s\n"
+
+#: templates/account/email/email_confirmation_message.txt:5
+#, python-format
+msgid ""
+"You're receiving this e-mail because user %(user_display)s has given your e-"
+"mail address to register an account on %(site_domain)s.\n"
+"\n"
+"To confirm this is correct, go to %(activate_url)s"
+msgstr ""
 "Você está recebendo esta mensagem porque o usuário %(user_display)s \n"
 "do site %(site_name)s informou este endereço ao se cadastrar.\n"
 "\n"
