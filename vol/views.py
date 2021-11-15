@@ -978,6 +978,8 @@ def novo_termo_de_adesao(request, id_entidade):
             else:
                 if form.cleaned_data['tem_responsavel'] is None:
                     messages.error(request, u'Favor indicar se você deseja constar como responsável por parte da entidade neste termo.')
+                else:
+                    ok = True
 
             if ok:
                 enviados = []
