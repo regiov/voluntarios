@@ -524,7 +524,7 @@ class FormCriarTermoAdesao(forms.Form):
                                     help_text="(exemplo: X horas ou dias por semana)")
     data_inicio = forms.DateField(label=u'Início',
                                   initial=date.today,
-                                  widget=forms.SelectDateWidget(empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}))
+                                  widget=forms.SelectDateWidget(years=[y for y in range(date.today().year-10, date.today().year+10)], empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}))
     data_fim = forms.DateField(label=u'Término',
                                widget=forms.SelectDateWidget(empty_label=(u'ano', u'mês', u'dia'), attrs={'class':'form-control'}),
                                help_text="(para duração indeterminada, deixe em branco)",
