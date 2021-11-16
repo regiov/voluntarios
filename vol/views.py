@@ -971,7 +971,7 @@ def novo_termo_de_adesao(request, id_entidade):
             ok = False
             # Validações que dependem da entidade
             if entidade.cnpj_valido():
-                if not form.cleaned_data['sou_responsavel']:
+                if form.cleaned_data['sou_responsavel'] == 'False':
                     messages.error(request, u'Para emitir termos na versão atual do sistema é necessário ser responsável legal pela entidade. Entre em contato conosco se isto for um problema.')
                 else:
                     ok = True
@@ -1003,7 +1003,7 @@ def novo_termo_de_adesao(request, id_entidade):
                             novo_termo.resp_entidade = request.user
                         else:
                             # Caso contrário, somente registra o usuário como responsável se ele quiser
-                            if form.cleaned_data['tem_responsavel']:
+                            if form.cleaned_data['tem_responsavel'] == 'True':
                                 novo_termo.resp_entidade = request.user
                         # Se já houver um voluntário cadastrado no sistema com o e-mail, vincula ele ao termo
                         try:
