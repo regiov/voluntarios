@@ -34,7 +34,7 @@ $(document).ready(function () {
 {% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.resp_entidade.nome }}{% endif %}
 
 <h2 class="secao-entidade"><span>Informações do voluntário</span></h2>
-<label class="nowrap">Nome completo: </label> {{ request.user.nome }}
+<label class="nowrap">Nome completo: </label> {{ termo.nome_voluntario }}
 <br/>
 <label class="nowrap">Data de nascimento: </label> {{ termo.nascimento_voluntario }}
 <br/>
