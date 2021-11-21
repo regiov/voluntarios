@@ -13,7 +13,7 @@ $(document).ready(function () {
    $("#cnpj").mask("99.999.999/9999-99", {reverse: true});
 
    {% if "print" in request.GET %}
-   $('#qrcode').qrcode({width: 64,height: 64,text: "{{ request.scheme }}://{{ request.get_host }}{% url 'termo_de_adesao' slug_termo=termo.slug %}"});
+   $('#qrcode').qrcode({width: 64,height: 64,text: "{{ request.scheme }}://{{ request.get_host }}{% url 'termo_de_adesao' slug_termo=termo.slug %}?print=1"});
    {% endif %}
 });
 </script>
