@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 import json
 import datetime
+import re
 
 from django.db import models, transaction
 from django.conf import settings
@@ -1430,6 +1431,12 @@ class TermoAdesao(models.Model):
         for estado_civil in ESTADO_CIVIL:
             if self.estado_civil_voluntario == estado_civil[0]:
                 return estado_civil[1]
+        return None
+
+    def telefone_completo_voluntario(self):
+        if self.ddd_voluntario and self.telefone_voluntario:
+            tel = '55' + self.ddd_voluntario.lstrip('0') + self.telefone_voluntario
+            return re.sub(r'[^0-9]', '', tel)
         return None
 
 class Funcao(MPTTModel):
