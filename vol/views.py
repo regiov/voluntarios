@@ -2310,6 +2310,7 @@ def onboarding_entidade(request, id_entidade):
                         try:
                             entidade.assunto_msg_onboarding = assunto_msg
                             entidade.msg_onboarding = msg
+                            entidade.assinatura_onboarding = assinatura
                             if entidade.data_envio_onboarding is None or entidade.falha_envio_onboarding is not None:
                                 entidade.data_envio_onboarding = timezone.now()
                             with mail.get_connection(
