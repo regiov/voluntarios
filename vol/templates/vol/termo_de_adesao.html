@@ -33,6 +33,13 @@ $(document).ready(function () {
 {% if termo.endereco_entidade %}<br/><label class="nowrap">Endereço: </label> {{ termo.endereco_entidade }}{% endif %}
 {% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.resp_entidade.nome }}{% endif %}
 
+<h2 class="secao-entidade"><span>Escopo do trabalho</span></h2>
+<label class="nowrap">Atividade a ser desenvolvida: </label> {{ termo.atividades }}
+<br/>
+<label class="nowrap">Carga horária: </label> {{ termo.carga_horaria }}
+<br/>
+<label class="nowrap">Pelo período de </label> {{ termo.data_inicio }} {% if termo.data_fim %}a {{ termo.data_fim }}{% else %}por prazo indeterminado{% endif %}
+
 <h2 class="secao-entidade"><span>Informações do voluntário</span></h2>
 <label class="nowrap">Nome completo: </label> {{ termo.nome_voluntario }}
 <br/>
@@ -51,13 +58,10 @@ $(document).ready(function () {
 <label class="nowrap">Endereço: </label> {{ termo.endereco_voluntario }}
 <br/>  
 <label class="nowrap">Telefone: </label> ({{ termo.ddd_voluntario }}) {{ termo.telefone_voluntario }}
+<br/>
+<br/>
+<i class="fas fa-check" title="aceito"></i> {{ termo.texto_aceitacao }}
 
-<h2 class="secao-entidade"><span>Escopo do trabalho</span></h2>
-<label class="nowrap">Atividade a ser desenvolvida: </label> {{ termo.atividades }}
-<br/>
-<label class="nowrap">Carga horária: </label> {{ termo.carga_horaria }}
-<br/>
-<label class="nowrap">Pelo período de </label> {{ termo.data_inicio }} {% if termo.data_fim %}a {{ termo.data_fim }}{% else %}por prazo indeterminado{% endif %}
 <hr/>
 Cadastrado em {{ termo.data_cadastro|date:"d-m-Y à\s H:i\h" }}{% if termo.resp_entidade == termo.resp_cadastro %} por {{ termo.resp_entidade.nome }}{% endif %}
 <br/>
