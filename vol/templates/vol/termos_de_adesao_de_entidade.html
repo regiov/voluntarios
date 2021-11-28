@@ -39,7 +39,17 @@
 
 {% else %}
   <p>Nenhum termo cadastrado.</p>
-  <p>Aqui você pode cadastrar termos de adesão de trabalho voluntário, enviando aos voluntários para aceitação online, sem precisar mais de papel. Você só precisa saber o e-mail do volunário que, ao aceitar o termo, irá preencher os demais campos de dados pessoais. Os termos ficam armazenados no sistema, podendo ser consultados quando que necessário.</p>
+  <p>Você pode utilizar o sistema para emitir e gerenciar termos de adesão de trabalho voluntário, enviando aos voluntários para aceitação online, sem precisar mais de papel. Para isso, siga os seguintes passos:</p>
+  <ol>
+    <li>Clique no botão "Novo termo".</li>
+    <li>Informe o(s) e-mail(s) do(s) voluntário(s).</li>
+    <li>Preencha os campos descrevendo as atividades a serem realizadas, a carga horária e as datas de início e término.</li>
+    <li>Ajuste o texto das condições do termo se necessário.</li>
+    <li>Envie o termo para aceitação.</li>
+    <li>O voluntário irá receber um e-mail informando sobre o termo, contendo um link para acessá-lo (será necessário se cadastrar como voluntário no site, mas o sistema já dá todas as orientações nesse sentido).</li>
+    <li>Uma vez cadastrado, o voluntário poderá acessar o termo, preencher os campos com seus dados pessoais e aceitar.</li>
+    <li>O termo fica registrado no sistema, podendo ser acessdo tanto pela entidade quanto pelo voluntário, ou por qualquer pessoa através do QR code da versão impressa.</li>
+  </ol>
 {% endif %}
 
 <a href="{% url 'novo_termo_de_adesao' entidade.id %}" class="btn btn-primary">Novo termo</a>
