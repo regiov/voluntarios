@@ -900,8 +900,12 @@ def termos_de_adesao_de_entidade(request, id_entidade):
 
     termos = TermoAdesao.objects.filter(entidade=entidade).order_by('-data_cadastro')
 
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+
     context = {'entidade': entidade,
-               'termos': termos}
+               'termos': termos,
+               'hoje': now.date()}
     template = loader.get_template('vol/termos_de_adesao_de_entidade.html')
     return HttpResponse(template.render(context, request))
 
@@ -952,6 +956,95 @@ def enviar_termo_de_adesao(request, slug_termo):
 
 @login_required
 @transaction.atomic
+def cancelar_termo_de_adesao(request, slug_termo):
+    '''Cancela termo de adesão para voluntário'''
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(metodos)
+
+    try:
+        termo = TermoAdesao.objects.get(slug=slug_termo)
+    except TermoAdesao.DoesNotExist:
+        raise Http404
+
+    # termos só pode ser cancelados pela entidade, quando o voluntário ainda não assinou
+    if termo.entidade_id not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if termo.data_aceitacao_vol is not None:
+        messages.error(request, u'Não é possível excluir termos de adesão que já foram aceitos pelo voluntário. Utilize a opção rescindir.')
+    else:
+        termo.delete()
+        messages.info(request, u'Termo de adesão excluído com sucesso.')
+
+    return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
+
+@login_required
+@transaction.atomic
+def rescindir_termo_de_adesao(request, slug_termo):
+    '''Rescinde termo de adesão para voluntário'''
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(metodos)
+
+    try:
+        termo = TermoAdesao.objects.get(slug=slug_termo)
+    except TermoAdesao.DoesNotExist:
+        raise Http404
+
+    motivo = request.POST.get('motivo')
+
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+
+    # termos só podem ser rescindidos pela entidade ou pelo próprio voluntário
+    if (termo.voluntario is not None and request.user != termo.voluntario.usuario) and termo.entidade_id not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if termo.data_aceitacao_vol is None:
+        messages.error(request, u'Não é possível rescindir termos de adesão que sequer foram aceitos pelo voluntário. Utilize a opção cancelar.')
+    elif termo.data_fim and termo.data_fim <= now.date():
+        messages.error(request, u'Não é possível rescindir termos de adesão que já expiraram.')
+    elif termo.data_rescisao is not None:
+        messages.error(request, u'Não é possível rescindir termos de adesão que já foram rescindidos.')
+    elif not motivo:
+        messages.error(request, u'É necessário informar o motivo da rescisão.')
+    else:
+        termo.data_rescisao = timezone.now()
+        termo.resp_rescisao = request.user
+        termo.nome_resp_rescisao = request.user.nome
+        termo.motivo_rescisao = motivo
+        termo.save()
+
+        # Notifica a outra parte sobre a rescisão
+        dest = None
+        if termo.voluntario and request.user == termo.voluntario.usuario:
+            # rescisão sendo feita pelo voluntário
+            if termo.entidade: # pode ser que a entidade tenha sido removida!
+                dest = termo.entidade.email_principal
+        else:
+            # rescisão sendo feita pela entidade
+            dest = termo.email_voluntario
+
+        if dest:
+
+            context = {'nome_voluntario': termo.nome_voluntario,
+                       'nome_entidade': termo.nome_entidade,
+                       'nome_resp_rescisao': request.user.nome,
+                       'data_rescisao': termo.data_rescisao,
+                       'motivo_rescisao': motivo}
+            
+            try:
+                notify_email_template(dest, u'Rescisão de termo de adesão', 'vol/msg_rescisao.txt', from_email=settings.NOTIFY_USER_FROM, context=context)
+            except Exception as e:
+                # Se houver erro o próprio notify_email_template já tenta notificar o suporte,
+                # portanto só cairá aqui se houver erro na notificação ao suporte
+                pass
+        
+        messages.info(request, u'Termo de adesão rescindido com sucesso.')
+
+    return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
+
+@login_required
+@transaction.atomic
 def novo_termo_de_adesao(request, id_entidade):
     '''Novo termo de adesão para voluntário'''
     try:
@@ -997,14 +1090,17 @@ def novo_termo_de_adesao(request, id_entidade):
                                                  data_inicio=form.cleaned_data['data_inicio'],
                                                  data_fim=form.cleaned_data['data_fim'],
                                                  carga_horaria=form.cleaned_data['carga_horaria'],
-                                                 resp_cadastro=request.user)
+                                                 resp_cadastro=request.user,
+                                                 nome_resp_cadastro=request.user.nome)
                         if entidade.cnpj_valido():
                             # Se a entidade possui existência formal, assume que o usuário é representante legal
                             novo_termo.resp_entidade = request.user
+                            novo_termo.nome_resp_entidade = request.user.nome
                         else:
                             # Caso contrário, somente registra o usuário como responsável se ele quiser
                             if form.cleaned_data['tem_responsavel'] == 'True':
                                 novo_termo.resp_entidade = request.user
+                                novo_termo.nome_resp_entidade = request.user.nome
                         # Se já houver um voluntário cadastrado no sistema com o e-mail, vincula ele ao termo
                         try:
                             voluntario = Voluntario.objects.get(usuario__email=email)
@@ -1089,7 +1185,7 @@ def assinatura_vol_termo_de_adesao(request):
         hmac_key = request.POST['h']
     termo = TermoAdesao.objects.from_hmac_key(hmac_key)
     if termo is None:
-        messages.error(request, u'Não foi possível identificar o termo de adesão. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Se o problema persistir, entre em contato conosco.')
+        messages.error(request, u'Não foi possível localizar este termo de adesão. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Caso você tenha recebido a notificação há muito tempo, pode ser também que a entidade tenha cancelado o termo de adesão, portanto também vale a pena confirmar com a entidade se o termo continua disponível, ou se é necessário emitir um novo termo. Se precisar de ajuda, entre em contato conosco.')
         return mensagem(request, u'Assinatura de termo de adesão')
     if termo.data_aceitacao_vol is not None:
         # Se o termo já foi aceito, simplesmente exibe ele

@@ -31,7 +31,7 @@ $(document).ready(function () {
 <label class="nowrap">Denominação: </label> {{ termo.nome_entidade }}
 {% if termo.cnpj_entidade %}<br/><label class="nowrap">CNPJ: </label> <span id="cnpj">{{ termo.cnpj_entidade }}</span>{% endif %}
 {% if termo.endereco_entidade %}<br/><label class="nowrap">Endereço: </label> {{ termo.endereco_entidade }}{% endif %}
-{% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.resp_entidade.nome }}{% endif %}
+{% if termo.resp_entidade %}<br/><label class="nowrap">Responsável pelo termo de adesão: </label> {{ termo.nome_resp_entidade }}{% endif %}
 
 <h2 class="secao-entidade"><span>Escopo do trabalho</span></h2>
 <label class="nowrap">Atividade a ser desenvolvida: </label> {{ termo.atividades }}
@@ -63,10 +63,14 @@ $(document).ready(function () {
 <i class="fas fa-check" title="aceito"></i> {{ termo.texto_aceitacao }}
 
 <hr/>
-Cadastrado em {{ termo.data_cadastro|date:"d-m-Y à\s H:i\h" }}{% if termo.resp_entidade == termo.resp_cadastro %} por {{ termo.resp_entidade.nome }}{% endif %}
+Cadastrado em {{ termo.data_cadastro|date:"d-m-Y à\s H:i\h" }}{% if termo.resp_entidade == termo.resp_cadastro %} por {{ termo.nome_resp_entidade }}{% endif %}
 <br/>
 Aceito em {{ termo.data_aceitacao_vol|date:"d-m-Y à\s H:i\h" }} por {{ termo.nome_voluntario }}
 <br/>
+{% if termo.data_rescisao %}
+Rescindido em {{ termo.data_rescisao|date:"d-m-Y à\s H:i\h" }} por {{ termo.nome_resp_rescisao }}
+<br/>
+{% endif %}
 Emitido por voluntarios.com.br
 <br/>
 <br/>

@@ -78,6 +78,8 @@ urlpatterns = [
     url(r'^entidade/(?P<id_entidade>\d+)/termos/novo/?$', views.novo_termo_de_adesao, name='novo_termo_de_adesao'),
     url(r'^entidade/(?P<id_entidade>\d+)/termos/?$', views.termos_de_adesao_de_entidade, name='termos_de_adesao_de_entidade'),
     url(r'^termo/(?P<slug_termo>[\w-]+)/enviar$', views.enviar_termo_de_adesao, name='enviar_termo_de_adesao'),
+    url(r'^termo/(?P<slug_termo>[\w-]+)/cancelar$', views.cancelar_termo_de_adesao, name='cancelar_termo_de_adesao'),
+    url(r'^termo/(?P<slug_termo>[\w-]+)/rescindir$', views.rescindir_termo_de_adesao, name='rescindir_termo_de_adesao'),
     url(r'^t/avol/?$', views.assinatura_vol_termo_de_adesao, name='assinatura_vol_termo_de_adesao'),
     url(r'^termo/(?P<slug_termo>[\w-]+)/?$', views.termo_de_adesao, name='termo_de_adesao'),
 

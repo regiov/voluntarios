@@ -12,7 +12,7 @@
 {% if termos|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th>&nbsp;</th><th>Voluntário</th><th>enviado</th><th>assinado</th><th>início</th><th>fim</th><th>&nbsp;</th></thead>
+  <thead><th>&nbsp;</th><th>Voluntário</th><th>enviado</th><th>assinado</th><th>início</th><th>fim</th><th>&nbsp;</th><th>&nbsp;</th></thead>
   <tbody>
   {% for termo in termos %}
   <tr>
@@ -29,14 +29,80 @@
       {% endif %}</td>
     <td>{% if termo.data_aceitacao_vol %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="sim"/>{% else %}<img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando aceitação"/>{% endif %}</td>
     <td>{{ termo.data_inicio|date:"d-m-Y" }}</td>
-    <td>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
-    <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}</td>
+    <td{% if termo.data_fim and termo.data_fim < hoje %} class="text-danger"{% endif %}>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
+    <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}
+    </td>
+    <td>
+      {% if termo.data_aceitacao_vol %}
+        {% if termo.data_rescisao %}
+          <span class="text-danger">rescindido</span> <img src="{% static 'images/misc/icon-unknown.svg' %}" title="motivo: {{ termo.motivo_rescisao }}"/>
+        {% else %}
+          {% if termo.data_fim is None or termo.data_fim >= hoje %}
+            {% comment %}Se já foi aceito, não foi rescindido e ainda está válido, pode ser rescindido{% endcomment %}
+            <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#confirm-terminate" data-termo="{{ termo.slug }}">rescindir</button>
+          {% else %}
+            <span>expirado</span>
+          {% endif %}
+        {% endif %}
+      {% else %}
+        {% comment %}Se ainda não foi aceito, pode ser cancelado, mesmo que já tenha expirado{% endcomment %}
+        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#confirm-delete" data-termo="{{ termo.slug }}">cancelar</button>
+      {% endif %}
+    </td>
   </tr>
   {% endfor %}
   </tbody>
   </table>
   </div>
 
+  <div class="modal" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+       <div class="modal-content">
+            
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Confirme o cancelamento</h4>
+          </div>
+            
+          <div class="modal-body">
+              <p>Tem certeza que deseja cancelar este termo?</p>
+          </div>
+                
+          <div class="modal-footer">
+              <form id="delete-form" action="{% comment %}link gerado dinamicamente pelo on show.bs.modal{% endcomment %}" method="POST">
+              {% csrf_token %}
+              <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
+              <input class="btn btn-danger btn-ok" type="submit" name="delete" value="Sim">
+              </form>
+          </div>
+       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="confirm-terminate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+       <div class="modal-content">
+          <form id="terminate-form" action="{% comment %}link gerado dinamicamente pelo on show.bs.modal{% endcomment %}" method="POST">
+          {% csrf_token %}
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Rescisão de termo de adesão</h4>
+          </div>
+            
+          <div class="modal-body">
+            <p>Informe o motivo da rescisão:</p>
+	    <textarea class="form-control" name="motivo" rows="4" cols="50"></textarea>
+          </div>
+                
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+              <input class="btn btn-danger btn-ok" type="submit" name="terminate" value="Rescindir">
+          </div>
+          </form>
+       </div>
+    </div>
+  </div>
+  
 {% else %}
   <p>Nenhum termo cadastrado.</p>
   <p>Você pode utilizar o sistema para emitir e gerenciar termos de adesão de trabalho voluntário, enviando aos voluntários para aceitação online, sem precisar mais de papel. Para isso, siga os seguintes passos:</p>
@@ -55,3 +121,27 @@
 <a href="{% url 'novo_termo_de_adesao' entidade.id %}" class="btn btn-primary">Novo termo</a>
 
 {% endblock content %}
+
+{% block post_footer %}
+
+<script type="text/javascript">
+  
+$('#confirm-delete').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // botão que ativou o modal
+    var slug = button.data('termo'); // conteúdo do atributo data-termo
+    // coloca link no action do form
+    var modal = $(this);
+    modal.find('#delete-form').attr('action', '/termo/' + slug + '/cancelar');
+})
+
+$('#confirm-terminate').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // botão que ativou o modal
+    var slug = button.data('termo'); // conteúdo do atributo data-termo
+    // coloca link no action do form
+    var modal = $(this);
+    modal.find('#terminate-form').attr('action', '/termo/' + slug + '/rescindir');
+})
+
+</script>
+
+{% endblock post_footer %}

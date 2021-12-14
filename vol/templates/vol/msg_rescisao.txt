@@ -1,0 +1,10 @@
+Olá!
+
+Esta é uma notificação automática para avisar que o termo de adesão de trabalho voluntário de '{{ nome_voluntario }}' com a entidade '{{ nome_entidade }}' foi rescindido por '{{ nome_resp_rescisao }}' em {{ data_rescisao|date:"d-m-Y" }} pelo motivo:
+
+"{{ motivo_rescisao }}"
+
+Para esclarecimentos adicionais, favor entrar em contato com a outra parte.
+
+
+Equipe voluntarios.com.br

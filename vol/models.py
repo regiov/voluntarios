@@ -1374,12 +1374,18 @@ class TermoAdesao(models.Model):
     carga_horaria            = models.TextField(u'Dias e horários de execução das atividades')
     # Campos de preenchimento automático
     data_cadastro            = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
-    resp_cadastro            = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_set', on_delete=models.PROTECT)
-    resp_entidade            = models.ForeignKey(Usuario, verbose_name=u'Responsável por parte da entidade', related_name='resp_entidade_set', on_delete=models.PROTECT, null=True, blank=True)
+    resp_cadastro            = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', related_name='resp_cadastro_set', on_delete=models.SET_NULL, null=True, blank=True)
+    nome_resp_cadastro       = models.CharField(u'Nome do responsável pelo cadastro', max_length=255, null=True, blank=True)
+    resp_entidade            = models.ForeignKey(Usuario, verbose_name=u'Responsável por parte da entidade', related_name='resp_entidade_set', on_delete=models.SET_NULL, null=True, blank=True)
+    nome_resp_entidade       = models.CharField(u'Nome do responsável por parte da entidade', max_length=255, null=True, blank=True)
     data_envio_vol           = models.DateTimeField(u'Data de envio do termo para o voluntário por e-mail', null=True, blank=True)
     erro_envio_vol           = models.TextField(u'Erro no envio do e-mail para o voluntário', null=True, blank=True)
     data_aceitacao_vol       = models.DateTimeField(u'Data de aceitação pelo voluntário', null=True, blank=True)
     ip_aceitacao_vol         = models.GenericIPAddressField(u'Endereço IP usado na aceitação do voluntário', null=True, blank=True)
+    data_rescisao            = models.DateTimeField(u'Data de rescisão', null=True, blank=True)
+    resp_rescisao            = models.ForeignKey(Usuario, verbose_name=u'Responsável pela rescisão', related_name='resp_rescisao_set', on_delete=models.SET_NULL, null=True, blank=True)
+    nome_resp_rescisao       = models.CharField(u'Nome do responsável pela rescisão', max_length=255, null=True, blank=True)
+    motivo_rescisao          = models.TextField(u'Motivo da rescisão', null=True, blank=True)
 
     objects = TermoAdesaoManager()
 
