@@ -916,7 +916,11 @@ def termos_de_adesao_de_voluntario(request):
     if request.user.is_voluntario:
         termos = TermoAdesao.objects.filter(voluntario=request.user.voluntario).order_by('-data_cadastro')
 
-    context = {'termos': termos}
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+
+    context = {'termos': termos,
+               'hoje': now.date()}
     template = loader.get_template('vol/termos_de_adesao_de_voluntario.html')
     return HttpResponse(template.render(context, request))
 
@@ -996,7 +1000,12 @@ def rescindir_termo_de_adesao(request, slug_termo):
     now = timezone.now().astimezone(current_tz)
 
     # termos só podem ser rescindidos pela entidade ou pelo próprio voluntário
-    if (termo.voluntario is not None and request.user != termo.voluntario.usuario) and termo.entidade_id not in request.user.entidades().values_list('pk', flat=True):
+    rescisao_pela_entidade = None
+    if termo.voluntario is not None and request.user == termo.voluntario.usuario:
+        rescisao_pela_entidade = False
+    elif termo.entidade_id in request.user.entidades().values_list('pk', flat=True):
+        rescisao_pela_entidade = True
+    else:
         raise PermissionDenied
 
     if termo.data_aceitacao_vol is None:
@@ -1016,13 +1025,13 @@ def rescindir_termo_de_adesao(request, slug_termo):
 
         # Notifica a outra parte sobre a rescisão
         dest = None
-        if termo.voluntario and request.user == termo.voluntario.usuario:
+        if rescisao_pela_entidade:
+            # rescisão sendo feita pela entidade
+            dest = termo.email_voluntario
+        else:
             # rescisão sendo feita pelo voluntário
             if termo.entidade: # pode ser que a entidade tenha sido removida!
                 dest = termo.entidade.email_principal
-        else:
-            # rescisão sendo feita pela entidade
-            dest = termo.email_voluntario
 
         if dest:
 
@@ -1041,7 +1050,10 @@ def rescindir_termo_de_adesao(request, slug_termo):
         
         messages.info(request, u'Termo de adesão rescindido com sucesso.')
 
-    return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
+    if 'Referer' in request.headers and 'entidade' in request.headers['Referer']:
+        return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
+
+    return redirect(reverse('termos_de_adesao_de_voluntario'))
 
 @login_required
 @transaction.atomic

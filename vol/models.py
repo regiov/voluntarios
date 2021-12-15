@@ -1445,6 +1445,16 @@ class TermoAdesao(models.Model):
             return re.sub(r'[^0-9]', '', tel)
         return None
 
+    def vigente(self):
+        current_tz = timezone.get_current_timezone()
+        now = timezone.now().astimezone(current_tz)
+        hoje = timezone.date()
+        if termo.data_inicio > hoje:
+            return False
+        if termo.data_fim and termo.data_fim < hoje:
+            return False
+        return True
+
 class Funcao(MPTTModel):
     """Árvrore de funções a serem desempenhadas numa entidade"""
     entidade     = models.ForeignKey(Entidade, on_delete=models.CASCADE)
