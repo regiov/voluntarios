@@ -1315,7 +1315,7 @@ class HistoricoStatusCnpj(StatusCnpj):
         verbose_name_plural = u'Historicos de status de CNPJ'
 
     def __str__(self):
-        return self.situacao + u' ' + str(self.data_situacao)
+        return self.situacao_cnpj + u' ' + str(self.data_situacao_cnpj)
 
 TIPO_DOC_IDENTIF = (
     ( u'RG', u'RG' ),
