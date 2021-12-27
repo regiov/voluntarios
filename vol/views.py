@@ -1965,7 +1965,7 @@ def painel(request):
     total_ents_dia = Entidade.objects.filter(aprovado__isnull=False, data_analise__date=datetime.datetime.now()).count()
 
     # Total de entidades aguardando boas vindas
-    total_onboarding = Entidade.objects.filter(aprovado=True, data_cadastro__gt=datetime.datetime(2020,9,21, tzinfo=datetime.timezone.utc), data_envio_onboarding__isnull=True).count()
+    total_onboarding = Entidade.objects.filter(aprovado=True, data_cadastro__gt=datetime.datetime(2020,9,21, tzinfo=datetime.timezone.utc), data_envio_onboarding__isnull=True, cancelamento_onboarding__isnull=True).count()
 
     # Total de pendências em entidades aprovadas
     total_pendencias_ents = AnotacaoEntidade.objects.filter(req_acao=True, entidade__aprovado=True, rev__isnull=True).count()
