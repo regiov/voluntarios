@@ -98,12 +98,13 @@ def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, **k
     """
     Generic funtion to send a message to an e-mail.
     """
+    dest = to.split(',')
     try:
         #send_mail(subject, msg_str, from_email, [to], **kwargs)
         if hasattr(settings, 'NOTIFICATION_REPLY_TO'):
-            email = EmailMessage(subject, msg_str, from_email, [to], reply_to=[settings.NOTIFICATION_REPLY_TO],)
+            email = EmailMessage(subject, msg_str, from_email, dest, reply_to=[settings.NOTIFICATION_REPLY_TO],)
         else:
-            email = EmailMessage(subject, msg_str, from_email, [to],)
+            email = EmailMessage(subject, msg_str, from_email, dest,)
         email.send(fail_silently=False)
     except Exception as e:
         error = type(e).__name__ + str(e.args)
