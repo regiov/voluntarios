@@ -7,8 +7,10 @@
 
 from django.db.models.signals import post_init
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
+from django.urls import reverse
 
-from notification.utils import notify_user_msg, notify_email_msg
+from notification.utils import notify_user_msg, notify_email_msg, notify_email
 from notification.models import Message, Event
 
 def track_data(*fields):
@@ -93,5 +95,8 @@ def notifica_aprovacao_entidade(entidade):
     # Se a entidade nunca recebeu o aviso de aprovação
     msg = Message.objects.get(code='AVISO_APROVACAO_ENTIDADE')
     if Event.objects.filter(object_id=entidade.id, content_type=ContentType.objects.get_for_model(entidade).id, message=msg).count() == 0:
-        # Envia notificação
+        # Envia notificação para a entidade
         notify_email_msg(entidade.email_principal, msg, content_obj=entidade)
+        # Envia notificação para responsáveis pelo onboarding
+        if hasattr(settings, 'ONBOARDING_TEAM_EMAIL'):
+             notify_email(settings.ONBOARDING_TEAM_EMAIL, '\o/ Nova entidade aprovada!', 'Ei! O cadastro da entidade ' + entidade.menor_nome() + ' acaba de ser aprovado no Voluntários. Você está recebendo esse e-mail porque faz parte da equipe de boas-vindas. Use esse link para recepcionar a entidade: https://voluntarios.com.br' + reverse('onboarding_entidades'))

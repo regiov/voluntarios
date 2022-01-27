@@ -264,6 +264,7 @@ ONBOARDING_EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS' # usuário da caixa postal 
 ONBOARDING_EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS' # senha da caixa postal de envio (smtp)
 ONBOARDING_MAX_DAYS_WAITING_RESPONSE = 60 # número de dias em que se aguarda uma resposta da entidade
 ONBOARDING_NOTIFY_RESPONSE_ARRIVAL = 'SET IN LOCAL SETTINGS' # endereço de email a ser notificado quando chega uma resposta
+ONBOARDING_TEAM_EMAIL = 'SET IN LOCAL SETTINGS' # endereço(s) de email da(s) pessoa(s) do time de boas-vindas (separados por vírgula)
 
 ##############################################################
 

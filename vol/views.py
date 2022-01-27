@@ -37,7 +37,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario, notifica_aprovacao_entidade
+from .utils import notifica_aprovacao_voluntario
 
 from notification.models import Message
 from notification.utils import notify_support, notify_email_template, notify_email_msg
