@@ -2431,7 +2431,9 @@ def onboarding_entidade(request, id_entidade):
                                 email_msg = mail.EmailMultiAlternatives(assunto_msg,
                                                                         msg_com_assinatura,
                                                                         settings.ONBOARDING_EMAIL_FROM,
-                                                                        [entidade.email_principal],
+                                                                        [entidade.email_principal], #to
+                                                                        [request.user.email], #bcc
+                                                                        reply_to=[settings.ONBOARDING_EMAIL_FROM, request.user.email],
                                                                         connection=connection)
                                 email_msg.attach_alternative(html_msg, "text/html")
                                 email_msg.send()
