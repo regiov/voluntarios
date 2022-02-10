@@ -2432,7 +2432,7 @@ def onboarding_entidade(request, id_entidade):
                                                                         msg_com_assinatura,
                                                                         settings.ONBOARDING_EMAIL_FROM,
                                                                         [entidade.email_principal], #to
-                                                                        [request.user.email], #bcc
+                                                                        #[request.user.email], #bcc (melhor evitar detecção de leitura por nós mesmos)
                                                                         reply_to=[settings.ONBOARDING_EMAIL_FROM, request.user.email],
                                                                         connection=connection)
                                 email_msg.attach_alternative(html_msg, "text/html")
