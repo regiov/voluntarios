@@ -43,6 +43,9 @@
 	  {% comment %}{% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}{% endcomment %}
           {% elif status == 7 %}<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#ModalFinalizar" data-link="{% url 'onboarding_entidade' entidade.id %}">finalizar</button>
 	  {% endif %}
+        {% elif request.user.is_superuser %}
+          {% if status == 7 %}<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#ModalFinalizar" data-link="{% url 'onboarding_entidade' entidade.id %}">finalizar</button>
+	  {% endif %}
 	{% endif %}
       </td>
       <td>{% if status > 1 and entidade.msg_onboarding %}<a href="{% url 'onboarding_entidade' entidade.id %}"><i class="fas fa-envelope" title="ver mensagem"></i></a>{% endif %}</td>
