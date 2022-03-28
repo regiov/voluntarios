@@ -2352,7 +2352,7 @@ def onboarding_entidade(request, id_entidade):
             form = FormOnboarding(data=request.POST)
 
             # Todas as outras ações só podem ser feitas pelo responsável pela recepção
-            if entidade.resp_onboarding != request.user:
+            if entidade.resp_onboarding != request.user and not request.user.is_superuser:
                 messages.error(request, u'Somente o responsável pela recepção desta entidade pode trabalhar nesta tarefa!')
             else:
 
