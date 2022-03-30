@@ -1,7 +1,7 @@
-{% extends "vol/base_voluntario.html" %}
+{% extends request.user.is_voluntario|yesno:"vol/base_voluntario.html,vol/base_nosidebar.html" %}
 {% load static %}
 
-{% block title %}Cadastro de Voluntário{% endblock title %}
+{% block title %}{%if request.user.is_voluntario %}Perfil{% else %}Cadastro{% endif %} de Voluntário{% endblock title %}
 
 {% block head %}
 
