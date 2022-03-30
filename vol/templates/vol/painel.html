@@ -1,6 +1,6 @@
 {% extends "vol/base_admin.html" %}
 {% load l10n %}
-{% block title %}Revisão de voluntários{% endblock title %}
+{% block title %}Painel de controle{% endblock title %}
 
 {% block content %}
 
@@ -74,8 +74,25 @@
 {% endfor %}
 
 <br/>
+
+<h2>Informações sobre o sistema</h2>
+<hr style="margin:0;"/>
+
+<h3>Tickets em aberto: <span style="margin-left:15px;"><a href="https://github.com/regiov/voluntarios/issues" target="_blank">{{ num_tickets }}</a></span></h3>
+
+<h3>Últimas alterações</h3>
+<ul>
+{% for item in ultimos_commits %}
+  <li>&check; {{ item.commit.author.date|slice:":10" }} ({{ item.commit.author.name }}): {{ item.commit.message }}</li>
+{% endfor %}
+</ul>
+
+<br/>
+<br/>
+<hr style="margin:0;"/>
+			   
 <p class="dica" style="font-weight: 300;">[1] cálculo a partir de 23/05/2020.</p>
 <p class="dica" style="font-weight: 300;">[2] considerando todos voluntários já revisados desde a data da sua primeira revisão.</p>
-<p class="dica" style="font-weight: 300;">[1] cálculo a partir de 14/09/2020.</p>
+<p class="dica" style="font-weight: 300;">[3] cálculo a partir de 14/09/2020.</p>
 
 {% endblock content %}

@@ -5,6 +5,9 @@ import os
 import random
 from math import ceil, log10
 from copy import deepcopy
+import urllib.parse
+import urllib.request
+import json
 
 from django.shortcuts import render, redirect
 from django.template import loader, engines
@@ -2019,6 +2022,35 @@ def painel(request):
             tarefa.progresso = 100
         tarefas.append(tarefa)
 
+    # Dados sobre desenvolvimento do sistema
+    num_tickets = None
+
+    github_api_url = 'https://api.github.com/'
+
+    url = github_api_url + 'repos/regiov/voluntarios'
+
+    j = None
+    try:
+        resp = urllib.request.urlopen(url)
+        j = json.loads(resp.read().decode('utf-8'))
+        if j and 'open_issues' in j:
+            num_tickets = j['open_issues']
+    except Exception as e:
+        motivo = type(e).__name__ + str(e.args)
+        notify_support(u'Erro na api do github', motivo, request)
+
+    ultimos_commits = None
+
+    params = urllib.parse.urlencode({'sha': 'master', 'page': 1, 'per_page': 5})
+    url = github_api_url + 'repos/regiov/voluntarios/commits' + '?%s' % params
+
+    try:
+        resp = urllib.request.urlopen(url)
+        ultimos_commits = json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        motivo = type(e).__name__ + str(e.args)
+        notify_support(u'Erro na api do github', motivo, request)
+
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
                'tempo_vol_max': tempo_vol_max,
@@ -2034,7 +2066,9 @@ def painel(request):
                'total_problemas_cnpj': total_problemas_cnpj,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
-               'tarefas': tarefas}
+               'tarefas': tarefas,
+               'num_tickets': num_tickets,
+               'ultimos_commits': ultimos_commits}
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
 
