@@ -882,7 +882,8 @@ def cadastro_entidade(request, id_entidade=None):
     # Exibe formulário de cadastro de entidade
     context = {'form': form,
                'telformset': telformset,
-               'emailformset': emailformset}
+               'emailformset': emailformset,
+               'entidade': form.instance}
     template = loader.get_template('vol/formulario_entidade.html')
     return HttpResponse(template.render(context, request))
 
@@ -1158,19 +1159,26 @@ def termo_de_adesao(request, slug_termo):
             return redirect(link_assinatura)
         return mensagem(request, u'Este termo ainda não foi aceito. Utilize o link fornecido por e-mail para acessá-lo.')
 
-    exibir_no_contexto_do_voluntario = False
+    contexto = request.GET.get('contexto')
+
+    exibir_no_contexto_do_voluntario = None
+    entidade = None
+    if contexto == 'voluntario':
+        exibir_no_contexto_do_voluntario = True
+    elif contexto == 'entidade':
+        # Exibe o termo no contexto da entidade somente se o usuário estiver vinculado à entidade
+        if termo.entidade.id in request.user.entidades().values_list('pk', flat=True):
+            exibir_no_contexto_do_voluntario = False
+            entidade = termo.entidade
 
     if 'print' in request.GET:
         template = loader.get_template('vol/termo_de_adesao_para_impressao.html')
     else:
-        # Se o termo for do próprio usuário logado, mostra página no contexto do voluntário
-        if request.user.is_authenticated and request.user.is_voluntario and request.user.voluntario == termo.voluntario:
-            exibir_no_contexto_do_voluntario = True
-
         template = loader.get_template('vol/termo_de_adesao.html')
 
     context = {'termo': termo,
-               'exibir_no_contexto_do_voluntario': exibir_no_contexto_do_voluntario}
+               'exibir_no_contexto_do_voluntario': exibir_no_contexto_do_voluntario,
+               'entidade': entidade}
 
     return HttpResponse(template.render(context, request))
 

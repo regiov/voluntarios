@@ -1,0 +1,55 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block content_container %}
+{% url 'cadastro_entidade' as lista_entidades %}
+{% url 'cadastro_entidade_id' entidade.id as cadastro_entidade %}
+{% url 'termos_de_adesao_de_entidade' entidade.id as termos_de_adesao_de_entidade %}
+<section id="content">
+  <div class="container">
+    <div class="row profile">
+      <div class="col-md-3 col-sm-4">
+	<div class="profile-sidebar">
+	  <div class="profile-usermenu" style="margin-top: 0;">
+	    <ul class="nav">
+	      <li><a href="{{ lista_entidades }}"><i class="fas fa-list"></i>Minhas entidades</a></li>
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="col-md-9 col-sm-8">
+        <h1 style="margin: 0;">{{ entidade.menor_nome }}</h1>
+      </div>
+    </div>
+    <div class="row profile">
+      <div class="col-md-3 col-sm-4">
+	<div class="profile-sidebar">
+	  <!-- SIDEBAR MENU -->
+	  <div class="profile-usermenu">
+	    <ul class="nav">
+	      <li{% ifequal request.path cadastro_entidade %} class="active"{% endifequal %}>
+		<a href="{{ cadastro_entidade }}">
+		  <i class="fas fa-folder-open"></i>
+		  Dados cadastrais </a>
+	      </li>
+	      {% if entidade.aprovado %}
+	      <li{% ifequal request.path termos_de_adesao_de_entidade %} class="active"{% endifequal %}>
+		<a href="{{ termos_de_adesao_de_entidade }}">
+		  <i class="fas fa-file"></i>
+		  Termos de adesão </a>
+	      </li>
+	      {% endif %}
+	    </ul>
+	  </div>
+	  <!-- END MENU -->
+	</div>
+      </div>
+      <div class="col-md-9 col-sm-8">
+        <div class="profile-content">
+	  <!--/#inicio-conteudo-->{% block content %}
+{% endblock content %}<!--/#fim-conteudo-->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content_container %}

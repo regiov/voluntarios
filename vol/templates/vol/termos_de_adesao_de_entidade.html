@@ -1,11 +1,11 @@
-{% extends "vol/base_nosidebar.html" %}
+{% extends "vol/base_entidade.html" %}
 {% load static %}
 
 {% block title %}Termos de Adesão{% endblock title %}
 
 {% block content %}
 
-<h1 class="margin-bottom">Gerenciamento de termos de adesão de voluntários</h1>
+<h2 class="margin-bottom">Gerenciamento de termos de adesão de voluntários</h2>
 
 {% include "vol/mensagens.html" %}
 
@@ -30,7 +30,7 @@
     <td>{% if termo.data_aceitacao_vol %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="sim"/>{% else %}<img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando aceitação"/>{% endif %}</td>
     <td>{{ termo.data_inicio|date:"d-m-Y" }}</td>
     <td{% if termo.data_fim and termo.data_fim < hoje %} class="text-danger"{% endif %}>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
-    <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}
+    <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}?contexto=entidade"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}
     </td>
     <td>
       {% if termo.data_aceitacao_vol %}

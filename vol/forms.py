@@ -304,7 +304,7 @@ class FormEntidade(forms.ModelForm):
 
         super(FormEntidade, self).__init__(*args, **kwargs)
 
-        if self.instance and self.instance.pk:
+        if not self.entidade_nova():
 
             # Eventuais artigos já marcados como aceitos para doação
             self.initial['doacoes'] = list(self.instance.necessidadeartigo_set.all().values_list('tipoartigo_id', flat=True))
@@ -313,6 +313,11 @@ class FormEntidade(forms.ModelForm):
             if self.instance.cnpj is not None and len(self.instance.cnpj) > 0 and self.instance.cnpj_valido() and self.instance.aprovado:
                 self.fields['cnpj'].widget.attrs['readonly'] = True
                 self.fields['cnpj'].help_text = ''
+
+    def entidade_nova(self):
+        if self.instance and self.instance.pk:
+            return False
+        return True
 
     def clean_cnpj(self):
         instance = getattr(self, 'instance', None)

@@ -1,4 +1,4 @@
-{% extends "vol/base_nosidebar.html" %}
+{% extends form.entidade_nova|yesno:"vol/base_nosidebar.html,vol/base_entidade.html" %}
 {% load static %}
 
 {% block title %}Cadastro de Entidade{% endblock title %}
