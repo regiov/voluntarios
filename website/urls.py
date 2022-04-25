@@ -15,7 +15,7 @@ Including another URLconf
 """
 import os
 
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
@@ -28,143 +28,143 @@ admin.site.site_header = u'Interface Administrativa'
 
 urlpatterns = [
 
-    url(r'^tinymce/', include('tinymce.urls')),
+    re_path(r'^tinymce/', include('tinymce.urls')),
 
-    url(r'^$', views.index, name='index'),
-    url(r'^executivo.htm$', views.index),#old (na falta de pagina melhor para redirecionar)
+    re_path(r'^$', views.index, name='index'),
+    re_path(r'^executivo.htm$', views.index),#old (na falta de pagina melhor para redirecionar)
 
-    url(r'^aut/', include('allauth.urls')),
+    re_path(r'^aut/', include('allauth.urls')),
 
-    url(r'^cadastro/?$', views.escolha_cadastro, name='escolha_cadastro'),
+    re_path(r'^cadastro/?$', views.escolha_cadastro, name='escolha_cadastro'),
 
-    url(r'^logo/?$', views.logo_rastreado, name='logo_rastreado'),
+    re_path(r'^logo/?$', views.logo_rastreado, name='logo_rastreado'),
 
     # Usuário
-    url(r'^usuario/novo/?$', views.link_usuario_novo, name='link_usuario_novo'),
-    url(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
+    re_path(r'^usuario/novo/?$', views.link_usuario_novo, name='link_usuario_novo'),
+    re_path(r'^usuario/?$', views.cadastro_usuario, name='cadastro_usuario'),
 
     # Voluntários
-    url(r'^voluntario/novo/?$', views.link_voluntario_novo, name='link_voluntario_novo'),
-    url(r'^voluntario.htm$', views.link_voluntario_novo),#old
+    re_path(r'^voluntario/novo/?$', views.link_voluntario_novo, name='link_voluntario_novo'),
+    re_path(r'^voluntario.htm$', views.link_voluntario_novo),#old
 
-    url(r'^voluntario/cadastro/?$', views.cadastro_voluntario, {'msg': None}, name='cadastro_voluntario'),
-    url(r'^voluntario/termos/?$', views.termos_de_adesao_de_voluntario, name='termos_de_adesao_de_voluntario'),
+    re_path(r'^voluntario/cadastro/?$', views.cadastro_voluntario, {'msg': None}, name='cadastro_voluntario'),
+    re_path(r'^voluntario/termos/?$', views.termos_de_adesao_de_voluntario, name='termos_de_adesao_de_voluntario'),
 
-    url(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
-    url(r'^contato.htm$', views.busca_voluntarios),#old
+    re_path(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
+    re_path(r'^contato.htm$', views.busca_voluntarios),#old
 
-    url(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),
-    url(r'^voluntario.asp$', views.exibe_voluntario_old),#old
+    re_path(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),
+    re_path(r'^voluntario.asp$', views.exibe_voluntario_old),#old
 
-    url(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),
+    re_path(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),
 
-    url(r'^mural/?$', views.mural, name='mural'),
+    re_path(r'^mural/?$', views.mural, name='mural'),
 
     # Entidades
-    url(r'^entidade/nova$', views.link_entidade_nova, name='link_entidade_nova'),
-    url(r'^banco_de_dados.htm$', views.link_entidade_nova),#old
+    re_path(r'^entidade/nova$', views.link_entidade_nova, name='link_entidade_nova'),
+    re_path(r'^banco_de_dados.htm$', views.link_entidade_nova),#old
 
-    url(r'^entidade/confmail/(?P<id_entidade>\d+)/?$', views.reenvia_confirmacao_email_entidade, name='reenvia_confirmacao_email_entidade'),
+    re_path(r'^entidade/confmail/(?P<id_entidade>\d+)/?$', views.reenvia_confirmacao_email_entidade, name='reenvia_confirmacao_email_entidade'),
 
-    url(r'^entidade/confvinc/(?P<id_entidade>\d+)/?$', views.envia_confirmacao_vinculo, name='envia_confirmacao_vinculo'),
+    re_path(r'^entidade/confvinc/(?P<id_entidade>\d+)/?$', views.envia_confirmacao_vinculo, name='envia_confirmacao_vinculo'),
 
-    url(r'^e/valida$', views.valida_email_entidade, name='valida_email_entidade'),
+    re_path(r'^e/valida$', views.valida_email_entidade, name='valida_email_entidade'),
 
-    url(r'^e/vinculo$', views.confirma_vinculo, name='confirma_vinculo'),
+    re_path(r'^e/vinculo$', views.confirma_vinculo, name='confirma_vinculo'),
 
-    url(r'^entidade/cadastro/(?P<id_entidade>\d+)/?$', views.cadastro_entidade, name='cadastro_entidade_id'),
-    url(r'^entidade/cadastro/?$', views.cadastro_entidade, {'id_entidade': None}, name='cadastro_entidade'),
+    re_path(r'^entidade/cadastro/(?P<id_entidade>\d+)/?$', views.cadastro_entidade, name='cadastro_entidade_id'),
+    re_path(r'^entidade/cadastro/?$', views.cadastro_entidade, {'id_entidade': None}, name='cadastro_entidade'),
 
-    url(r'^entidade/(?P<id_entidade>\d+)/termos/novo/?$', views.novo_termo_de_adesao, name='novo_termo_de_adesao'),
-    url(r'^entidade/(?P<id_entidade>\d+)/termos/?$', views.termos_de_adesao_de_entidade, name='termos_de_adesao_de_entidade'),
-    url(r'^termo/(?P<slug_termo>[\w-]+)/enviar$', views.enviar_termo_de_adesao, name='enviar_termo_de_adesao'),
-    url(r'^termo/(?P<slug_termo>[\w-]+)/cancelar$', views.cancelar_termo_de_adesao, name='cancelar_termo_de_adesao'),
-    url(r'^termo/(?P<slug_termo>[\w-]+)/rescindir$', views.rescindir_termo_de_adesao, name='rescindir_termo_de_adesao'),
-    url(r'^t/avol/?$', views.assinatura_vol_termo_de_adesao, name='assinatura_vol_termo_de_adesao'),
-    url(r'^termo/(?P<slug_termo>[\w-]+)/?$', views.termo_de_adesao, name='termo_de_adesao'),
+    re_path(r'^entidade/(?P<id_entidade>\d+)/termos/novo/?$', views.novo_termo_de_adesao, name='novo_termo_de_adesao'),
+    re_path(r'^entidade/(?P<id_entidade>\d+)/termos/?$', views.termos_de_adesao_de_entidade, name='termos_de_adesao_de_entidade'),
+    re_path(r'^termo/(?P<slug_termo>[\w-]+)/enviar$', views.enviar_termo_de_adesao, name='enviar_termo_de_adesao'),
+    re_path(r'^termo/(?P<slug_termo>[\w-]+)/cancelar$', views.cancelar_termo_de_adesao, name='cancelar_termo_de_adesao'),
+    re_path(r'^termo/(?P<slug_termo>[\w-]+)/rescindir$', views.rescindir_termo_de_adesao, name='rescindir_termo_de_adesao'),
+    re_path(r'^t/avol/?$', views.assinatura_vol_termo_de_adesao, name='assinatura_vol_termo_de_adesao'),
+    re_path(r'^termo/(?P<slug_termo>[\w-]+)/?$', views.termo_de_adesao, name='termo_de_adesao'),
 
-    url(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
-    url(r'^pesquisa.htm$', views.busca_entidades),#old
-    url(r'^resultadoent.asp$', views.busca_entidades),#old
-    url(r'^ResultadoColocIcone.asp$', views.busca_entidades),#old
+    re_path(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
+    re_path(r'^pesquisa.htm$', views.busca_entidades),#old
+    re_path(r'^resultadoent.asp$', views.busca_entidades),#old
+    re_path(r'^ResultadoColocIcone.asp$', views.busca_entidades),#old
 
-    url(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),
-    url(r'^entidade.asp$', views.exibe_entidade_old),#old
+    re_path(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),
+    re_path(r'^entidade.asp$', views.exibe_entidade_old),#old
 
-    url(r'^entidade/mapa$', views.mapa_entidades, name='mapa_entidades'),
+    re_path(r'^entidade/mapa$', views.mapa_entidades, name='mapa_entidades'),
     
-    url(r'^doacao/busca$', views.busca_doacoes, name='busca_doacoes'),
-    url(r'^doacao.htm$', views.busca_doacoes),#old
+    re_path(r'^doacao/busca$', views.busca_doacoes, name='busca_doacoes'),
+    re_path(r'^doacao.htm$', views.busca_doacoes),#old
     
-    url(r'^gis/entidades.json$', views.entidades_points, name='entidades_points'),
+    re_path(r'^gis/entidades.json$', views.entidades_points, name='entidades_points'),
 
     # Mantido para evitar erro 404 de usuários que clicam em buscas do google
     # (o google indexou o kml, acredita?)
-    url(r'^entidades.kml$', views.busca_entidades),
-    url(r'^kmls/010205/entidades.kml$', views.busca_entidades),
+    re_path(r'^entidades.kml$', views.busca_entidades),
+    re_path(r'^kmls/010205/entidades.kml$', views.busca_entidades),
     
     # Páginas estáticas
-    url(r'^p/', include('django.contrib.flatpages.urls')),
+    re_path(r'^p/', include('django.contrib.flatpages.urls')),
     
-    url(r'^oque_e_voluntariado.htm$', flatpages.flatpage, {'url': '/voluntariado/'}),
-    url(r'^brasil.htm$', flatpages.flatpage, {'url': '/por-que-ser-voluntario/'}),
-    url(r'^profissionalismo.htm$', flatpages.flatpage, {'url': '/bom-voluntario/'}),
-    url(r'^leis.htm$', flatpages.flatpage, {'url': '/leis/'}),
-    url(r'^termo.htm$', flatpages.flatpage, {'url': '/termo-adesao-voluntario/'}),
-    url(r'^estatisticas.htm$', flatpages.flatpage, {'url': '/estatisticas/'}),
-    url(r'^personalidades.htm$', flatpages.flatpage, {'url': '/personalidades/'}),
-    url(r'^livros_voluntariado.htm$', flatpages.flatpage, {'url': '/livros-voluntariado/'}),
+    re_path(r'^oque_e_voluntariado.htm$', flatpages.flatpage, {'url': '/voluntariado/'}),
+    re_path(r'^brasil.htm$', flatpages.flatpage, {'url': '/por-que-ser-voluntario/'}),
+    re_path(r'^profissionalismo.htm$', flatpages.flatpage, {'url': '/bom-voluntario/'}),
+    re_path(r'^leis.htm$', flatpages.flatpage, {'url': '/leis/'}),
+    re_path(r'^termo.htm$', flatpages.flatpage, {'url': '/termo-adesao-voluntario/'}),
+    re_path(r'^estatisticas.htm$', flatpages.flatpage, {'url': '/estatisticas/'}),
+    re_path(r'^personalidades.htm$', flatpages.flatpage, {'url': '/personalidades/'}),
+    re_path(r'^livros_voluntariado.htm$', flatpages.flatpage, {'url': '/livros-voluntariado/'}),
 
-    url(r'^redirlogin/?', views.redirect_login, name='redirlogin'),
+    re_path(r'^redirlogin/?', views.redirect_login, name='redirlogin'),
 
-    url(r'^anonconf/?', views.anonymous_email_confirmation),
+    re_path(r'^anonconf/?', views.anonymous_email_confirmation),
 
-    #url(r'^assistencia.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-atuacao/'}),
-    #url(r'^trabalho.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-trabalho/'}),
-    #url(r'^distribuicao.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-estado/'}),
-    #url(r'^idade.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-idade/'}),
-    #url(r'^atuacao.htm$', flatpages.flatpage, {'url': '/p/entidades-por-area-de-atuacao/'}),
-    #url(r'^estado.htm$', flatpages.flatpage, {'url': '/p/entidades-por-estado/'}),
-    #url(r'^empresas.htm$', flatpages.flatpage, {'url': '/p/empresas/'}),#?texto vol-empresa
-    #url(r'^lista.htm$', flatpages.flatpage, {'url': '/p/empresas-participantes/'}),#?
-    #url(r'^icones.htm$', flatpages.flatpage, {'url': '/p/icones/'}),#?
-    #url(r'^sites.htm$', flatpages.flatpage, {'url': '/p/sites/'}),
-    #url(r'^curriculos.htm$', flatpages.flatpage, {'url': '/p/mensagem-do-coordenador/'}),
-    #url(r'^pauta.htm$', flatpages.flatpage, {'url': '/p/pauta/'}),
+    #re_path(r'^assistencia.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-atuacao/'}),
+    #re_path(r'^trabalho.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-area-de-trabalho/'}),
+    #re_path(r'^distribuicao.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-estado/'}),
+    #re_path(r'^idade.htm$', flatpages.flatpage, {'url': '/p/voluntarios-por-idade/'}),
+    #re_path(r'^atuacao.htm$', flatpages.flatpage, {'url': '/p/entidades-por-area-de-atuacao/'}),
+    #re_path(r'^estado.htm$', flatpages.flatpage, {'url': '/p/entidades-por-estado/'}),
+    #re_path(r'^empresas.htm$', flatpages.flatpage, {'url': '/p/empresas/'}),#?texto vol-empresa
+    #re_path(r'^lista.htm$', flatpages.flatpage, {'url': '/p/empresas-participantes/'}),#?
+    #re_path(r'^icones.htm$', flatpages.flatpage, {'url': '/p/icones/'}),#?
+    #re_path(r'^sites.htm$', flatpages.flatpage, {'url': '/p/sites/'}),
+    #re_path(r'^curriculos.htm$', flatpages.flatpage, {'url': '/p/mensagem-do-coordenador/'}),
+    #re_path(r'^pauta.htm$', flatpages.flatpage, {'url': '/p/pauta/'}),
 
     # Profissional voluntário
-    #url(r'^executivo.htm$', flatpages.flatpage, {'url': '/p/executivo/'}),
-    #url(r'^executivo_bomvoluntario.htm$', flatpages.flatpage, {'url': '/p/executivo-bom-voluntario/'}),
-    #url(r'^executivo_espera.htm$', flatpages.flatpage, {'url': '/p/executivo-espera/'}),
-    #url(r'^executivo_porqueImportante.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-importante/'}),
-    #url(r'^executivo_porqueservolunt.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-voluntario/'}),
+    #re_path(r'^executivo.htm$', flatpages.flatpage, {'url': '/p/executivo/'}),
+    #re_path(r'^executivo_bomvoluntario.htm$', flatpages.flatpage, {'url': '/p/executivo-bom-voluntario/'}),
+    #re_path(r'^executivo_espera.htm$', flatpages.flatpage, {'url': '/p/executivo-espera/'}),
+    #re_path(r'^executivo_porqueImportante.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-importante/'}),
+    #re_path(r'^executivo_porqueservolunt.htm$', flatpages.flatpage, {'url': '/p/executivo-porque-voluntario/'}),
 
     # Páginas administrativas
-    url(r'^indicadores$', views.indicadores, name='indicadores'),
-    url(r'^funcao/(?P<id_funcao>\d+)/?$', views.exibe_funcao, name='exibe_funcao'),
+    re_path(r'^indicadores$', views.indicadores, name='indicadores'),
+    re_path(r'^funcao/(?P<id_funcao>\d+)/?$', views.exibe_funcao, name='exibe_funcao'),
 
     # Interface adm
-    url(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
+    re_path(r'^' + settings.MY_ADMIN_PREFIX + '/', admin.site.urls),
 
     # Painel de controle
-    url(r'^painel/?$', views.painel, name='painel'),
-    url(r'^painel/voluntarios/revisao$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
-    url(r'^painel/voluntarios/revisao/panorama$', views.panorama_revisao_voluntarios, name='panorama_revisao_voluntarios'),
-    url(r'^painel/voluntarios/revisao/carga$', views.carga_revisao_voluntarios, name='carga_revisao_voluntarios'),
-    url(r'^painel/entidades/revisao$', views.revisao_entidades, name='revisao_entidades'),
-    url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/?$', views.exibe_tarefa, name='exibe_tarefa'),
-    url(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/orientacoes/?$', views.exibe_orientacoes_tarefa, name='exibe_orientacoes_tarefa'),
-    url(r'^painel/cata-email/progresso/uf$', views.progresso_cata_email_por_uf, name='progresso_cata_email_por_uf'),
-    url(r'^painel/cata-email/progresso/uf/(?P<sigla>[\w]{2})/?$', views.progresso_cata_email_por_municipio, name='progresso_cata_email_por_municipio'),
-    url(r'^painel/entidades/pendencias$', views.exibe_pendencias_entidades, name='exibe_pendencias_entidades'),
-    url(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
-    url(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
-    url(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
+    re_path(r'^painel/?$', views.painel, name='painel'),
+    re_path(r'^painel/voluntarios/revisao$', views.aprovacao_voluntarios, name='aprovacao_voluntarios'),
+    re_path(r'^painel/voluntarios/revisao/panorama$', views.panorama_revisao_voluntarios, name='panorama_revisao_voluntarios'),
+    re_path(r'^painel/voluntarios/revisao/carga$', views.carga_revisao_voluntarios, name='carga_revisao_voluntarios'),
+    re_path(r'^painel/entidades/revisao$', views.revisao_entidades, name='revisao_entidades'),
+    re_path(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/?$', views.exibe_tarefa, name='exibe_tarefa'),
+    re_path(r'^painel/tarefa/(?P<codigo_tarefa>[\w\-]+)/orientacoes/?$', views.exibe_orientacoes_tarefa, name='exibe_orientacoes_tarefa'),
+    re_path(r'^painel/cata-email/progresso/uf$', views.progresso_cata_email_por_uf, name='progresso_cata_email_por_uf'),
+    re_path(r'^painel/cata-email/progresso/uf/(?P<sigla>[\w]{2})/?$', views.progresso_cata_email_por_municipio, name='progresso_cata_email_por_municipio'),
+    re_path(r'^painel/entidades/pendencias$', views.exibe_pendencias_entidades, name='exibe_pendencias_entidades'),
+    re_path(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
+    re_path(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
+    re_path(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
-        url('__debug__/', include(debug_toolbar.urls)),
-        url(r'^imagens/(?P<path>.*)$', views_static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
+        re_path('__debug__/', include(debug_toolbar.urls)),
+        re_path(r'^imagens/(?P<path>.*)$', views_static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + urlpatterns
