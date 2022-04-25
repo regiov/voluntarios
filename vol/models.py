@@ -112,6 +112,7 @@ class MyUserManager(BaseUserManager):
         return user
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
+    id           = models.AutoField(primary_key=True)
     email        = models.EmailField(verbose_name=u'E-mail', unique=True,)
     nome         = models.CharField(u'Nome completo', max_length=255)
     is_superuser = models.BooleanField(u'Poderes de superusuário', default=False)
@@ -170,6 +171,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
 class RemocaoUsuario(models.Model):
     """Registro de remoção de usuário"""
+    id      = models.AutoField(primary_key=True)
     momento = models.DateTimeField(u'Momento', default=timezone.now)
 
     class Meta:
@@ -182,6 +184,7 @@ class RemocaoUsuario(models.Model):
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
     """obs: id compatível com banco anterior"""
+    id   = models.AutoField(primary_key=True)
     nome = models.CharField(u'Nome', max_length=50, unique=True)
 
     class Meta:
@@ -195,6 +198,7 @@ class AreaTrabalho(models.Model):
 class AreaAtuacao(models.Model):
     """Área de atuação de entidades \ Área de interesse de voluntários"""
     """obs: id INcompatível com banco anterior"""
+    id        = models.AutoField(primary_key=True)
     categoria = models.CharField(u'Categoria', max_length=100)
     nome      = models.CharField(u'Nome', max_length=200)
     indice    = models.CharField(u'Índice para ordenação', max_length=20, unique=True)
@@ -222,6 +226,7 @@ class AreaAtuacaoHierarquica(AreaAtuacao):
 class Voluntario(models.Model):
     """Voluntário"""
     """obs: id compatível com banco anterior"""
+    id                    = models.AutoField(primary_key=True)
     usuario               = models.OneToOneField(Usuario, null=True, on_delete=models.CASCADE)
     data_aniversario_orig = models.CharField(u'Data de nascimento original', max_length=20, null=True, blank=True)
     data_aniversario      = models.DateField(u'Data de nascimento', null=True, blank=True)
@@ -354,6 +359,7 @@ class Voluntario(models.Model):
 
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
+    id           = models.AutoField(primary_key=True)
     voluntario   = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     area_atuacao = models.ForeignKey(AreaAtuacao, on_delete=models.PROTECT, verbose_name=u'Área de Atuação')
 
@@ -367,6 +373,7 @@ class AreaInteresse(models.Model):
 
 class TipoArtigo(models.Model):
     """Tipo de artigo material (para doação)"""
+    id    = models.AutoField(primary_key=True)
     nome  = models.CharField(u'Nome', max_length=50, unique=True)
     ordem = models.IntegerField(u'Ordem de exibição', null=True, blank=True)
 
@@ -404,6 +411,7 @@ class StatusCnpj(models.Model):
     movido para o histórico, e o resultado da nova consulta é gravado na entidade.
     Como estes campos são usados no model Entidade, todos eles devem aceitar nulo.
     Não fosse por isso apenas o campo erro_consulta_cnpj deveria aceitar nulo.'''
+    id                          = models.AutoField(primary_key=True)
     # Possíveis valores já detectados para o campo abaixo: BAIXADA, SUSPENSA, INAPTA, ATIVA
     situacao_cnpj               = models.CharField(u'Situação na Receita Federal', max_length=50, null=True, blank=True)
     motivo_situacao_cnpj        = models.TextField(u'Motivo da situação', null=True, blank=True)
@@ -435,6 +443,7 @@ class Entidade(StatusCnpj):
     """Entidade."""
     """obs: id corresponde ao colocweb em registros importados."""
 
+    id                 = models.AutoField(primary_key=True)
     # Dados básicos
     nome_fantasia      = models.CharField(u'Nome Fantasia', max_length=100, null=True, blank=True) 
     razao_social       = models.CharField(u'Razão Social', max_length=120) 
@@ -917,6 +926,7 @@ class Entidade(StatusCnpj):
 
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
+    id        = models.AutoField(primary_key=True)
     entidade  = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='anotacaoentidade_set')
     anotacao  = models.TextField(u'Anotação')
     # Anotações automáticas feitas via programa não possuem usuário associado
@@ -951,6 +961,7 @@ class VinculoEntidadeManager(models.Manager):
 
 class VinculoEntidade(models.Model):
     """Vínculo com entidade"""
+    id          = models.AutoField(primary_key=True)
     usuario     = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     entidade    = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     data_inicio = models.DateTimeField(u'Data de início do vínculo', auto_now_add=True)
@@ -978,6 +989,7 @@ class VinculoEntidade(models.Model):
 
 class Necessidade(models.Model):
     """Necessidade de bem/serviço por parte de uma entidade"""
+    id               = models.AutoField(primary_key=True)
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     qtde_orig        = models.CharField(u'Quantidade', max_length=510, null=True, blank=True) 
     descricao        = models.CharField(u'Descrição', max_length=510, null=True, blank=True) 
@@ -995,6 +1007,7 @@ class Necessidade(models.Model):
 
 class TipoDocumento(models.Model):
     """Tipo de documento"""
+    id     = models.AutoField(primary_key=True)
     nome   = models.CharField(u'Nome', max_length=50, unique=True)
     codigo = models.CharField(u'Código', max_length=10, unique=True)
 
@@ -1030,6 +1043,7 @@ def caminho_do_documento(instance, filename):
 
 class Documento(models.Model):
     """Documento"""
+    id            = models.AutoField(primary_key=True)
     tipodoc       = models.ForeignKey(TipoDocumento, verbose_name=u'Tipo de documento', on_delete=models.PROTECT)
     entidade      = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     doc           = models.FileField(u'Arquivo', upload_to=caminho_do_documento)
@@ -1079,6 +1093,7 @@ TIPO_TEL = (
 
 class Telefone(models.Model):
     """Telefone de um voluntário ou de uma entidade"""
+    id               = models.AutoField(primary_key=True)
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, null=True, related_name='tel_set')
     voluntario       = models.ForeignKey(Voluntario, on_delete=models.CASCADE, null=True, related_name='tel_set')
     tipo             = models.CharField(u'Tipo', max_length=1, choices=TIPO_TEL, null=True, blank=True)
@@ -1137,6 +1152,7 @@ class EmailManager(models.Manager):
 class Email(models.Model):
     '''E-mail. Obs: Na verdade o mesmo e-mail pode ser usado por mais de uma entidade, portanto
     o correto seria uma relação m2m.'''
+    id               = models.AutoField(primary_key=True)
     entidade         = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='email_set')
     endereco         = models.CharField(u'E-mail', max_length=90)
     principal        = models.BooleanField(u'Principal', default=True)
@@ -1168,6 +1184,7 @@ class Email(models.Model):
 
 class NecessidadeArtigo(models.Model):
     '''Aceitação de artigo para doação'''
+    id            = models.AutoField(primary_key=True)
     entidade      = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     tipoartigo    = models.ForeignKey(TipoArtigo, verbose_name=u'Tipo de artigo', on_delete=models.PROTECT)
     resp_cadastro = models.ForeignKey(Usuario, verbose_name=u'Responsável pelo cadastro', on_delete=models.PROTECT)
@@ -1183,6 +1200,7 @@ class NecessidadeArtigo(models.Model):
 
 class AtividadeAdmin(models.Model):
     """Dados sobre atividades administrativas feitas pelo usuário como parte da equipe do site"""
+    id                  = models.AutoField(primary_key=True)
     usuario             = models.OneToOneField(Usuario, on_delete=models.PROTECT)
     ciencia_privacidade = models.DateTimeField(u'Data da ciência sobre o compromisso de privacidade', null=True, blank=True)
     viu_instrucoes_vol  = models.DateTimeField(u'Data da visualização das instruções sobre aprovação de voluntários', null=True, blank=True)
@@ -1232,6 +1250,7 @@ class FraseMotivacionalManager(models.Manager):
 
 class FraseMotivacional(models.Model):
     """Frase motivacional"""
+    id    = models.AutoField(primary_key=True)
     frase = models.TextField(u'Frase')
     autor = models.TextField(u'Autor')
     mais_info = models.TextField(u'Texto com informações adicionais', null=True, blank=True)
@@ -1258,6 +1277,7 @@ class FraseMotivacional(models.Model):
 
 class Conteudo(models.Model):
     """Encapsulamento de conteúdo para rastrear o acesso a ele"""
+    id             = models.AutoField(primary_key=True)
     codigo         = models.CharField(u'Código', max_length=50, null=True, blank=True) # Mudar para não nulo e único
     nome           = models.CharField(u'Nome', max_length=200)
     nome_url       = models.CharField(u'Nome da URL no arquivo urls.py', max_length=100)
@@ -1277,6 +1297,7 @@ class Conteudo(models.Model):
 
 class AcessoAConteudo(models.Model):
     """Registro de acesso a conteúdo"""
+    id       = models.AutoField(primary_key=True)
     usuario  = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     conteudo = models.ForeignKey(Conteudo, on_delete=models.CASCADE)
     # Algumas visualizações importadas de outros locais podem não ter data/hora
@@ -1289,6 +1310,7 @@ class AcessoAConteudo(models.Model):
 
 class ForcaTarefa(models.Model):
     """Força Tarefa"""
+    id             = models.AutoField(primary_key=True)
     tarefa         = models.CharField(u'Tarefa', max_length=200)
     codigo         = models.CharField(u'Código', max_length=50, null=True, blank=True) # Mudar para não nulo e único
     data_cadastro  = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
@@ -1308,6 +1330,7 @@ class ForcaTarefa(models.Model):
 
 class HistoricoStatusCnpj(StatusCnpj):
     '''Histórico de status de CNPJ'''
+    id       = models.AutoField(primary_key=True)
     entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
 
     class Meta:
@@ -1344,6 +1367,7 @@ class TermoAdesaoManager(models.Manager):
 
 class TermoAdesao(models.Model):
     """Termo de adesão de trabalho voluntário em entidade"""
+    id                       = models.AutoField(primary_key=True)
     slug                     = models.SlugField(max_length=10, unique=True)
     entidade                 = models.ForeignKey(Entidade, on_delete=models.SET_NULL, null=True, blank=True)
     nome_entidade            = models.CharField(u'Nome da entidade', max_length=120) 
@@ -1457,6 +1481,7 @@ class TermoAdesao(models.Model):
 
 class Funcao(MPTTModel):
     """Árvrore de funções a serem desempenhadas numa entidade"""
+    id           = models.AutoField(primary_key=True)
     entidade     = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     nome         = models.CharField('Nome', max_length=200)
     # Ordenação de funções do mesmo nível

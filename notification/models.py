@@ -7,6 +7,7 @@ class Message(models.Model):
     '''
     Message template.
     '''
+    id          = models.AutoField(primary_key=True)
     code        = models.CharField(u'Code', max_length=50)
     description = models.TextField(u'Description')
     subject     = models.CharField(u'Subject', max_length=200, null=True, blank=True)
@@ -21,6 +22,7 @@ class Event(models.Model):
     '''
     Notification event.
     '''
+    id       = models.AutoField(primary_key=True)
     rtype    = models.CharField(u'Recipient type (S=support, U=user, E=generic)', max_length=1)
     message  = models.ForeignKey(Message, null=True, blank=True, on_delete=models.CASCADE)
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
