@@ -26,13 +26,13 @@
 	  <!-- SIDEBAR MENU -->
 	  <div class="profile-usermenu">
 	    <ul class="nav">
-	      <li{% ifequal request.path cadastro_entidade %} class="active"{% endifequal %}>
+	      <li{% if request.path == cadastro_entidade %} class="active"{% endif %}>
 		<a href="{{ cadastro_entidade }}">
 		  <i class="fas fa-folder-open"></i>
 		  Dados cadastrais </a>
 	      </li>
 	      {% if entidade.aprovado %}
-	      <li{% ifequal request.path termos_de_adesao_de_entidade %} class="active"{% endifequal %}>
+	      <li{% if request.path == termos_de_adesao_de_entidade %} class="active"{% endif %}>
 		<a href="{{ termos_de_adesao_de_entidade }}">
 		  <i class="fas fa-file"></i>
 		  Termos de adesão </a>
