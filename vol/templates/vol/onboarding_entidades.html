@@ -26,7 +26,7 @@
   <tbody>
   {% for entidade in entidades %}
   {% with status=entidade.onboarding_status %}<tr>
-      <td><a class="link-externo" href="{% url 'exibe_entidade' entidade.id %}" target="_blank">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a></td>
+      <td>{% if entidade.aprovado %}<a class="link-externo" href="{% url 'exibe_entidade' entidade.id %}" target="_blank">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a>{% else %}<s>{{ entidade.nome_fantasia|default:entidade.razao_social }}</s> <i class="fas fa-info-circle" title="cadastro inativo"></i>{% endif %}</td>
       <td>{{ entidade.data_cadastro|date:"d-m-Y" }}</td>
       <td class="text-right">{{ entidade.cidade|default:"?" }} - {{ entidade.estado|default:"?" }}</td>
       <td><span class="{% if status == 1 or status == 4 or status == 7 %}text-danger{% elif status == 8 %}text-success{% endif %}">
