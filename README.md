@@ -6,7 +6,7 @@
 * Postgis >= 2.4.3
 * Python >= 3.6
 * Django >= 3.1
-* django-tinymce >= 3.0.1
+* django-tinymce >= 3.4.0
 * django-bootstrapform 3.4
 * django-allauth >= 0.42.0
 * django-mptt >= 0.13.4
