@@ -2327,7 +2327,9 @@ def onboarding_entidades(request):
     now = datetime.datetime.now()
     delta = datetime.timedelta(days=int(dias))
     ref = now-delta
-    entidades = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref.date()).order_by('-data_cadastro')
+    entidades_aprovadas = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref.date())
+    entidades_inativas_com_onboarding_iniciado = Entidade.objects.filter(aprovado=False, data_cadastro__gt=ref.date(), msg_onboarding__isnull=False)
+    entidades = entidades_aprovadas.union(entidades_inativas_com_onboarding_iniciado).order_by('-data_cadastro')
     context = {'dias': dias, 'entidades': entidades}
     template = loader.get_template('vol/onboarding_entidades.html')
     return HttpResponse(template.render(context, request))

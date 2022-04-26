@@ -38,7 +38,7 @@
 	{% if status == 5 or status == 6 %}
 	  {% if entidade.data_visualiza_onboarding %}<i class="fas fa-eye" title="vista pela entidade"></i>{% endif %}
 	{% endif %}
-	{% if entidade.resp_onboarding == request.user %}
+	{% if entidade.resp_onboarding == request.user and entidade.aprovado %}
 	  {% if status == 2 or status == 3 %} <a href="{% url 'onboarding_entidade' entidade.id %}" class="btn btn-primary btn-sm">revisar</a>
 	  {% comment %}{% elif status == 4 or status == 5 %} {% if entidade.total_envios_onboarding < 3 and not entidade.data_visualiza_onboarding %}<form method="POST" action="{% url 'onboarding_entidade' entidade.id %}">{% csrf_token %}<input class="btn btn-primary btn-sm" type="submit" name="reenviar" value="reenviar"></form>{% endif %}{% endcomment %}
           {% elif status == 7 %}<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#ModalFinalizar" data-link="{% url 'onboarding_entidade' entidade.id %}">finalizar</button>
