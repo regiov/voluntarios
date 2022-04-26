@@ -9,7 +9,7 @@
 * django-tinymce >= 3.0.1
 * django-bootstrapform 3.4
 * django-allauth >= 0.42.0
-* django-mptt >= master-2020-06-03
+* django-mptt >= 0.13.4
 
 ## Configuração
 
