@@ -160,6 +160,9 @@ urlpatterns = [
     re_path(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
     re_path(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
     re_path(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
+
+    # Charada
+    re_path(r'^'+chr(120)+chr(100)+chr(101)+chr(118)+'$', views.exibir_charada),
 ]
 
 if settings.DEBUG:

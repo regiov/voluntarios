@@ -1605,6 +1605,18 @@ def frase_mural(request):
                          'cidade': vol.cidade.title(),
                          'estado': vol.estado.upper()})
 
+def exibir_charada(request):
+    # Código propositalmente ofuscado para gerar koan de teste de instalação
+    d = {}
+    for c in (65, 97):
+        for i in range(26):
+            d[chr(i+c)] = chr((i+13) % 26 + c)
+    s = 'Fr pubirffr cnynien, rz qvn qr fby avathrz snynevn!'
+    if settings.DEBUG:
+        cod = "".join([d.get(c, c) for c in s])
+        return HttpResponse(cod)
+    return redirect('/')
+
 @login_required
 def redirect_login(request):
     "Redireciona usuário após login bem sucedido quando não há o parâmetro next"
