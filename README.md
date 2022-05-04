@@ -30,9 +30,10 @@ create extension postgis;
 \q
 ```
 
-Em seguida faça uma cópia local do website Voluntários:
+Em seguida faça uma cópia local do website Voluntários num diretório de sua preferência:
 
 ```
+cd /MEU/DIRETORIO/DE/INSTALACAO
 git clone https://github.com/regiov/voluntarios.git website
 ```
 
@@ -104,7 +105,6 @@ Feita a configuração, crie as tabelas através do Django migrations, lembrando
 python3 manage.py makemigrations vol
 python3 manage.py makemigrations notification
 python3 manage.py migrate
-
 ```
 
 Faça a carga inicial de dados nas principais tabelas, removendo antes o conteúdo das tabelas *auth_permission* e *django_content_type*:
