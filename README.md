@@ -130,6 +130,13 @@ Compile os dicionários com as traduções locais:
 python3 manage.py compilemessages --locale=pt_BR
 ```
 
+Para popular o banco de dados, navegue até o diretório ```popular_db``` dentro da app ```vol``` e rode o seguinte comando:
+
+```
+cd vol/popular_db
+python3 popular_db.py
+```
+
 Inicie o Django em modo desenvolvimento:
 
 ```
@@ -137,3 +144,4 @@ python3 manage.py runserver
 ```
 
 Acesse a versão local do site em http://127.0.0.1:8000/
+
