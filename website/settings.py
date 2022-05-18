@@ -28,7 +28,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['voluntarios.com.br']
 
 # E-mail configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'SET IN LOCAL SETTINGS'  # 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS'
@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'notification',  # para encapsular notificações por e-mail
     'vol',           # app principal
     'trans',         # para sobrepor traduções de outros apps
-    #'debug_toolbar',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
@@ -222,7 +222,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'custom_undo_redo_levels': 10,
     'convert_urls': False,
     'resize': 'both',
-    'theme_advanced_resizing' : True,
+    'theme_advanced_resizing': True,
 }
 
 # Django allauth config
