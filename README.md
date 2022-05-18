@@ -130,7 +130,7 @@ Compile os dicionários com as traduções locais:
 python3 manage.py compilemessages --locale=pt_BR
 ```
 
-Para popular o banco de dados, navegue até o diretório ```popular_db``` dentro da app ```vol``` e rode o seguinte comando:
+Para popular o banco de dados com dados fictícios de usuários, voluntários e entidades, navegue até o diretório ```popular_db``` dentro da app ```vol``` e rode o seguinte comando:
 
 ```
 cd vol/popular_db
