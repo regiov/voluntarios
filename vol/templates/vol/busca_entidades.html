@@ -40,6 +40,14 @@ Se você não souber o nome da entidade deixe em branco e apenas digite sua cida
   </div>
 
   <div class="form-group">
+    <label for="id_ftipoartigo">Tipo de artigo aceito como doação:</label>
+    <select id="id_ftipoartigo" name="ftipoartigo" class="form-control">
+      <option value="0"{% if not request.GET.ftipoartigo %} selected{% endif %}>-- Todas os tipos de artigo --</option>
+      {% for tipo_artigo in tipos_de_artigo %}<option value="{{ tipo_artigo.id }}"{% if request.GET.ftipoartigo|add:"0" == tipo_artigo.id %} selected{% endif %}>{% if '.' in tipo_artigo.indice %}&nbsp;&nbsp;&nbsp;&#9702;{% else %}&#8226;{% endif %} {{ tipo_artigo.nome }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
     <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
     <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
       <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Em qualquer época --</option>
