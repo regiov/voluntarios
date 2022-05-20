@@ -1329,7 +1329,6 @@ def busca_entidades(request):
             fbairro = request.GET.get('fbairro')
             fentidade = request.GET.get('fentidade')
             ftipoartigo = request.GET.get('ftipoartigo')
-            print(ftipoartigo)
             params = request.GET.items()
             boxexato = 'boxexato' in request.GET
             atualiza = request.GET.get('atualiza')
