@@ -12,17 +12,24 @@
 <h2 class="nome-entidade"><span>{{ entidade.nome_fantasia|default:entidade.razao_social }}</span></h2>
 {% endif %}
 <div class="registro">
+
+{% if entidade.cnpj_valido %}
+    <p><label>CNPJ:</label> {{ entidade.cnpj }} <a class="btn btn-common" href="http://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp?cnpj={{ entidade.cnpj_puro }}" target="_blank">Cartão CNPJ</a></p>
+{% endif %}
+
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
 <p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
 {% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
 {% if entidade.descricao %}<p class="text-justify"><label>Descrição:</label> <br/>{{ entidade.descricao|linebreaksbr }}<br/><br/></p>{% endif %}
 {% if entidade.nome_resp %}<p><label>Responsável:</label> {{ entidade.nome_resp|default:"-" }} {{ entidade.sobrenome_resp }}</p>{% endif %}
 <h3 class="secao-entidade"><span>Mais informações & contato</span></h3>
+
 {% if entidade.cidade or entidade.estado %}
 <p><i class="fas fa-home" style="vertical-align: top;" title="endereço"></i>
 <span style="display: inline-block;">{% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{% if entidade.logradouro and entidade.bairro %}<br>{% endif %}{{ entidade.bairro|default:"" }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}CEP {{ entidade.cep }}<br>{% endif %}{{ entidade.cidade|default:"" }}{% if entidade.cidade and entidade.estado %} - {% endif %}{{ entidade.estado|default:"" }}</span>
 </p>
 {% endif %}
+
 
 {% if entidade.nome_contato %}<p><i class="fas fa-user" title="contato"></i> {{ entidade.nome_contato|default:"-" }}</p>{% endif %}
 {% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
