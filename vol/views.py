@@ -1365,7 +1365,7 @@ def busca_entidades(request):
         if ftipoartigo is not None and ftipoartigo.isdigit() and ftipoartigo not in [0, '0']:
             try:
                 tipo_artigo = TipoArtigo.objects.get(pk=ftipoartigo)
-                entidades = entidades.filter(Q(doacoes=ftipoartigo) | Q(doacoes__ordem__startswith=str(tipo_artigo.ordem)+'.'))
+                entidades = entidades.filter(doacoes=ftipoartigo)
             except TipoArtigo.DoesNotExist:
                 raise SuspiciousOperation('Tipo de artigo não aceito pelo sistema.')
 
