@@ -13,11 +13,12 @@
 {% endif %}
 <div class="registro">
 
+<p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
+
 {% if entidade.cnpj_valido %}
-    <p><label>CNPJ:</label> {{ entidade.cnpj }} <a class="btn btn-common" href="http://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp?cnpj={{ entidade.cnpj_puro }}" target="_blank">Cartão CNPJ</a></p>
+<p><label>CNPJ:</label> <a href="http://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp?cnpj={{ entidade.cnpj_puro }}" target="_blank" title="Cartão de CNPJ">{{ entidade.cnpj }}</a></p>
 {% endif %}
 
-<p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
 <p><label>Área de Atuação:</label> {{ entidade.area_atuacao.nome|default:"-" }}</p>
 {% if entidade.fundacao %}<p><label>Fundação:</label> {{ entidade.fundacao|date:"d/m/Y" }}</p>{% endif %}
 {% if entidade.descricao %}<p class="text-justify"><label>Descrição:</label> <br/>{{ entidade.descricao|linebreaksbr }}<br/><br/></p>{% endif %}
