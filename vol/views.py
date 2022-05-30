@@ -1313,6 +1313,7 @@ def busca_entidades(request):
         return HttpResponseNotAllowed(metodos)
 
     areas_de_atuacao = AreaAtuacao.objects.all().order_by('indice')
+    tipos_de_artigo = TipoArtigo.objects.all().order_by('ordem')
 
     buscar = False
     fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = atualiza = None
@@ -1327,6 +1328,7 @@ def busca_entidades(request):
             fcidade = request.GET.get('fcidade')
             fbairro = request.GET.get('fbairro')
             fentidade = request.GET.get('fentidade')
+            ftipoartigo = request.GET.get('ftipoartigo')
             params = request.GET.items()
             boxexato = 'boxexato' in request.GET
             atualiza = request.GET.get('atualiza')
@@ -1339,6 +1341,7 @@ def busca_entidades(request):
             fcidade = request.POST.get('fcidade')
             fbairro = request.POST.get('fbairro')
             fentidade = request.POST.get('fentidade')
+            ftipoartigo = request.POST.get('ftipoartigo')
             params = request.POST.items()
             boxexato = 'boxexato' in request.POST
             atualiza = request.POST.get('atualiza')
@@ -1357,6 +1360,14 @@ def busca_entidades(request):
                     entidades = entidades.filter(Q(area_atuacao=fasocial) | Q(area_atuacao__indice__startswith=str(area_atuacao.indice)+'.'))
             except AreaAtuacao.DoesNotExist:
                 raise SuspiciousOperation('Área de Atuação inexistente')
+
+        # Filtro por tipo de artigo
+        if ftipoartigo is not None and ftipoartigo.isdigit() and ftipoartigo not in [0, '0']:
+            try:
+                tipo_artigo = TipoArtigo.objects.get(pk=ftipoartigo)
+                entidades = entidades.filter(doacoes=ftipoartigo)
+            except TipoArtigo.DoesNotExist:
+                raise SuspiciousOperation('Tipo de artigo não aceito pelo sistema.')
 
         # Filtro por cidade
         if fcidade is not None:
@@ -1424,6 +1435,7 @@ def busca_entidades(request):
 
     context = {'areas_de_atuacao': areas_de_atuacao,
                'entidades': entidades,
+               'tipos_de_artigo': tipos_de_artigo,
                'get_params': get_params,
                'pagina_inicial': pagina_inicial,
                'pagina_final': pagina_final}

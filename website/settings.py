@@ -28,7 +28,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['voluntarios.com.br']
 
 # E-mail configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'SET IN LOCAL SETTINGS'  # 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS'
@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'vol',           # app principal
     'trans',         # para sobrepor traduções de outros apps
     #'debug_toolbar',
+    #'django_extensions', # para gerar diagramas dos modelos
 ]
 
 MIDDLEWARE = [
@@ -222,7 +223,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'custom_undo_redo_levels': 10,
     'convert_urls': False,
     'resize': 'both',
-    'theme_advanced_resizing' : True,
+    'theme_advanced_resizing': True,
 }
 
 # Django allauth config
