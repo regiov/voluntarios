@@ -1,19 +1,12 @@
 import random
-from website.wsgi import *
-from vol.models import *
-from django.db.utils import IntegrityError
-from allauth.account.models import EmailAddress
 import csv
 
+from django.db.utils import IntegrityError
+from django.conf import settings
 
-def salvar_usuario_com_email(usuario: Usuario, mail: EmailAddress):
-    """Salva um usuário já com o email"""
-    try:
-        usuario.set_password(usuario.password)
-        usuario.save()
-        mail.save()
-    except IntegrityError:
-        pass
+from website.wsgi import *
+from allauth.account.models import EmailAddress
+from vol.models import *
 
 
 def salvar_voluntario_com_interesses(vol: Voluntario, interesses):
@@ -64,14 +57,7 @@ def instanciar_voluntario(usuario: Usuario,
     return vol, areas_interesse
 
 
-def instanciar_usuario_com_email(email, nome, senha):
-    """Instancia um usuário e o seu email"""
-    usuario = Usuario(email=email, nome=nome, password=senha, is_active=True)
-    mail = EmailAddress(user=usuario, email=usuario.email, verified=True, primary=True)
-    return usuario, mail
-
-
-def rotina_salvar_voluntarios(arquivo='popular_db/voluntarios.csv'):
+def rotina_salvar_voluntarios(arquivo='voluntarios.csv'):
     """Realiza a rotina de ler o arquivo de voluntários e salvar todos no banco de dados"""
     with open(arquivo, 'r') as dados:
         leitor = csv.reader(dados)
@@ -98,8 +84,7 @@ def rotina_salvar_voluntarios(arquivo='popular_db/voluntarios.csv'):
                 instituicao = n[13]
                 interesse = n[14]
                 descricao = n[15]
-                user, mail = instanciar_usuario_com_email(email, nome, senha)
-                salvar_usuario_com_email(user, mail)
+                user = Usuario.objects.create_user(email, nome, senha)
                 vol, areas_interesse = instanciar_voluntario(usuario=user,
                                                              data_aniversario=aniversario,
                                                              profissao=profissao,
@@ -123,7 +108,7 @@ def random_user():
     return random.choice(Usuario.objects.all())
 
 
-def salvar_entidade(arquivo='popular_db/entidades.csv'):
+def salvar_entidade(arquivo='entidades.csv'):
     """Lê o arquivo de entidades e realiza o processo de salvar no banco de dados"""
     # TODO refatorar
     with open(arquivo, 'r') as ent:
@@ -203,5 +188,12 @@ def salvar_entidade(arquivo='popular_db/entidades.csv'):
                     artigo.save()
 
 
+if not settings.DEBUG:
+    print('Esta rotina só deve ser rodada em modo DEBUG!')
+    exit(1)
+
+print('Importando usuários/voluntários de teste...')
 rotina_salvar_voluntarios()
+print('Importando entidades de teste...')
 salvar_entidade()
+print('OK!')
