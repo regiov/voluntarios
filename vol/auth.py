@@ -5,6 +5,58 @@ from django import forms
 from allauth.account.adapter import DefaultAccountAdapter, get_adapter
 from allauth.utils import email_address_exists
 from allauth.account.forms import SignupForm
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.account.models import EmailAddress
+
+
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
+    def pre_social_login(self, request, sociallogin):
+        """
+        Invoked just after a user successfully authenticates via a
+        social provider, but before the login is actually processed
+        (and before the pre_social_login signal is emitted).
+
+        Tenta os seguintes passos antes de logar :
+        - A conta social existe, só continua.
+        - A conta social não tem email ou email desconhecido, só cotinua.
+        - Já existe um email igual ao da conta social:
+            - Confere se o email já foi verificado, caso sim, linka a conta social á conta exixtente no sistema
+            caso não pede outro email.
+        """
+
+        # social account already exists, so this is just a login
+        if sociallogin.is_existing:
+            return
+
+        # some social logins don't have an email address
+        if not sociallogin.email_addresses:
+            return
+
+        # find the first verified email that we get from this sociallogin
+        verified_email = None
+        for email in sociallogin.email_addresses:
+            try:
+                existing_email = EmailAddress.objects.get(email__iexact=email.email, verified=True)
+            except EmailAddress.DoesNotExist:
+                return
+            if existing_email.verified:
+                verified_email = existing_email
+                break
+
+        # no verified emails found, nothing more to do
+        if not verified_email:
+            return
+
+        # check if given email address already exists as a verified email on
+        # an existing user's account
+        try:
+            existing_email = EmailAddress.objects.get(email__iexact=email.email, verified=True)
+        except EmailAddress.DoesNotExist:
+            return
+
+        # if it does, connect this new social login to the existing user
+        sociallogin.connect(request, existing_email.user)
+
 
 class MyAccountAdapter(DefaultAccountAdapter):
     "Adaptador customizado para excluir usuário atual da verificação de unicidade de e-mail"

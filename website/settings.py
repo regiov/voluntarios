@@ -230,6 +230,7 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # Django allauth config
+SOCIALACCOUNT_ADAPTER = 'vol.auth.SocialAccountAdapter'
 ACCOUNT_ADAPTER = 'vol.auth.MyAccountAdapter'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True

@@ -114,6 +114,7 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class Usuario(AbstractBaseUser, PermissionsMixin):
     id           = models.AutoField(primary_key=True)
     email        = models.EmailField(verbose_name=u'E-mail', unique=True,)
