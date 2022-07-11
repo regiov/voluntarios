@@ -8,5 +8,5 @@ Para confirmar que foi você quem fez o cadastro e ter pleno acesso ao site, cli
 {{ activate_url }}
 
 Obrigado!
-Equipe Voluntários
+Equipe do site Voluntários
 voluntarios.com.br{% endautoescape %}
