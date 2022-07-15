@@ -28,7 +28,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['voluntarios.com.br']
 
 # E-mail configuration
-EMAIL_BACKEND = 'SET IN LOCAL SETTINGS'  # 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS'

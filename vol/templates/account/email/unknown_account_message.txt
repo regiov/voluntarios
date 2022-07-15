@@ -1,0 +1,11 @@
+Olá,
+
+{% autoescape off %}Você está recebendo esta mensagem porque alguém solicitou a redefinição de senha no site voluntarios.com.br utilizando o e-mail: {{ email }}. Só que não temos nenhum usuário com este e-mail cadastrado. Caso a solicitação não tenha partido de você, entre em contato conosco ou se preferir simplesmente ignore a mensagem.
+
+Se foi você, utilize o seguinte link para se cadastrar no site:
+
+{{ signup_url }}{% endautoescape %}
+
+Atenciosamente,
+Equipe do site Voluntários
+voluntarios.com.br

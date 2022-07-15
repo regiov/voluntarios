@@ -1,0 +1,12 @@
+{% load account %}{% autoescape off %}
+Olá!
+
+{% user_display user as user_display %}Você está recebendo esta mensagem porque alguém acabou de se cadastrar no site voluntarios.com.br informando seu endereço de email: {{ user_display }}
+
+Para confirmar que foi você quem fez o cadastro e ter pleno acesso ao site, clique em:
+
+{{ activate_url }}
+
+Obrigado!
+Equipe do site Voluntários
+voluntarios.com.br{% endautoescape %}
