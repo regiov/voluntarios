@@ -1,7 +1,7 @@
 {% extends "account/base.html" %}
 {% load static %}
 {% load i18n %}
-{% load bootstrap %}
+{% load crispy_forms_tags %}
 {% load account socialaccount %}
 {% load form_extras %}
 
@@ -66,7 +66,7 @@
       <div class="container-fluid" style="text-align: -webkit-center;">
         <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
           {% csrf_token %}
-          {{ form|bootstrap }}
+          {{ form|crispy }}
           {% if redirect_field_value %}
           <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
           {% endif %}
