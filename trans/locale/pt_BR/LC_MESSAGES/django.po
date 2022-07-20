@@ -3,6 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
+# Renato De Giovanni <renato@cria.org.br>, 2022
 # cacarrara <caiocarrara@gmail.com>, 2014
 # Fábio C. Barrionuevo da Luz <bnafta@gmail.com>, 2013-2014
 # Rodrigo <rprior@infranology.com.br>, 2013
@@ -11,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-allauth\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-27 05:00-0500\n"
+"POT-Creation-Date: 2022-06-07 04:23-0500\n"
 "PO-Revision-Date: 2014-12-01 01:20+0000\n"
 "Last-Translator: cacarrara <caiocarrara@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/"
@@ -22,19 +23,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: account/adapter.py:45
+#: account/adapter.py:47
 msgid "Username can not be used. Please use other username."
-msgstr "O nome de usuário não pode ser usado. Escolha outro."
+msgstr "Este nome de usuário não pode ser usado. É preciso escolher outro."
 
-#: account/adapter.py:49
+#: account/adapter.py:53
 msgid "Too many failed login attempts. Try again later."
 msgstr "Excedida a quantidade de tentativas de login. Tente novamente mais tarde."
 
-#: account/adapter.py:51
+#: account/adapter.py:55
 msgid "A user is already registered with this e-mail address."
-msgstr "Um usuário já foi registado com este endereço de e-mail."
+msgstr "Um usuário já foi registrado com este endereço de e-mail."
 
-#: account/adapter.py:294
+#: account/adapter.py:304
 #, python-brace-format
 msgid "Password must be a minimum of {0} characters."
 msgstr "A senha deve ter no mínimo {0} caracteres."
@@ -43,130 +44,131 @@ msgstr "A senha deve ter no mínimo {0} caracteres."
 msgid "Accounts"
 msgstr "Contas"
 
-#: account/forms.py:61 account/forms.py:398
+#: account/forms.py:59 account/forms.py:416
 msgid "You must type the same password each time."
 msgstr "A mesma senha deve ser escrita em ambos os campos."
 
-#: account/forms.py:91 account/forms.py:365 account/forms.py:476
+#: account/forms.py:92 account/forms.py:381 account/forms.py:501
 msgid "Password"
 msgstr "Senha"
 
-#: account/forms.py:92
+#: account/forms.py:93
 msgid "Remember Me"
-msgstr "Lembrar-me"
+msgstr "Continuar logado"
 
-#: account/forms.py:98
+#: account/forms.py:97
 msgid "This account is currently inactive."
 msgstr "Esta conta está desativada no momento."
 
-#: account/forms.py:101
+#: account/forms.py:99
 msgid "The e-mail address and/or password you specified are not correct."
 msgstr "O endereço de e-mail e/ou senha especificados não estão corretos."
 
-#: account/forms.py:104
+#: account/forms.py:102
 msgid "The username and/or password you specified are not correct."
 msgstr "O nome de usuário e/ou senha especificados não estão corretos."
 
-#: account/forms.py:113 account/forms.py:268 account/forms.py:426
-#: account/forms.py:495
+#: account/forms.py:113 account/forms.py:279 account/forms.py:442
+#: account/forms.py:520
 msgid "E-mail address"
 msgstr "Endereço de e-mail"
 
-#: account/forms.py:115 account/forms.py:301 account/forms.py:421
-#: account/forms.py:490
+#: account/forms.py:117 account/forms.py:316 account/forms.py:439
+#: account/forms.py:515
 msgid "E-mail"
 msgstr "E-mail"
 
-#: account/forms.py:120 account/forms.py:123 account/forms.py:260
-#: account/forms.py:264
+#: account/forms.py:120 account/forms.py:123 account/forms.py:269
+#: account/forms.py:272
 msgid "Username"
 msgstr "Nome de usuário"
 
-#: account/forms.py:130
+#: account/forms.py:133
 msgid "Username or e-mail"
 msgstr "Nome de usuário ou e-mail"
 
-#: account/forms.py:133
+#: account/forms.py:136
 msgctxt "field label"
 msgid "Login"
 msgstr "Login"
 
-#: account/forms.py:292
-#| msgid "E-mail (optional)"
+#: account/forms.py:307
 msgid "E-mail (again)"
-msgstr "E-mail (opcional)"
+msgstr "E-mail (novamente)"
 
-#: account/forms.py:296
-#| msgid "email confirmation"
+#: account/forms.py:311
 msgid "E-mail address confirmation"
-msgstr "confirmação de e-mail"
+msgstr "Confirmação de e-mail"
 
-#: account/forms.py:304
+#: account/forms.py:319
 msgid "E-mail (optional)"
 msgstr "E-mail (opcional)"
 
-#: account/forms.py:345
-#| msgid "You must type the same password each time."
+#: account/forms.py:359
 msgid "You must type the same email each time."
-msgstr "A mesma senha deve ser escrita em ambos os campos."
+msgstr "O mesmo e-mail deve ser escrito em ambos os campos."
 
-#: account/forms.py:368 account/forms.py:477
+#: account/forms.py:385 account/forms.py:502
 msgid "Password (again)"
 msgstr "Senha (novamente)"
 
-#: account/forms.py:432
+#: account/forms.py:451
 msgid "This e-mail address is already associated with this account."
-msgstr "Este endereço de e-mail já foi associado com esta conta."
+msgstr "Este e-mail já está associado a esta conta."
 
-#: account/forms.py:434
+#: account/forms.py:454
 msgid "This e-mail address is already associated with another account."
-msgstr "Este endereço de e-mail já foi associado com outra conta."
+msgstr "Este e-mail já está associado a outra conta."
 
 #: account/forms.py:456
-msgid "Current Password"
-msgstr "senha atual"
+msgid "You cannot add more than %d e-mail addresses."
+msgstr "Não se pode adicionar mais de %d endereços de e-mail."
 
-#: account/forms.py:457 account/forms.py:546
+#: account/forms.py:481
+msgid "Current Password"
+msgstr "Senha Atual"
+
+#: account/forms.py:483 account/forms.py:588
 msgid "New Password"
 msgstr "Nova Senha"
 
-#: account/forms.py:458 account/forms.py:547
+#: account/forms.py:484 account/forms.py:589
 msgid "New Password (again)"
 msgstr "Nova Senha (novamente)"
 
-#: account/forms.py:466
+#: account/forms.py:492
 msgid "Please type your current password."
 msgstr "Por favor insira a sua senha atual."
 
-#: account/forms.py:504
+#: account/forms.py:532
 msgid "The e-mail address is not assigned to any user account"
-msgstr "O endereço de e-mail não está associado a nenhuma conta de usuário"
+msgstr "Este endereço de e-mail não está associado a nenhuma conta de usuário"
 
-#: account/forms.py:568
+#: account/forms.py:610
 msgid "The password reset token was invalid."
-msgstr "Código incorreto para redefinição de senha."
+msgstr "Token de redefinição de senha inválido"
 
-#: account/models.py:23
+#: account/models.py:19
 msgid "user"
 msgstr "usuário"
 
-#: account/models.py:27 account/models.py:81
+#: account/models.py:25 account/models.py:80
 msgid "e-mail address"
 msgstr "endereço de e-mail"
 
-#: account/models.py:28
+#: account/models.py:27
 msgid "verified"
 msgstr "verificado"
 
-#: account/models.py:29
+#: account/models.py:28
 msgid "primary"
 msgstr "primário"
 
-#: account/models.py:34
+#: account/models.py:33
 msgid "email address"
 msgstr "endereço de e-mail"
 
-#: account/models.py:35
+#: account/models.py:34
 msgid "email addresses"
 msgstr "endereços de e-mail"
 
@@ -174,19 +176,19 @@ msgstr "endereços de e-mail"
 msgid "created"
 msgstr "criado"
 
-#: account/models.py:85
+#: account/models.py:84
 msgid "sent"
 msgstr "enviado"
 
-#: account/models.py:86 socialaccount/models.py:55
+#: account/models.py:85 socialaccount/models.py:59
 msgid "key"
 msgstr "chave"
 
-#: account/models.py:91
+#: account/models.py:90
 msgid "email confirmation"
 msgstr "confirmação de e-mail"
 
-#: account/models.py:92
+#: account/models.py:91
 msgid "email confirmations"
 msgstr "confirmações de e-mail"
 
@@ -201,17 +203,17 @@ msgstr ""
 
 #: socialaccount/adapter.py:131
 msgid "Your account has no password set up."
-msgstr "A sua conta não tem senha definida."
+msgstr "Sua conta não tem uma senha definida."
 
 #: socialaccount/adapter.py:138
 msgid "Your account has no verified e-mail address."
-msgstr "A sua conta não tem um endereço de e-mail verificado."
+msgstr "Sua conta não tem um endereço de e-mail verificado."
 
 #: socialaccount/apps.py:7
 msgid "Social Accounts"
 msgstr "Contas Sociais"
 
-#: socialaccount/models.py:43 socialaccount/models.py:77
+#: socialaccount/models.py:42 socialaccount/models.py:86
 msgid "provider"
 msgstr "provedor"
 
@@ -227,103 +229,105 @@ msgstr "id do cliente"
 msgid "App ID, or consumer key"
 msgstr "App ID ou chave de consumidor"
 
-#: socialaccount/models.py:51
+#: socialaccount/models.py:53
 msgid "secret key"
 msgstr "Chave secreta"
 
-#: socialaccount/models.py:53
+#: socialaccount/models.py:56
 msgid "API secret, client secret, or consumer secret"
 msgstr "Segredo de API, segredo de cliente ou segredo de consumidor"
 
-#: socialaccount/models.py:58
+#: socialaccount/models.py:59
 msgid "Key"
 msgstr "Chave"
 
-#: socialaccount/models.py:66
+#: socialaccount/models.py:76
 msgid "social application"
 msgstr "aplicativo social"
 
-#: socialaccount/models.py:67
+#: socialaccount/models.py:77
 msgid "social applications"
 msgstr "aplicativos sociais"
 
-#: socialaccount/models.py:96
+#: socialaccount/models.py:107
 msgid "uid"
 msgstr "uid"
 
-#: socialaccount/models.py:98
+#: socialaccount/models.py:109
 msgid "last login"
 msgstr "último acesso"
 
-#: socialaccount/models.py:100
+#: socialaccount/models.py:110
 msgid "date joined"
 msgstr "data de adesão"
 
-#: socialaccount/models.py:102
+#: socialaccount/models.py:111
 msgid "extra data"
 msgstr "dados extras"
 
-#: socialaccount/models.py:106
+#: socialaccount/models.py:115
 msgid "social account"
 msgstr "conta social"
 
-#: socialaccount/models.py:107
+#: socialaccount/models.py:116
 msgid "social accounts"
 msgstr "contas sociais"
 
-#: socialaccount/models.py:133
+#: socialaccount/models.py:143
 msgid "token"
-msgstr "código"
+msgstr "token"
 
-#: socialaccount/models.py:135
+#: socialaccount/models.py:144
 msgid "\"oauth_token\" (OAuth1) or access token (OAuth2)"
 msgstr "\"oauth_token\" (OAuth1) ou token de acesso (OAuth2)"
 
-#: socialaccount/models.py:138
+#: socialaccount/models.py:148
 msgid "token secret"
-msgstr "token secreto"
+msgstr "token secret"
 
-#: socialaccount/models.py:140
+#: socialaccount/models.py:149
 msgid "\"oauth_token_secret\" (OAuth1) or refresh token (OAuth2)"
 msgstr "\"oauth_token_secret\" (OAuth1) ou token de atualização (OAuth2)"
 
-#: socialaccount/models.py:142
+#: socialaccount/models.py:152
 msgid "expires at"
 msgstr "expira em"
 
-#: socialaccount/models.py:146
+#: socialaccount/models.py:157
 msgid "social application token"
 msgstr "token de aplicativo social"
 
-#: socialaccount/models.py:147
+#: socialaccount/models.py:158
 msgid "social application tokens"
 msgstr "tokens de aplicativo social"
 
 #: socialaccount/providers/douban/views.py:36
 msgid "Invalid profile data"
-msgstr "Dados pessoais incorretos"
+msgstr "Dados pessoais inválidos"
 
-#: socialaccount/providers/oauth/client.py:78
+#: socialaccount/providers/oauth/client.py:85
+#: socialaccount/providers/pocket/client.py:37
 #, python-format
 msgid "Invalid response while obtaining request token from \"%s\"."
 msgstr "Resposta inválida ao obter token de permissão de \"%s\"."
 
-#: socialaccount/providers/oauth/client.py:109
+#: socialaccount/providers/oauth/client.py:117
+#: socialaccount/providers/pocket/client.py:78
 #, python-format
 msgid "Invalid response while obtaining access token from \"%s\"."
 msgstr "Resposta inválida ao obter token de acesso de \"%s\"."
 
-#: socialaccount/providers/oauth/client.py:128
+#: socialaccount/providers/oauth/client.py:138
 #, python-format
 msgid "No request token saved for \"%s\"."
 msgstr "Nenhum token de permissão gravado para \"%s\"."
 
-#: socialaccount/providers/oauth/client.py:177
+#: socialaccount/providers/oauth/client.py:189
 #, python-format
 msgid "No access token saved for \"%s\"."
 msgstr "Nenhum token de acesso gravado para \"%s\"."
 
-#: socialaccount/providers/oauth/client.py:197
+#: socialaccount/providers/oauth/client.py:210
 #, python-format
 msgid "No access to private resources at \"%s\"."
 msgstr "Sem acesso a recursos privados de \"%s\"."
@@ -335,13 +339,9 @@ msgstr "Conta Inativa"
 
 #: templates/account/account_inactive.html:10
 msgid "This account is inactive."
-msgstr "A sua conta está inativa."
+msgstr "Esta conta está inativa."
 
-#: templates/account/email.html:5
-msgid "Account"
-msgstr "Conta"
-
-#: templates/account/email.html:8
+#: templates/account/email.html:5 templates/account/email.html:8
 msgid "E-mail Addresses"
 msgstr "Endereços de E-mail"
 
@@ -382,9 +382,8 @@ msgid ""
 "You currently do not have any e-mail address set up. You should really add "
 "an e-mail address so you can receive notifications, reset your password, etc."
 msgstr ""
-"Neste momento não há um endereço de e-mail definido. Você deve adicionar um "
-"endereço de e-mail para que possa receber notificações, redefinir a sua "
-"senha, etc."
+"Não há nenhum endereço de e-mail associado a sua conta. Você deve adicionar um "
+"e-mail para que possa receber notificações, redefinir a senha, etc."
 
 #: templates/account/email.html:48
 msgid "Add E-mail Address"
@@ -394,81 +393,79 @@ msgstr "Adicionar endereço de e-mail"
 msgid "Add E-mail"
 msgstr "Adicionar e-mail"
 
-#: templates/account/email.html:62
+#: templates/account/email.html:63
 msgid "Do you really want to remove the selected e-mail address?"
-msgstr "Deseja mesmo remover o endereço de e-mail seleccionado?"
+msgstr "Deseja mesmo remover o endereço de e-mail selecionado?"
 
-#: templates/account/email/email_confirmation_message.txt:1
-#| msgid ""
-#| "User %(user_display)s at %(site_name)s has given this as an email "
-#| "address.\n"
-#| "\n"
-#| "To confirm this is correct, go to %(activate_url)s\n"
-msgid ""
-"Hello from %(site_name)s!\n"
-"\n"
-"You're receiving this e-mail because user %(user_display)s has given yours "
-"as an e-mail address to connect their account.\n"
-"\n"
-"To confirm this is correct, go to %(activate_url)s\n"
-msgstr ""
-"Olá!\n"
-"\n"
-"Você está recebendo esta mensagem porque o usuário %(user_display)s \n"
-"do site %(site_name)s informou este endereço ao se cadastrar.\n"
-"\n"
-"Para confirmar que isso está correto e ter pleno acesso ao site, clique em\n"
-"%(activate_url)s\n"
-
-#: templates/account/email/email_confirmation_message.txt:7
+#: templates/account/email/base_message.txt:1
 #, python-format
-msgid ""
-"Thank you from %(site_name)s!\n"
-"%(site_domain)s"
-msgstr ""
-"Obrigado!\n"
-"Equipe %(site_name)s\n"
-"%(site_domain)s"
+msgid "Hello from %(site_name)s!"
+msgstr "Olá do site %(site_name)s!"
 
-#: templates/account/email/email_confirmation_subject.txt:3
-#| msgid "Confirm E-mail Address"
-msgid "Please Confirm Your E-mail Address"
-msgstr "Confirmar endereço de e-mail"
-
-#: templates/account/email/password_reset_key_message.txt:1
-#, python-format
-msgid ""
-"Hello from %(site_name)s!\n"
-"\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
-msgstr ""
-"Olá,\n"
-"\n"
-"Clique no link abaixo para redefinir sua senha no site '%(site_name)s'. "
-"Caso esta solicitação não tenha partido de você, entre em contato conosco ou "
-"se preferir simplesmente ignore a mensagem. "
-
-#: templates/account/email/password_reset_key_message.txt:8
-#, python-format
-msgid "In case you forgot, your username is %(username)s."
-msgstr "Caso tenha esquecido, seu nome de usuário é %(username)s."
-
-#: templates/account/email/password_reset_key_message.txt:10
+#: templates/account/email/base_message.txt:5
 #, python-format
 msgid ""
 "Thank you for using %(site_name)s!\n"
 "%(site_domain)s"
 msgstr ""
-"Atenciosamente,\n"
-"Equipe do site %(site_name)s\n"
+"Obrigado por usar o site %(site_name)s!\n"
 "%(site_domain)s"
 
+#: templates/account/email/email_confirmation_message.txt:5
+msgid ""
+"You're receiving this e-mail because user %(user_display)s has given your e-"
+"mail address to register an account on %(site_domain)s.\n"
+"\n"
+"To confirm this is correct, go to %(activate_url)s"
+msgstr ""
+"Você está recebendo essa mensagem porque o usuário %(user_display)s utilizou este e-"
+"mail para se cadastrar no site %(site_domain)s.\n"
+"\n"
+"Para confirmar que isso está correto, clique em %(activate_url)s"
+
+#: templates/account/email/email_confirmation_subject.txt:3
+msgid "Please Confirm Your E-mail Address"
+msgstr "Favor confirmar o endereço de e-mail"
+
+#: templates/account/email/password_reset_key_message.txt:4
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account.\n"
+"It can be safely ignored if you did not request a password reset. Click the "
+"link below to reset your password."
+msgstr ""
+"Você está recebendo essa mensagem porque você ou alguém tentou requisitar uma "
+"senha para sua conta de usuário no site %(site_domain)s.\n"
+"Caso não tenha sido você que fez a requisição, simplesmente ignore a mensagem. "
+"Do contrário, clique no link abaixo para redefinir a senha. "
+
+#: templates/account/email/password_reset_key_message.txt:9
+#, python-format
+msgid "In case you forgot, your username is %(username)s."
+msgstr "Caso tenha esquecido, seu nome de usuário é %(username)s."
+
 #: templates/account/email/password_reset_key_subject.txt:3
+#: templates/account/email/unknown_account_subject.txt:3
 msgid "Password Reset E-mail"
-msgstr "Redefinição de Senha"
+msgstr "E-mail de Redefinição de Senha"
+
+#: templates/account/email/unknown_account_message.txt:4
+msgid ""
+"You are receiving this e-mail because you or someone else has requested a\n"
+"password for your user account. However, we do not have any record of a "
+"user\n"
+"with email %(email)s in our database.\n"
+"\n"
+"This mail can be safely ignored if you did not request a password reset.\n"
+"\n"
+"If it was you, you can sign up for an account using the link below."
+msgstr ""
+"Você está recebendo essa mensagem porque você ou alguém tentou requisitar\n "
+"uma senha para sua conta de usuário. Ocorre que não há nenhum usuário com o\n "
+"e-mail %(email)s cadastrado em nosso banco de dados.\n"
+"\n"
+"Caso não tenha sido você que fez a requisição, simplesmente ignore a mensagem.\n "
+"Do contrário, clique no link abaixo para se cadastrar. "
 
 #: templates/account/email_confirm.html:6
 #: templates/account/email_confirm.html:10
@@ -498,7 +495,7 @@ msgstr ""
 "\"%(email_url)s\">peça uma nova verificação de e-mail.</a>."
 
 #: templates/account/login.html:6 templates/account/login.html:10
-#: templates/account/login.html:43
+#: templates/account/login.html:43 templates/socialaccount/login.html:4
 msgid "Sign In"
 msgstr "Entrar"
 
@@ -524,10 +521,10 @@ msgid ""
 "If you have not created an account yet, then please\n"
 "<a href=\"%(signup_url)s\">sign up</a> first."
 msgstr ""
-"Se você não tiver criado uma conta ainda, então, por favor\n"
+"Se você ainda não possui um cadastro, então, por favor\n"
 "<a href=\"%(signup_url)s\">Cadastre-se</a> primeiro."
 
-#: templates/account/login.html:42
+#: templates/account/login.html:42 templates/account/password_change.html:14
 msgid "Forgot Password?"
 msgstr "Esqueceu a sua senha?"
 
@@ -538,7 +535,7 @@ msgstr "Sair"
 
 #: templates/account/logout.html:10
 msgid "Are you sure you want to sign out?"
-msgstr "Você tem certeza que deseja sair?"
+msgstr "Tem certeza que deseja sair?"
 
 #: templates/account/messages/cannot_delete_primary_email.txt:2
 #, python-format
@@ -553,12 +550,12 @@ msgstr "E-mail de confirmação enviado para %(email)s."
 #: templates/account/messages/email_confirmed.txt:2
 #, python-format
 msgid "You have confirmed %(email)s."
-msgstr "E-mail %(email)s confirmado com sucesso!"
+msgstr "Você acaba de confirmar %(email)s"
 
 #: templates/account/messages/email_deleted.txt:2
 #, python-format
 msgid "Removed e-mail address %(email)s."
-msgstr "%(email)s endereços de e-mail removidos."
+msgstr "%(email)s removido."
 
 #: templates/account/messages/logged_in.txt:4
 #, python-format
@@ -567,7 +564,7 @@ msgstr "Login realizado com sucesso como usuário %(name)s."
 
 #: templates/account/messages/logged_out.txt:2
 msgid "You have signed out."
-msgstr "Você acaba de sair do sistema."
+msgstr "Você saiu do sistema."
 
 #: templates/account/messages/password_changed.txt:2
 msgid "Password successfully changed."
@@ -607,25 +604,26 @@ msgid ""
 "Forgotten your password? Enter your e-mail address below, and we'll send you "
 "an e-mail allowing you to reset it."
 msgstr ""
-"Esqueceu a senha? Insira seu endereço de e-mail abaixo para "
-"receber uma mensagem explicando como alterá-la."
+"Esqueceu a sua senha? Insira seu endereço de e-mail abaixo para "
+"receber uma mensagem com instruções sobre como alterá-la."
 
 #: templates/account/password_reset.html:20
 msgid "Reset My Password"
-msgstr "Enviar instruções para redefinir a senha"
+msgstr "Redefinir a minha senha"
 
 #: templates/account/password_reset.html:23
 msgid "Please contact us if you have any trouble resetting your password."
 msgstr ""
-"Por favor, contacte-nos se tiver qualquer problema para redefinir a "
+"Por favor, entre em contato conosco caso tenha algum problema ao redefinir a "
 "senha."
 
 #: templates/account/password_reset_done.html:15
 msgid ""
-"We have sent you an e-mail. Please contact us if you do not receive it "
-"within a few minutes."
+"We have sent you an e-mail. If you have not received it please check your "
+"spam folder. Otherwise contact us if you do not receive it in a few minutes."
 msgstr ""
-"Acabamos de enviar um e-mail com as instruções. Caso não o receba nos próximos minutos, verifique sua pasta de spam ou entre em contato conosco."
+"Acabamos de enviar um e-mail com as instruções. Caso não o receba nos "
+"próximos minutos, verifique sua pasta de spam ou entre em contato conosco."
 
 #: templates/account/password_reset_from_key.html:7
 msgid "Bad Token"
@@ -642,14 +640,13 @@ msgstr ""
 "usado. Por favor peça uma <a href=\"%(passwd_reset_url)s\">nova redefinição "
 "da senha</a>."
 
-#: templates/account/password_reset_from_key.html:17
+#: templates/account/password_reset_from_key.html:16
 msgid "change password"
 msgstr "alterar a senha"
 
-#: templates/account/password_reset_from_key.html:20
 #: templates/account/password_reset_from_key_done.html:8
 msgid "Your password is now changed."
-msgstr "A sua senha foi alterada com sucesso."
+msgstr "A sua senha foi alterada."
 
 #: templates/account/password_set.html:5 templates/account/password_set.html:8
 #: templates/account/password_set.html:13
@@ -669,7 +666,7 @@ msgstr "Cadastro"
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr "Já tem uma conta? Por favor <a href=\"%(login_url)s\">entre</a>."
+msgstr "Já tem uma conta? Faça o <a href=\"%(login_url)s\">login</a>."
 
 #: templates/account/signup_closed.html:5
 #: templates/account/signup_closed.html:8
@@ -687,25 +684,25 @@ msgstr "Nota"
 #: templates/account/snippets/already_logged_in.html:5
 #, python-format
 msgid "you are already logged in as %(user_display)s."
-msgstr "você já entrou como %(user_display)s."
+msgstr "você já está logado como %(user_display)s."
 
 #: templates/account/verification_sent.html:5
 #: templates/account/verification_sent.html:8
 #: templates/account/verified_email_required.html:5
 #: templates/account/verified_email_required.html:8
 msgid "Verify Your E-mail Address"
-msgstr "Confirme seu e-mail"
+msgstr "Verifique o seu endereço de e-mail"
 
 #: templates/account/verification_sent.html:10
 msgid ""
 "We have sent an e-mail to you for verification. Follow the link provided to "
-"finalize the signup process. Please contact us if you do not receive it "
-"within a few minutes."
+"finalize the signup process. If you do not see the verification e-mail in "
+"your main inbox, check your spam folder. Please contact us if you do not "
+"receive the verification e-mail within a few minutes."
 msgstr ""
-"Para ter pleno acesso ao sistema é necessário antes confirmar seu e-mail. "
-"Acabamos de enviar uma mensagem contendo um link para efetuar a confirmação. "
-"Caso não receba a mensagem, lembre de verificar sua caixa de spam ou entre "
-"em contato conosco."
+"Acabamos de enviar uma mensagem contendo um link para finalizar o cadastro. "
+"Caso não receba a mensagem, lembre de verificar a caixa de spam. Entre em "
+"contato conosco se a mensagem não chegar dentro de alguns minutos."
 
 #: templates/account/verified_email_required.html:12
 msgid ""
@@ -720,12 +717,15 @@ msgstr ""
 #: templates/account/verified_email_required.html:16
 msgid ""
 "We have sent an e-mail to you for\n"
-"verification. Please click on the link inside this e-mail. Please\n"
+"verification. Please click on the link inside that e-mail. If you do not see "
+"the verification e-mail in your main inbox, check your spam folder. "
+"Otherwise\n"
 "contact us if you do not receive it within a few minutes."
 msgstr ""
-"Nós enviamos um um e-mail de verificação\n"
-"para você. Por favor clique no link dentro deste e-mail. Contacte-nos\n"
-"se não recebê-lo dentro dos próximos minutos."
+"Acabamos de enviar a você um e-mail de verificação.\n"
+"Por favor clique no link dentro deste e-mail. Caso não receba a mensagem, \n"
+"lembre de verificar a caixa de spam. Entre em contato conosco se a \n"
+"mensagem não chegar dentro de alguns minutos."
 
 #: templates/account/verified_email_required.html:20
 #, python-format
@@ -749,7 +749,7 @@ msgstr "Falha ao Entrar com Rede Social"
 msgid ""
 "An error occurred while attempting to login via your social network account."
 msgstr ""
-"Um erro foi encontrado ao tentar entrar com a sua conta de rede social."
+"Houve um erro ao tentar entrar com a sua conta de rede social."
 
 #: templates/socialaccount/connections.html:5
 #: templates/socialaccount/connections.html:8
@@ -760,7 +760,7 @@ msgstr "Conexões da Conta"
 msgid ""
 "You can sign in to your account using any of the following third party "
 "accounts:"
-msgstr "Pode entrar usando uma das seguintes contas externas:"
+msgstr "Você pode entrar usando uma das seguintes contas externas:"
 
 #: templates/socialaccount/connections.html:43
 msgid ""
@@ -771,6 +771,30 @@ msgstr ""
 #: templates/socialaccount/connections.html:46
 msgid "Add a 3rd Party Account"
 msgstr "Adicionar uma Conta Externa"
+
+#: templates/socialaccount/login.html:8
+#, python-format
+msgid "Connect %(provider)s"
+msgstr "Conecte com %(provider)s"
+
+#: templates/socialaccount/login.html:10
+#, python-format
+msgid "You are about to connect a new third party account from %(provider)s."
+msgstr "Você está prestes a conectar uma nova conta externa do provedor %(provider)s."
+
+#: templates/socialaccount/login.html:12
+#, python-format
+msgid "Sign In Via %(provider)s"
+msgstr "Entre com %(provider)s"
+
+#: templates/socialaccount/login.html:14
+#, python-format
+msgid "You are about to sign in using a third party account from %(provider)s."
+msgstr "Você está prestes a se logar usando uma conta externa do provedor %(provider)s."
+
+#: templates/socialaccount/login.html:19
+msgid "Continue"
+msgstr "Continuar"
 
 #: templates/socialaccount/login_cancelled.html:5
 #: templates/socialaccount/login_cancelled.html:9
@@ -784,9 +808,8 @@ msgid ""
 "accounts. If this was a mistake, please proceed to <a href=\"%(login_url)s"
 "\">sign in</a>."
 msgstr ""
-"Você decidiu cancelar a entrada no nosso site usando uma das seguintes "
-"contas. Se isto foi um erro, clique para <a href=\"%(login_url)s\">entrar</"
-"a>."
+"Você decidiu cancelar a entrada no site usando uma de suas contas. "
+"Se mudar de ideia, clique para <a href=\"%(login_url)s\">entrar</a>."
 
 #: templates/socialaccount/messages/account_connected.txt:2
 msgid "The social account has been connected."
@@ -794,7 +817,7 @@ msgstr "A conta social foi conectada."
 
 #: templates/socialaccount/messages/account_connected_other.txt:2
 msgid "The social account is already connected to a different account."
-msgstr "A conta social já está conectada a outra conta."
+msgstr "Esta conta social já está conectada a outra conta."
 
 #: templates/socialaccount/messages/account_disconnected.txt:2
 msgid "The social account has been disconnected."
@@ -807,28 +830,5 @@ msgid ""
 "%(site_name)s. As a final step, please complete the following form:"
 msgstr ""
 "Você está prestes a usar sua conta do %(provider_name)s para acessar o\n"
-"%(site_name)s. Como etapa final, por favor preencha o seguinte formulário:"
+"%(site_name)s. Para finalizar, por favor preencha o seguinte formulário:"
 
-#~ msgid "The login and/or password you specified are not correct."
-#~ msgstr "O nome de usuário e/ou senha especificados não estão corretos."
-
-#~ msgid "Usernames can only contain letters, digits and @/./+/-/_."
-#~ msgstr "Nomes de usuários podem conter apenas letras, dígitos e @/./+/-/_."
-
-#~ msgid "This username is already taken. Please choose another."
-#~ msgstr "Este nome de usuário já está em uso. Por favor escolha outro."
-
-#, fuzzy
-#~| msgid "Sign In"
-#~ msgid "Shopify Sign In"
-#~ msgstr "Entrar"
-
-#~ msgid ""
-#~ "You have confirmed that <a href=\"mailto:%(email)s\">%(email)s</a> is an "
-#~ "e-mail address for user %(user_display)s."
-#~ msgstr ""
-#~ "Você confirmou que <a href=\"mailto:%(email)s\">%(email)s</a> é um "
-#~ "endereço de e-mail do usuário %(user_display)s."
-
-#~ msgid "Thanks for using our site!"
-#~ msgstr "Obrigado por utilizar nosso site!"
