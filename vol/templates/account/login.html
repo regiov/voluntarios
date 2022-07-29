@@ -48,7 +48,9 @@
           </ul>
         {% endfor %}
       </li>
-        {% include "socialaccount/snippets/login_extra.html" %}
+      {% include "socialaccount/snippets/login_extra.html" %}
+
+      <p style="text-align: center; margin:20px;">ou</p>
 
 {% else %}
   {% if "omit_reg_link" in request.session %}
@@ -60,8 +62,6 @@
   {% endif %}
 
 {% endif %}
-      <p style="text-align: center; margin:20px;">ou</p>
-
 
       <div class="container-fluid" style="text-align: -webkit-center;">
         <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
