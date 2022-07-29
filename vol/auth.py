@@ -9,7 +9,7 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.models import EmailAddress
 
 
-class SocialAccountAdapter(DefaultSocialAccountAdapter):
+class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         """
         Invoked just after a user successfully authenticates via a
