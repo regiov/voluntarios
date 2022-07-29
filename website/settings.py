@@ -53,6 +53,9 @@ INSTALLED_APPS = [
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #
+    'allauth.socialaccount.providers.facebook',  #
+    'allauth.socialaccount.providers.linkedin_oauth2',  #
+    # 'allauth.socialaccount.providers.google',    #
     'website.apps.MyFlatPagesConfig', # para customizar páginas planas
     'tinymce',       # para poder visualizar e gravar html em campos texto
     'notification',  # para encapsular notificações por e-mail
@@ -227,6 +230,7 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # Django allauth config
+SOCIALACCOUNT_ADAPTER = 'vol.auth.SocialAccountAdapter'
 ACCOUNT_ADAPTER = 'vol.auth.MyAccountAdapter'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True

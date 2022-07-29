@@ -1,5 +1,5 @@
 {% extends "account/base.html" %}
-
+{% load static %}
 {% load i18n %}
 {% load bootstrap %}
 {% load account socialaccount %}
@@ -8,51 +8,76 @@
 {% block head_title %}{% trans "Sign In" context "page title" %}{% endblock %}
 
 {% block account_content %}
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <div class="modal-header">
+  <h1>{% trans "Sign In" context "page heading" %}</h1>
 
-<h1>{% trans "Sign In" context "page heading" %}</h1>
+  {% get_providers as socialaccount_providers %}
+  {% if socialaccount_providers %}
+    <p>Primeira vez acessando o site? <a href="{{ signup_url }}">Cadastre-se</a> primeiro ou faça login com sua rede social!
+    Já tem uma conta? Entre com seu email e senha.</p>
+    </div>
 
-{% get_providers as socialaccount_providers %}
-{% if socialaccount_providers %}
-<p>{% blocktrans with site.name as site_name %}Please sign in with one
-of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
-for a {{ site_name }} account and sign in
-below:{% endblocktrans %}</p>
 
-<div class="socialaccount_ballot">
+    <div class="modal-body">
+      <li style="display: block;text-align: center;">
+        {% for provider in socialaccount_providers %}
+          {% if provider.id == "openid" %}
 
-  <ul class="socialaccount_providers">
-    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-  </ul>
+            {% for brand in provider.get_brands %}
+              <ul>
+                <a title="{{brand.name}}"
+                  class="socialaccount_provider {{provider.id}} {{brand.id}}"
+                  href="{% provider_login_url provider.id openid=brand.openid_url process=process %}"
+                  >{{brand.name}}</a>
+              </ul>
+            {% endfor %}
 
-  <div class="login-or">{% trans 'or' %}</div>
-
-</div>
-
-{% include "socialaccount/snippets/login_extra.html" %}
+          {% endif %}
+          <ul style="display: contents;">
+            <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
+            href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
+              <button style="background-color: #3b5998; border-radius: 8px; color: white; width: 90%; padding: 15px; margin: 5px;">
+                  {% with 'images/social/'|add:provider.name|add:'.svg' as image_static %}
+                  <img src="{% static image_static %}" style="width:20px; margin-right: 5px;"/>
+                  {% endwith %}
+                Login com {{ provider.name }}
+              </button>
+            </a>
+          </ul>
+        {% endfor %}
+      </li>
+        {% include "socialaccount/snippets/login_extra.html" %}
 
 {% else %}
-
-{% if "omit_reg_link" in request.session %}
-{% comment %}Limpa possível sinal usado para omitir link de cadastro{% endcomment %}
-{% delsessionkey "omit_reg_link" %}
-{% else %}
-<p>{% blocktrans %}If you have not created an account yet, then please
-<a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
-{% endif %}
-
-{% endif %}
-
-<form class="login" method="POST" action="{% url 'account_login' %}">
-  {% csrf_token %}
-  {{ form|bootstrap }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% if "omit_reg_link" in request.session %}
+  {% comment %}Limpa possível sinal usado para omitir link de cadastro{% endcomment %}
+  {% delsessionkey "omit_reg_link" %}
+  {% else %}
+    <p>{% blocktrans %}If you have not created an account yet, then please
+    <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
   {% endif %}
-  <div class="form-actions">
-    <button class="btn btn-primary" type="submit">{% trans "Sign In" context "button" %}</button>
-    <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
 
+{% endif %}
+      <p style="text-align: center; margin:20px;">ou</p>
+
+
+      <div class="container-fluid" style="text-align: -webkit-center;">
+        <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
+          {% csrf_token %}
+          {{ form|bootstrap }}
+          {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
+          <div class="form-actions" style="margin-bottom: 30px;">
+            <button class="btn btn-primary" type="submit">{% trans "Sign In" context "button" %}</button>
+            <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-</form>
-
+</div>
 {% endblock %}
