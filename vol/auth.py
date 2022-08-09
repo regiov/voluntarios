@@ -9,7 +9,7 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.models import EmailAddress
 
 
-class SocialAccountAdapter(DefaultSocialAccountAdapter):
+class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         """
         Invoked just after a user successfully authenticates via a
@@ -20,8 +20,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         - A conta social existe, só continua.
         - A conta social não tem email ou email desconhecido, só cotinua.
         - Já existe um email igual ao da conta social:
-            - Confere se o email já foi verificado, caso sim, linka a conta social á conta exixtente no sistema
-            caso não pede outro email.
+            - Confere se o email já foi verificado, e nesse caso linka a conta social à conta existente no sistema.
         """
 
         # social account already exists, so this is just a login
@@ -33,30 +32,14 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         # find the first verified email that we get from this sociallogin
-        verified_email = None
         for email in sociallogin.email_addresses:
             try:
                 existing_email = EmailAddress.objects.get(email__iexact=email.email, verified=True)
-            except EmailAddress.DoesNotExist:
+                # connect this new social login to the existing user
+                sociallogin.connect(request, existing_email.user)
                 return
-            if existing_email.verified:
-                verified_email = existing_email
-                break
-
-        # no verified emails found, nothing more to do
-        if not verified_email:
-            return
-
-        # check if given email address already exists as a verified email on
-        # an existing user's account
-        try:
-            existing_email = EmailAddress.objects.get(email__iexact=email.email, verified=True)
-        except EmailAddress.DoesNotExist:
-            return
-
-        # if it does, connect this new social login to the existing user
-        sociallogin.connect(request, existing_email.user)
-
+            except EmailAddress.DoesNotExist:
+                continue
 
 class MyAccountAdapter(DefaultAccountAdapter):
     "Adaptador customizado para excluir usuário atual da verificação de unicidade de e-mail"

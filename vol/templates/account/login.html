@@ -15,8 +15,8 @@
 
   {% get_providers as socialaccount_providers %}
   {% if socialaccount_providers %}
-    <p>Primeira vez acessando o site? <a href="{{ signup_url }}">Cadastre-se</a> primeiro ou faça login com sua rede social!
-    Já tem uma conta? Entre com seu email e senha.</p>
+    <p>Primeira vez acessando o site? <b><a href="{{ signup_url }}">Cadastre-se aqui</a></b> ou faça login com  rede social.<br/>
+    Já tem uma conta? Entre com seu email e senha abaixo ou faça login com rede social.</p>
     </div>
 
 
@@ -48,20 +48,19 @@
           </ul>
         {% endfor %}
       </li>
-        {% include "socialaccount/snippets/login_extra.html" %}
+      {% include "socialaccount/snippets/login_extra.html" %}
+
+      <p style="text-align: center; margin:20px;">ou</p>
 
 {% else %}
   {% if "omit_reg_link" in request.session %}
   {% comment %}Limpa possível sinal usado para omitir link de cadastro{% endcomment %}
   {% delsessionkey "omit_reg_link" %}
   {% else %}
-    <p>{% blocktrans %}If you have not created an account yet, then please
-    <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+    <p>Se ainda não tiver um cadastro, <b><a href="{{ signup_url }}">cadastre-se aqui</a></b>.</p>
   {% endif %}
 
 {% endif %}
-      <p style="text-align: center; margin:20px;">ou</p>
-
 
       <div class="container-fluid" style="text-align: -webkit-center;">
         <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
