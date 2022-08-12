@@ -146,3 +146,23 @@ python3 manage.py runserver
 
 Acesse a versão local do site em http://127.0.0.1:8000/
 
+Pronto!
+
+### Login por redes sociais
+
+(obs: configurações opcionais, caso seja necessário habilitar o login por redes sociais)
+
+#### Facebook
+
+Acesse a [interface do Facebook para desenvolvedores](https://developers.facebook.com/) e crie um novo app com o produto "Login do Facebook".
+
+Especifique nome de exibição, email de contato, domínios do app (localhost), URLs de política de privacidade e termos de uso (pode colocar os links oficiais do site) e URL de instruções de exclusão de dados (pode colocar o link oficial dos termos de uso). Salve as alterações.
+
+Nas configurações do produto "Login do Facebook", especifique as "URIs de redirecionamento do OAuth válidos": https://localhost/aut/facebook/login/callback/ e salve as alterações.
+
+No menu superior mude o modo do aplicativo para "ao vivo" (produção).
+
+Na interface administrativa do Voluntários, adicione um novo aplicativo social do tipo "Facebook" colocando o id do aplicativo do Facebook no campo "Id do cliente" e a chave secreta do aplicativo no campo "chave secreta". Inclua o site sendo usado na lista "sites escolhidos" e salve as alterações.
+
+O Facebook requer o uso de SSL nas requisições, então será necessário configurar um servidor web para acessar o Django, habilitando também SSL. Consulte as instruções do seu servidor web para isso.
+
