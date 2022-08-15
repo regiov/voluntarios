@@ -166,3 +166,6 @@ Na interface administrativa do Voluntários, adicione um novo aplicativo social 
 
 O Facebook requer o uso de SSL nas requisições, então será necessário configurar um servidor web para acessar o Django, habilitando também SSL. Consulte as instruções do seu servidor web para isso.
 
+### Orientações adicionais a novos desenvolvedores
+
+Consulte o [Wiki do Voluntários aqui no github](https://github.com/regiov/voluntarios/wiki).
