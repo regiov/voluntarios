@@ -8,7 +8,7 @@
 {% block content %}
     <h1>{% trans "Sign Up" %}</h1>
 
-<p>Para finalizar o cadastro, preencha o formulário à seguir. Após a etapa de confirmação do e-mail, você já poderá acessar o site usando as credenciais da sua conta do {{provider_name}}:</p>
+<p>Para finalizar o cadastro, preencha o formulário à seguir. Após a etapa de confirmação do e-mail, você já poderá acessar o site usando as credenciais da sua conta na rede social escolhida:</p>
 
 <form class="signup" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
   {% csrf_token %}
