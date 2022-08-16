@@ -1,0 +1,30 @@
+{% load static %}
+{% load socialaccount %}
+
+{% get_providers as socialaccount_providers %}
+
+{% for provider in socialaccount_providers %}
+<ul style="display: contents;">
+{% if provider.id == "openid" %}
+{% for brand in provider.get_brands %}
+<li>
+  <a title="{{brand.name}}" 
+     class="socialaccount_provider {{provider.id}} {{brand.id}}" 
+     href="{% provider_login_url provider.id openid=brand.openid_url process=process %}"
+     >{{brand.name}}</a>
+</li>
+{% endfor %}
+{% endif %}
+<li>
+  <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
+     href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
+    <button style="background-color: #3b5998; border-radius: 8px; color: white; width: 90%; padding: 15px; margin: 5px;">
+        {% with 'images/social/'|add:provider.name|add:'.svg' as image_static %}
+        <img src="{% static image_static %}" style="width:20px; margin-right: 5px;"/>
+        {% endwith %}
+      Login com {{ provider.name }}
+    </button>
+  </a>
+</li>
+</ul>
+{% endfor %}

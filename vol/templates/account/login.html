@@ -11,56 +11,28 @@
 <div class="modal-dialog modal-dialog-centered">
   <div class="modal-content">
     <div class="modal-header">
-  <h1>{% trans "Sign In" context "page heading" %}</h1>
+      <h1>{% trans "Sign In" context "page heading" %}</h1>
 
-  {% get_providers as socialaccount_providers %}
-  {% if socialaccount_providers %}
-    <p>Primeira vez acessando o site? <b><a href="{{ signup_url }}">Cadastre-se aqui</a></b> ou faça login com  rede social.<br/>
-    Já tem uma conta? Entre com seu email e senha abaixo ou faça login com rede social.</p>
+      {% get_providers as socialaccount_providers %}
+      {% if socialaccount_providers %}
+        <p>Primeira vez acessando o site? <b><a href="{{ signup_url }}">Cadastre-se aqui</a></b> ou faça login com  rede social.<br/>
+        Já tem uma conta? Entre com seu email e senha abaixo ou faça login com rede social.</p>
+      {% else %}
+        {% if "omit_reg_link" in request.session %}
+          {% comment %}Limpa possível sinal usado para omitir link de cadastro{% endcomment %}
+          {% delsessionkey "omit_reg_link" %}
+        {% else %}
+          <p>Se ainda não tiver um cadastro, <b><a href="{{ signup_url }}">cadastre-se aqui</a></b>.</p>
+        {% endif %}
+      {% endif %}
     </div>
 
-
     <div class="modal-body">
-      <li style="display: block;text-align: center;">
-        {% for provider in socialaccount_providers %}
-          {% if provider.id == "openid" %}
+      {% include "socialaccount/snippets/provider_list.html" with process="login" %}
 
-            {% for brand in provider.get_brands %}
-              <ul>
-                <a title="{{brand.name}}"
-                  class="socialaccount_provider {{provider.id}} {{brand.id}}"
-                  href="{% provider_login_url provider.id openid=brand.openid_url process=process %}"
-                  >{{brand.name}}</a>
-              </ul>
-            {% endfor %}
-
-          {% endif %}
-          <ul style="display: contents;">
-            <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
-            href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
-              <button style="background-color: #3b5998; border-radius: 8px; color: white; width: 90%; padding: 15px; margin: 5px;">
-                  {% with 'images/social/'|add:provider.name|add:'.svg' as image_static %}
-                  <img src="{% static image_static %}" style="width:20px; margin-right: 5px;"/>
-                  {% endwith %}
-                Login com {{ provider.name }}
-              </button>
-            </a>
-          </ul>
-        {% endfor %}
-      </li>
       {% include "socialaccount/snippets/login_extra.html" %}
 
       <p style="text-align: center; margin:20px;">ou</p>
-
-{% else %}
-  {% if "omit_reg_link" in request.session %}
-  {% comment %}Limpa possível sinal usado para omitir link de cadastro{% endcomment %}
-  {% delsessionkey "omit_reg_link" %}
-  {% else %}
-    <p>Se ainda não tiver um cadastro, <b><a href="{{ signup_url }}">cadastre-se aqui</a></b>.</p>
-  {% endif %}
-
-{% endif %}
 
       <div class="container-fluid" style="text-align: -webkit-center;">
         <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
@@ -72,7 +44,6 @@
           <div class="form-actions" style="margin-bottom: 30px;">
             <button class="btn btn-primary" type="submit">{% trans "Sign In" context "button" %}</button>
             <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-
           </div>
         </form>
       </div>
