@@ -16,7 +16,19 @@
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
-  <button class="btn btn-primary" type="submit">{% trans "Sign Up" context "submit button" %}</button>
+  <button id="signup-btn" class="btn btn-primary" type="submit">{% trans "Sign Up" context "submit button" %}</button>
 </form>
+{% comment %}
+Garante que o form seja submetido apenas uma vez, 
+evitando problemas com o duplo clique 
+(duplicate key value violates unique constraint vol_usuario_email_key).
+{% endcomment %}
+<script>
+
+    $("#signup_form").one("submit", function() {
+        $("#signup-btn").prop("disabled", true);
+    });
+
+</script>
 
 {% endblock %}
