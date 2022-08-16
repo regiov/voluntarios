@@ -137,45 +137,6 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-    def save(self, *args, **kwargs):
-        try:
-            conta_social = SocialAccount.objects.get(user=self)
-            if conta_social:
-                if conta_social.provider == 'facebook':
-                    self.get_facebook_data(conta_social=conta_social)
-                elif conta_social.provider == 'linkedin_oauth2':
-                    self.get_linkedin_data(conta_social=conta_social)
-        except ObjectDoesNotExist:
-            pass
-        except MultipleObjectsReturned:
-            pass
-        super().save(*args, **kwargs)
-        if self._password is not None:
-            password_validation.password_changed(self._password, self)
-            self._password = None
-
-    def get_facebook_data(self, conta_social):
-        extra_data = conta_social.extra_data
-        self.nome = extra_data['name']
-        self.is_active = True
-        email = EmailAddress.objects.get(user=self)
-        email.verified = True
-        email.primary = True
-        email.save(update_fields=['verified', 'primary'])
-        super(Usuario, self).save(update_fields=['nome', 'is_active'])
-
-    def get_linkedin_data(self, conta_social):
-        extra_data = conta_social.extra_data
-        first_name = extra_data['firstName']['localized']['pt_BR']
-        last_name = extra_data['lastName']['localized']['pt_BR']
-        self.nome = f'{first_name} {last_name}'
-        self.is_active = True
-        email = EmailAddress.objects.get(user=self)
-        email.verified = True
-        email.primary = True
-        email.save(update_fields=['verified', 'primary'])
-        super(Usuario, self).save(update_fields=['nome', 'is_active'])
-
     def get_full_name(self):
         return self.nome
 

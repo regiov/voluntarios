@@ -233,7 +233,6 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # Django allauth config
-SOCIALACCOUNT_ADAPTER = 'vol.auth.MySocialAccountAdapter'
 ACCOUNT_ADAPTER = 'vol.auth.MyAccountAdapter'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
@@ -250,6 +249,10 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_SIGNUP_FORM_CLASS = 'vol.forms.ExtendedSignupForm'
+SOCIALACCOUNT_ADAPTER = 'vol.auth.MySocialAccountAdapter'
+# Sempre redireciona para página de cadastro para que o usuário aceite os termos de uso
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_EMAIL_REQUIRED = True
 
 # Google maps API
 GOOGLE_MAPS_API_KEY = 'SET IN LOCAL SETTINGS'

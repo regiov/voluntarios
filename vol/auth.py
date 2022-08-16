@@ -16,15 +16,12 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         social provider, but before the login is actually processed
         (and before the pre_social_login signal is emitted).
 
-        Tenta os seguintes passos antes de logar :
-        - A conta social existe, só continua.
-        - A conta social não tem email ou email desconhecido, só cotinua.
-        - Já existe um email igual ao da conta social:
-            - Confere se o email já foi verificado, e nesse caso linka a conta social à conta existente no sistema.
+        Se a conta social tem um email que já existe no nosso banco e que já foi verificado,
+        então linka a conta com o usuário, seja em login normal, seja em cadastro.
         """
 
-        # social account already exists, so this is just a login
-        if sociallogin.is_existing:
+        # if social logis is already associated with a user
+        if sociallogin.user:
             return
 
         # some social logins don't have an email address
@@ -40,6 +37,32 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
                 return
             except EmailAddress.DoesNotExist:
                 continue
+
+    def get_signup_form_initial_data(self, sociallogin):
+        """
+        Preenche automaticamente o máximo de campos no formulário de cadastro.
+        """
+        email = ''
+        if sociallogin.email_addresses:
+            for email_address in sociallogin.email_addresses:
+                # Pega o primeiro email
+                email = email_address
+                break
+
+        extra_data = sociallogin.account.extra_data
+
+        nome = ''
+        if sociallogin.account.provider == 'facebook':
+            if 'name' in extra_data:
+                nome = extra_data['name']
+        elif sociallogin.account.provider == 'linkedin_oauth2':
+            if 'firstName' in extra_data and 'lastName' in extra_data and 'localized' in extra_data['firstName'] and 'localized' in extra_data['lastName'] and 'pt_BR' in extra_data['firstName']['localized'] and 'pt_BR' in extra_data['lastName']['localized']:
+                first_name = extra_data['firstName']['localized']['pt_BR']
+                last_name = extra_data['lastName']['localized']['pt_BR']
+                nome = f'{first_name} {last_name}'
+            
+        return {'email': email, 'nome': nome}
+
 
 class MyAccountAdapter(DefaultAccountAdapter):
     "Adaptador customizado para excluir usuário atual da verificação de unicidade de e-mail"
