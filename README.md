@@ -168,4 +168,4 @@ O Facebook requer o uso de SSL nas requisições, então será necessário confi
 
 ### Orientações adicionais a novos desenvolvedores
 
-Consulte o [Wiki do Voluntários aqui no github](https://github.com/regiov/voluntarios/wiki).
+Consulte o [Wiki do Voluntários no github](https://github.com/regiov/voluntarios/wiki).
