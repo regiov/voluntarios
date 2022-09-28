@@ -8,12 +8,11 @@
 {% block head_title %}{% trans "Sign In" context "page title" %}{% endblock %}
 
 {% block account_content %}
+{% get_providers as socialaccount_providers %}
 <div class="modal-dialog modal-dialog-centered">
   <div class="modal-content">
     <div class="modal-header">
       <h1>{% trans "Sign In" context "page heading" %}</h1>
-
-      {% get_providers as socialaccount_providers %}
       {% if socialaccount_providers %}
         <p>Primeira vez acessando o site? <b><a href="{{ signup_url }}">Cadastre-se aqui</a></b> ou faça login com  rede social.<br/>
         Já tem uma conta? Entre com seu email e senha abaixo ou faça login com rede social.</p>
@@ -32,7 +31,9 @@
 
       {% include "socialaccount/snippets/login_extra.html" %}
 
+      {% if socialaccount_providers %}
       <p style="text-align: center; margin:20px;">ou</p>
+      {% endif %}
 
       <div class="container-fluid" style="text-align: -webkit-center;">
         <form class="login" method="POST" action="{% url 'account_login' %}" style="display: block; width: 90%; text-align: initial;">
