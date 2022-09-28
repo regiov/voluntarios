@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #
-    'allauth.socialaccount.providers.facebook',  #
+    #'allauth.socialaccount.providers.facebook',  #
     #'allauth.socialaccount.providers.linkedin_oauth2',  #
     # 'allauth.socialaccount.providers.google',    #
     'website.apps.MyFlatPagesConfig', # para customizar páginas planas
