@@ -1,24 +1,28 @@
 {% extends "account/base.html" %}
-
 {% load bootstrap %}
 {% load i18n %}
+{% load account socialaccount %}
 
 {% block title %}{% trans "Signup" context "page title" %}{% endblock %}
 
 {% block account_content %}
-
+{% get_providers as socialaccount_providers %}
 <div class="modal-dialog modal-dialog-centered">
   <div class="modal-content">
     <div class="modal-header">
       <h1>{% trans "Sign Up" context "page heading" %}</h1>
 
-      <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}<br/>Não possui cadastro? Use uma das redes sociais para não ter que criar uma senha, ou preencha o formulário abaixo.</p>
+      <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}
+	{% if socialaccount_providers %}<br/>Não possui cadastro? Use uma das redes sociais para não ter que criar uma senha, ou preencha o formulário abaixo.{% endif %}
+      </p>
     </div>
     <div class="modal-body">
+      {% if socialaccount_providers %}
       {% include "socialaccount/snippets/provider_list.html" with process="login" %}
       {% include "socialaccount/snippets/login_extra.html" %}
 
       <p style="text-align: center; margin:20px;">ou</p>
+      {% endif %}
 
       <form id="signup_form" method="post" action="{% url 'account_signup' %}">
         {% csrf_token %}
