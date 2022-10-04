@@ -27,8 +27,9 @@
     </div>
 
     <div class="modal-body">
+      <ul style="display:block;">
       {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-
+      </ul>
       {% include "socialaccount/snippets/login_extra.html" %}
 
       {% if socialaccount_providers %}

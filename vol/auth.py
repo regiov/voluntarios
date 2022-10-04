@@ -21,14 +21,14 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         """
 
         # if social logis is already associated with a user
-        if sociallogin.user:
+        if sociallogin.is_existing:
             return
 
-        # some social logins don't have an email address
+            # some social logins don't have an email address
         if not sociallogin.email_addresses:
             return
 
-        # find the first verified email that we get from this sociallogin
+            # find the first verified email that we get from this sociallogin
         for email in sociallogin.email_addresses:
             try:
                 existing_email = EmailAddress.objects.get(email__iexact=email.email, verified=True)
@@ -73,6 +73,7 @@ class MyAccountAdapter(DefaultAccountAdapter):
         if email_address_exists(email, exclude_user=user):
             raise forms.ValidationError(self.error_messages['email_taken'])
         return email
+
 
 class ChangeUserProfileForm(SignupForm):
     "Formulário para edição de campos do usuário, sempre recebendo request como parâmetro"
