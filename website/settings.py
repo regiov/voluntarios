@@ -246,6 +246,7 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_SIGNUP_FORM_CLASS = 'vol.forms.ExtendedSignupForm'
+SOCIALACCOUNT_ENABLED = True
 SOCIALACCOUNT_ADAPTER = 'vol.auth.MySocialAccountAdapter'
 # Sempre redireciona para página de cadastro para que o usuário aceite os termos de uso
 SOCIALACCOUNT_AUTO_SIGNUP = False
