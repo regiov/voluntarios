@@ -20,8 +20,8 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         então linka a conta com o usuário, seja em login normal, seja em cadastro.
         """
 
-        # if social logis is already associated with a user
-        if sociallogin.user:
+        # if social login is already registered, no need to do anything
+        if sociallogin.is_existing:
             return
 
         # some social logins don't have an email address
