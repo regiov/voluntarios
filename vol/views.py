@@ -2236,13 +2236,19 @@ def progresso_cata_email_por_uf(request):
     # OBS: não há como saber o total com precisão por estado, pois algumas entidades podem ter sido removidas
     
     # Entidades aprovadas, sem data de cadastro, sem vínculo, sem e-mail e sem anotação
-    q_faltam = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True, anotacaoentidade_set__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+    #q_faltam = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True, anotacaoentidade_set__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+
+    # Entidades "aprovadas", sem data de cadastro, sem vínculo e sem e-mail
+    q_faltam = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
     faltam = {}
     for props in q_faltam:
         faltam[props['estado']] = props['total']
 
     # Entidades aprovadas, sem data de cadastro, sem vínculo, com e-mail sem confirmação ou com anotação
-    q_feitos = Entidade.objects.filter(Q(email_set__confirmado=False) | Q(anotacaoentidade_set__isnull=False), aprovado=True, vinculoentidade__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+    #q_feitos = Entidade.objects.filter(Q(email_set__confirmado=False) | Q(anotacaoentidade_set__isnull=False), aprovado=True, vinculoentidade__isnull=True, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
+
+    # Entidades aprovadas, sem data de cadastro, sem vínculo, com e-mail
+    q_feitos = Entidade.objects.filter(aprovado=True, vinculoentidade__isnull=True, email_set__isnull=False, data_cadastro__isnull=True).values('estado').order_by('estado').annotate(total=Count('pk', distinct=True))
     feitos = {}
     for props in q_feitos:
         feitos[props['estado']] = props['total']
