@@ -4,6 +4,8 @@
 
 {% block content %}
 
+{% if cidades %}
+
 <h1 class="margin-bottom">Estimativa de progresso por município</h1>
 
 {% for cidade in cidades %}
@@ -19,5 +21,11 @@
   </div>
   {% endlocalize %}
 {% endfor %}
+
+{% else %}
+
+  <h2>Nenhum município pendente!</h2>
+  
+{% endif %}  
 
 {% endblock content %}
