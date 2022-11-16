@@ -6,7 +6,11 @@
 
 <h1 class="margin-bottom">Panorama atual</h1>
 
+{% if perms.vol.view_voluntario %}
+<h2><a href="{% url 'admin:vol_voluntario_changelist' %}">Voluntários</a></h2>
+{% else %}
 <h2>Voluntários</h2>
+{% endif %}
 <hr style="margin:0;"/>
 
 <h3>Aguardando revisão: <span style="margin-left:15px;">{% if total_vol %}<a href="{% url 'aprovacao_voluntarios' %}">{{ total_vol }}</a>{% else %}{{ total_vol }}{% endif %}</span></h3>
