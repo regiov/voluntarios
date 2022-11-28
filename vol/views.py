@@ -1822,8 +1822,10 @@ def aprovacao_voluntarios(request):
                             error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
 
                     # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
-                    notifica_aprovacao_voluntario(myvol.usuario)
-
+                    try:
+                        notifica_aprovacao_voluntario(myvol.usuario)
+                    except Exception as e:
+                        notify_support(u'Erro ao notificar aprovação de voluntário',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
                 else:
                     error = concurrency_error_msg
 
