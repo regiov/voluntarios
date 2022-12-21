@@ -136,7 +136,8 @@
 {{ form.doacoes }}
 </fieldset>
 
-{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" invisible=form.instance.esconder_obs_doacoes %}
+<!-- Não consegui rodar com o atributo invisible=form.instance.esconder_obs_doacoes nesse elemento abaixo -->
+{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" %}
 
 <div class="form-group">
   <input id="save" class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
@@ -169,6 +170,45 @@
 {% endif %}
 <p class="help-block dica">(*) campos obrigatórios</p>
 </form>
+
+<script type="text/javascript">
+    // Função que retorna os dados de um endereço a partir do CEP 
+    function consultarCEP() {
+        // Declarando o cep
+        // Lembrando que, para a API funcionar, o cep deve estar sem caracteres especiais
+        const cep = document.getElementById('id_cep').value.replace(/\D/g, '');
+
+        // Essa é a url da API da ViaCep
+        const url = `https://viacep.com.br/ws/${cep}/json`;
+
+        // Parâmetros para a requisição da API
+        const options = {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                'content-type': 'application/json;charset=utf-8',
+            }
+        }
+
+        // Fazendo a requisição com fetch
+        fetch(url, options)
+            .then(response => response.json())
+            .then(data => {
+
+                // Mudando os valores de cada dado pertencente ao endereço vinculado ao cep
+                document.getElementById('id_logradouro').value = data.logradouro;
+                document.getElementById('id_bairro').value = data.bairro;
+                document.getElementById('id_cidade').value = data.localidade;
+                document.getElementById('id_estado').value = data.uf;
+            })
+            .catch(erro => console.log(erro))
+    }
+</script>
+
+<script>
+    // Chama a função consultarCEP toda vez que um novo CEP for inserido
+    document.getElementById('id_cep').addEventListener('change', consultarCEP);
+</script>
 
 <script type="text/javascript">
 
