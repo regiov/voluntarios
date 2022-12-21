@@ -4,6 +4,8 @@
 
 {% block content %}
 
+{% if estados %}
+
 <h1 class="margin-bottom">Estimativa de progresso por UF</h1>
 
 {% for estado in estados %}
@@ -20,4 +22,10 @@
   {% endlocalize %}
 {% endfor %}
 
+{% else %}
+
+  <h2>Essa tarefa encontra-se concluída!</h2>
+  
+{% endif %}  
+  
 {% endblock content %}

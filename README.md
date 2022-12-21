@@ -138,6 +138,14 @@ cd vol/popular_db
 python3 popular_db.py
 ```
 
+Forma alternativa para popular o banco de dados. Navegue até o diretório que contém o ```manage.py``` e insira o seguinte comando:
+
+```
+python3 manage.py entidades_generator.py (num_loops)
+
+Atenção: num_loops corresponde a uma integral que deve ser inserida e corresponde ao número de vezes que o banco de dados será preenchido com voluntários e entidades aleatórias.
+``` 
+
 Inicie o Django em modo desenvolvimento:
 
 ```

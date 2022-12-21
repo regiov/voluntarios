@@ -4,7 +4,7 @@
 {% get_providers as socialaccount_providers %}
 
 {% for provider in socialaccount_providers %}
-<ul style="display: contents;">
+<ul style="display: block;">
 {% if provider.id == "openid" %}
 {% for brand in provider.get_brands %}
 <li>
