@@ -49,13 +49,13 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'django.contrib.postgres',
     'mptt',           # para representações hierárquicas no banco
-    'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
-    'crispy_forms',
+    # 'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
+    'crispy_forms',  # para renderizar formulários (substituto do bootstrap_forms)
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #
     'allauth.socialaccount.providers.facebook',  #
-    'allauth.socialaccount.providers.linkedin_oauth2',  #
+    # 'allauth.socialaccount.providers.linkedin_oauth2',  #
     # 'allauth.socialaccount.providers.google',    #
     'website.apps.MyFlatPagesConfig', # para customizar páginas planas
     'tinymce',       # para poder visualizar e gravar html em campos texto
