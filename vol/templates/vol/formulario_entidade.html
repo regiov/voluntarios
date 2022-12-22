@@ -136,8 +136,7 @@
 {{ form.doacoes }}
 </fieldset>
 
-<!-- Não consegui rodar com o atributo invisible=form.instance.esconder_obs_doacoes nesse elemento abaixo -->
-{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" %}
+{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" invisible=form.instance.esconder_obs_doacoes %}
 
 <div class="form-group">
   <input id="save" class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
