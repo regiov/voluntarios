@@ -69,125 +69,148 @@
         });
         {% endif %}
     });
+
 </script>
 
 {% endblock head %}
 
 {% block content %}
-<h1 class="margin-bottom">{%if request.user.is_voluntario %}Perfil de Voluntário{% else %}Cadastro de Voluntário{% endif %}</h1>
 
-{% include "vol/mensagens.html" %}
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
 
-{% include "vol/erros.html" %}
+            <h1 class="margin-bottom">{%if request.user.is_voluntario %}Perfil de Voluntário{% else %}Cadastro de
+                Voluntário{% endif %}</h1>
 
-<form id="form-voluntario" method="POST" action="">{% csrf_token %}
+            {% include "vol/mensagens.html" %}
 
-{% include "vol/campo_formulario.html" with campo=form.data_aniversario div_class="combo-data" required=True %}
-<table width="100%">
- <tr> 
-  <td width="10%">
-   {% include "vol/campo_formulario.html" with campo=form.ddd %}
-  </td>
-  <td width="90%" style="padding-left: 10px;">
-   {% include "vol/campo_formulario.html" with campo=form.telefone %}
-  </td>
- </tr>
-</table>
-{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
-{% include "vol/campo_formulario.html" with campo=form.estado required=True %}
+            {% include "vol/erros.html" %}
 
-  <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
-    <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>
-    <p class="dica">Escolha a op&ccedil;&atilde;o que mais se aproxima do seu trabalho. Se quiser sugerir uma nova &aacute;rea de trabalho, envie um e-mail para <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
-    {% if form.area_trabalho.errors %}{{ form.area_trabalho.errors }}{% endif %}
-    {{ form.area_trabalho }}
-    {% if form.area_trabalho.help_text %}<p class="help-block dica">{{ form.area_trabalho.help_text }}</p>{% endif %}
-  </div>
+        </div>
 
-  {% include "vol/campo_formulario.html" with campo=form.profissao %}
+        <div class="modal-body">
+            <form id="form-voluntario" method="POST" action="">{% csrf_token %}
 
-  <div class="form-group required{% if form.empregado.errors %} has-error{% endif %}">
-    <label for="{{ form.empregado.id_for_label }}">{{ form.empregado.label }}</label>
-    {{ form.empregado }}
-  </div>
+                {% include "vol/campo_formulario.html" with campo=form.data_aniversario div_class="combo-data" required=True %}
+                <table width="100%">
+                    <tr>
+                        <td width="10%">
+                            {% include "vol/campo_formulario.html" with campo=form.ddd %}
+                        </td>
+                        <td width="90%" style="padding-left: 10px;">
+                            {% include "vol/campo_formulario.html" with campo=form.telefone %}
+                        </td>
+                    </tr>
+                </table>
+                {% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
+                {% include "vol/campo_formulario.html" with campo=form.estado required=True %}
 
-  {% include "vol/campo_formulario.html" with campo=form.empresa  div_id="empresa" invisible=form.instance.esconder_empresa %}
+                <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
+                    <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>
+                    <p class="dica">Escolha a op&ccedil;&atilde;o que mais se aproxima do seu trabalho. Se quiser
+                        sugerir uma nova &aacute;rea de trabalho, envie um e-mail para <a
+                                href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
+                    {% if form.area_trabalho.errors %}{{ form.area_trabalho.errors }}{% endif %}
+                    {{ form.area_trabalho }}
+                    {% if form.area_trabalho.help_text %}<p class="help-block dica">{{ form.area_trabalho.help_text }}</p>{% endif %}
+                </div>
 
-  <div class="form-group required{% if form.foi_voluntario.errors %} has-error{% endif %}">
-    <label for="{{ form.foi_voluntario.id_for_label }}">{{ form.foi_voluntario.label }}</label>
-    {{ form.foi_voluntario }}
-  </div>
+                {% include "vol/campo_formulario.html" with campo=form.profissao %}
 
-  {% include "vol/campo_formulario.html" with campo=form.entidade_que_ajudou label="Entidade(s) que ajudou" div_id="entidade_que_ajudou" invisible=form.instance.nao_foi_voluntario %}
+                <div class="form-group required{% if form.empregado.errors %} has-error{% endif %}">
+                    <label for="{{ form.empregado.id_for_label }}">{{ form.empregado.label }}</label>
+                    {{ form.empregado }}
+                </div>
 
-  <div class="form-group required{% if form.area_interesse.errors %} has-error{% endif %}">
-    <label for="{{ form.area_interesse.id_for_label }}" class="nowrap">{{ form.area_interesse.label }}</label>
-    <p class="dica">Escolha a &aacute;rea em que mais gostaria de exercer uma atividade volunt&aacute;ria.</p>
-    <table border="0" cellpadding="0" cellspacing="0">
-     <tbody>
-     {% for form in area_interesse_formset.forms %}
-       <tr class="formset">
-         <td>{{ form.area_atuacao }}</td>
-       </tr>
-     {% endfor %}
-     </tbody>
-    </table>
-    {{ area_interesse_formset.management_form }}
-  </div>
+                {% include "vol/campo_formulario.html" with campo=form.empresa div_id="empresa" invisible=form.instance.esconder_empresa %}
 
-  <div class="form-group required{% if form.descricao.errors %} has-error{% endif %}">
-    <label for="{{ form.descricao.id_for_label }}">Descreva o que voc&ecirc; poderia fazer</label>
-    <p class="dica" style="font-weight: 300;">Apesar de não ser obrigatório, recomendamos preencher este campo, pois ele é muito usado nas buscas e é uma oportunidade de falar um pouco sobre você.</p>
-    {{ form.descricao }}
-  </div>
+                <div class="form-group required{% if form.foi_voluntario.errors %} has-error{% endif %}">
+                    <label for="{{ form.foi_voluntario.id_for_label }}">{{ form.foi_voluntario.label }}</label>
+                    {{ form.foi_voluntario }}
+                </div>
 
-  {% include "vol/campo_formulario.html" with campo=form.invisivel div_id="invisivel" after_field="<b>Não quero aparecer em buscas por voluntários.</b>" %}
-  
-  {% comment %}Exibe apenas quando cadastro estiver sendo criado{% endcomment %}
-  {% if not request.user.is_voluntario %}
-  {% include "vol/campo_formulario.html" with campo=form.ciente_autorizacao div_id="ciente-autorizacao" after_field="<b>Estou ciente que, por ser menor de 18 anos, preciso de autorização dos pais ou representante legal para exercer trabalho voluntário.</b>" invisible=True %}
-  {% endif %}
+                {% include "vol/campo_formulario.html" with campo=form.entidade_que_ajudou label="Entidade(s) que ajudou" div_id="entidade_que_ajudou" invisible=form.instance.nao_foi_voluntario %}
 
-  <div class="form-group">
-   <input id="save" class="btn btn-primary" type="submit" name="save" value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
+                <div class="form-group required{% if form.area_interesse.errors %} has-error{% endif %}">
+                    <label for="{{ form.area_interesse.id_for_label }}" class="nowrap">{{ form.area_interesse.label }}</label>
+                    <p class="dica">Escolha a &aacute;rea em que mais gostaria de exercer uma atividade volunt&aacute;ria.</p>
+                    <table border="0" cellpadding="0" cellspacing="0">
+                        <tbody>
+                        {% for form in area_interesse_formset.forms %}
+                        <tr class="formset">
+                            <td>{{ form.area_atuacao }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {{ area_interesse_formset.management_form }}
+                </div>
 
-   {% if request.user.is_voluntario %} 
-    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">Remover</button>
+                <div class="form-group required{% if form.descricao.errors %} has-error{% endif %}">
+                    <label for="{{ form.descricao.id_for_label }}">Descreva o que voc&ecirc; poderia fazer</label>
+                    <p class="dica" style="font-weight: 300;">Apesar de não ser obrigatório, recomendamos preencher este
+                        campo, pois ele é muito usado nas buscas e é uma oportunidade de falar um pouco sobre você.</p>
+                    {{ form.descricao }}
+                </div>
 
-    <div class="modal" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-         <div class="modal-content">
-            
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Confirme a remoção</h4>
-            </div>
-            
-            <div class="modal-body">
-                <p>Tem certeza que deseja remover o perfil de voluntário?</p>
-            </div>
-                
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
-                <input class="btn btn-danger btn-ok" type="submit" name="delete" value="Sim">
-            </div>
-         </div>
-      </div>
+                {% include "vol/campo_formulario.html" with campo=form.invisivel div_id="invisivel" after_field="<b>Não quero aparecer em buscas por voluntários.</b>" %}
+
+                {% comment %}Exibe apenas quando cadastro estiver sendo criado{% endcomment %}
+                {% if not request.user.is_voluntario %}
+                {% include "vol/campo_formulario.html" with campo=form.ciente_autorizacao div_id="ciente-autorizacao" after_field="<b>Estou ciente que, por ser menor de 18 anos, preciso de autorização dos pais ou representante legal para exercer trabalho voluntário.</b>" invisible=True %}
+                {% endif %}
+
+                <div class="form-group">
+                    <input id="save" class="btn btn-primary" type="submit" name="save"
+                           value="{% if request.user.is_voluntario %}Gravar{% else %}Enviar{% endif %}">
+
+                    {% if request.user.is_voluntario %}
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">
+                        Remover
+                    </button>
+
+                    <div class="modal" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                        &times;
+                                    </button>
+                                    <h4 class="modal-title" id="myModalLabel">Confirme a remoção</h4>
+                                </div>
+
+                                <div class="modal-body">
+                                    <p>Tem certeza que deseja remover o perfil de voluntário?</p>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
+                                    <input class="btn btn-danger btn-ok" type="submit" name="delete" value="Sim">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <p class="help-block dica">(*) campos obrigatórios</p>
+            </form>
+        </div>
     </div>
-   {% endif %}
-
-  </div>
-<p class="help-block dica">(*) campos obrigatórios</p>
-</form>
+</div>
 {% comment %}
-Garante que o form seja submetido apenas uma vez, 
-evitando problemas com o duplo clique 
+Garante que o form seja submetido apenas uma vez,
+evitando problemas com o duplo clique
 {% endcomment %}
 <script type="text/javascript">
 
     $("#form-voluntario").one("submit", function() {
         $("#save").prop("disabled", true);
     });
+
 
 </script>
 

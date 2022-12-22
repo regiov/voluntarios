@@ -6,8 +6,8 @@
 * Postgis >= 2.4.3
 * Python >= 3.6
 * Django >= 4.0.4
+* [django-crispy-forms](https://django-crispy-forms.readthedocs.io/en/latest/index.html) >= 1.14
 * [django-tinymce](https://github.com/jazzband/django-tinymce/releases) >= 3.4.0
-* [django-bootstrapform](https://github.com/tzangms/django-bootstrap-form) 3.4 (clonar do master branch)
 * [django-allauth](https://github.com/pennersr/django-allauth/tags) >= 0.50.0
 * [django-mptt](https://github.com/django-mptt/django-mptt/tags) >= 0.13.4
 

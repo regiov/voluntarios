@@ -1,6 +1,6 @@
 {% extends request.user.is_voluntario|yesno:"vol/base_voluntario.html,vol/base_nosidebar.html" %}
 
-{% load bootstrap %}
+{% load crispy_forms_tags %}
 {% load i18n %}
 
 {% block head_title %}Cadastro de usuário{% endblock %}
@@ -18,7 +18,7 @@
 
 <form id="form-usuario" method="post" action="{% url 'cadastro_usuario' %}">
   {% csrf_token %}
-  {{ form|bootstrap }}
+  {{ form|crispy }}
   <div class="form-actions">
   <button class="btn btn-primary" type="submit">Gravar alterações</button>
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete">Remover cadastro</button>

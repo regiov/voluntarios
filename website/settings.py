@@ -49,20 +49,21 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'django.contrib.postgres',
     'mptt',           # para representações hierárquicas no banco
-    'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
+    # 'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
+    'crispy_forms',  # para renderizar formulários (substituto do bootstrap_forms)
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #
     'allauth.socialaccount.providers.facebook',  #
-    #'allauth.socialaccount.providers.linkedin_oauth2',  #
+    # 'allauth.socialaccount.providers.linkedin_oauth2',  #
     # 'allauth.socialaccount.providers.google',    #
     'website.apps.MyFlatPagesConfig', # para customizar páginas planas
     'tinymce',       # para poder visualizar e gravar html em campos texto
     'notification',  # para encapsular notificações por e-mail
     'vol',           # app principal
     'trans',         # para sobrepor traduções de outros apps
-    #'debug_toolbar',
-    #'django_extensions', # para gerar diagramas dos modelos
+    # 'debug_toolbar',
+    # 'django_extensions', # para gerar diagramas dos modelos
 ]
 
 MIDDLEWARE = [
@@ -96,6 +97,8 @@ TEMPLATES = [
         },
     },
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'  # Precisa ser alterado quando atualizar a versão do Bootstrap
 
 WSGI_APPLICATION = 'website.wsgi.application'
 
