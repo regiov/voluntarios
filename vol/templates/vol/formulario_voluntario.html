@@ -76,10 +76,6 @@
 
 {% block content %}
 
-<div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header">
-
             <h1 class="margin-bottom">{%if request.user.is_voluntario %}Perfil de Voluntário{% else %}Cadastro de
                 Voluntário{% endif %}</h1>
 
@@ -87,9 +83,6 @@
 
             {% include "vol/erros.html" %}
 
-        </div>
-
-        <div class="modal-body">
             <form id="form-voluntario" method="POST" action="">{% csrf_token %}
 
                 {% include "vol/campo_formulario.html" with campo=form.data_aniversario div_class="combo-data" required=True %}
@@ -198,9 +191,6 @@
                 </div>
                 <p class="help-block dica">(*) campos obrigatórios</p>
             </form>
-        </div>
-    </div>
-</div>
 {% comment %}
 Garante que o form seja submetido apenas uma vez,
 evitando problemas com o duplo clique
