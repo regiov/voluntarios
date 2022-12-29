@@ -1,0 +1,1 @@
+C:/Users/gabri/OneDrive/Documentos/GitHub/voluntarios/venvoluntarios/Lib/site-packages/tinymce/static/django_tinymce/init_tinymce.js

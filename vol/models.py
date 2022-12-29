@@ -1477,9 +1477,9 @@ class TermoAdesao(models.Model):
         current_tz = timezone.get_current_timezone()
         now = timezone.now().astimezone(current_tz)
         hoje = timezone.date()
-        if termo.data_inicio > hoje:
+        if self.data_inicio > hoje:
             return False
-        if termo.data_fim and termo.data_fim < hoje:
+        if self.data_fim and self.data_fim < hoje:
             return False
         return True
 
