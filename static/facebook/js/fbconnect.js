@@ -1,0 +1,1 @@
+C:/Users/gabri/OneDrive/Documentos/GitHub/voluntarios/venvoluntarios/Lib/site-packages/allauth/socialaccount/providers/facebook/static/facebook/js/fbconnect.js
