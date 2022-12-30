@@ -2,8 +2,6 @@
 import random
 import string
 from random import randint
-from faker import Faker
-fake = Faker()
 
 from django.core.management.base import BaseCommand
 
@@ -12,13 +10,12 @@ from vol.models import *
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
-        parser.add_argument('num_loops', type=int, help='Número de vezes que deve-se gerar os dados a serem populados no DB.')
-    
+        parser.add_argument('num_voluntarios', type=int, nargs='?', default = 5, help='Número de voluntários a serem inseridos no banco de dados.')
+        parser.add_argument('num_entidades', type=int, nargs='?', default = 5, help='Número de entidades a serem inseridas no banco de dados.')
 
     def handle(self, *args, **options):
-        num_loops = options['num_loops']
-
-        # variables
+        num_voluntarios = options['num_voluntarios']
+        num_entidades = options['num_entidades']
 
         categoria = ('Associação Nacional', 'Federação Nacional', 'Organização Não-Governamental', 'Sociedade Beneficente',  'Fundação', 'União', 'Instituto', 'Entidade')
         nome = ('do Meio Ambiente', 'do Voluntariado', 'da Saúde', 'da Boa Vontade', 'da Preservação da Natureza', 'do Idoso', 'da Informática', 'do Empreendedorismo', 'da Assistência Social', 'do Auxílio Social', 'da Caridade', 'dos Animais', 'do Cuidado aos Animais de Rua', 'do Cuidado aos Moradores de Rua', 'do Auxílio a Famílias Sem Teto', 'de Pequenos Negócios', 'da Segurança Alimentar', 'dos Hospitais', 'do Hospital São Vicente', 'do Hospital Nossa Senhora das Graças', 'do Hospital Conceição', 'da Casa de Acolhimento')
@@ -29,196 +26,202 @@ class Command(BaseCommand):
         cargo = ('Assistente', 'Analista', 'Supervisor', 'Diretor')
         logradouro = ('Chácara', 'Fazenda', 'Casa', 'Condomínio', 'Prédio', 'Sítio', 'Vila', 'Rua', 'Residencial', 'Alameda')
 
+        for x in range (num_entidades):
 
+            try:
 
-        # listas
-        group_estados = []
-        group_cidades = []
-        group_bairros = []
-        group_nome = []
-        group_fantasia = []
-        group_atuacao = []
-        group_cep = []
-        group_cnpj = []
-        group_volnumatual = []
-        group_volnumnecessario = []
-        group_nomeresponsavel = []
-        group_sobrenoresponsavel = []
-        group_cargo = []
-        group_logradouro = []
-        group_email = []
-        group_ddd = []
-        group_telefone = []
-        group_ddd_voluntario = []
-        group_telefone_voluntario = []
-        group_contato = []
-        group_email = []
-        group_nome_completo = []
-        group_senha = []
-        group_data = []
-
-        # iteração do loop
-        for x in range(num_loops):
+                nome_entidade = random.choice(categoria)+" "+random.choice(nome)
                 
+                estados = random.choice(list(estados_cidades_bairros))
+                    
+                cidade = random.choice(list(estados_cidades_bairros[estados]))
+                        
+                
+                bairros = random.choice(estados_cidades_bairros[estados][cidade])
+
+                length = randint(2, 4)
+                random_fantasia = ''.join(random.choices(string.ascii_uppercase, k=length))
+
+                atuacao = random.choice(areas_atuacao)
+                atuacao = AreaAtuacao.objects.filter(nome=atuacao)[0]
+
+                cep = randint(10000000, 99999999)
+
+                cnpj = randint(10000000000000, 99999999999999)
+
+                numerovol_atual = randint(1, 20)
+
+                numerovol_necessario = randint(8, 30)
+                
+                nome_aleatorio = random.choice(nomes)
+
+                sobrenome_aleatorio = random.choice(sobrenome)
+
+                cargo_aleatorio = random.choice(cargo)
+
+                logradouro_aleatorio = random.choice(logradouro)
+
+                ddd = randint(11, 99)
+
+                telefone = randint(900000000, 999999999)
+
+                length = randint(5, 10)
+                email_aleatorio = ''.join(random.choices(string.ascii_letters, k=length)) + '@gmail.com'
+
+                nomeCompleto = random.choice(nomes)+" "+random.choice(sobrenome)
+
+                nomeContato = nomeCompleto = random.choice(nomes)+" "+random.choice(sobrenome)
+
+                length_senha = randint(8, 12)
+                senha_aleatoria = ''.join(random.choices(string.ascii_letters, k=length_senha)) + str(randint(1, 999))
+
+                entidade = Entidade(razao_social=nome_entidade, 
+                            
+                            estado=estados, 
+                            
+                            cidade=cidade, 
+                            
+                            bairro=bairros, 
+                            
+                            nome_fantasia=random_fantasia, 
+                            
+                            cep=cep, 
+                            
+                            area_atuacao=atuacao, 
+                            
+                            cnpj=cnpj, 
+                            
+                            num_vol=numerovol_atual, 
+                            
+                            num_vol_ano=numerovol_necessario, 
+                            
+                            nome_resp=nome_aleatorio, 
+                            
+                            sobrenome_resp=sobrenome_aleatorio, 
+                            
+                            cargo_resp=cargo_aleatorio, 
+                            
+                            logradouro=logradouro_aleatorio)
+                entidade.save()
+                
+                tel = Telefone(tipo='1', 
+                            
+                            prefixo=ddd, 
+                            
+                            numero=telefone, 
+                            
+                            confirmado=True,
+
+                            contato=nomeContato, 
+                            
+                            entidade=entidade)
+                tel.save()
+
+                email = Email(entidade=entidade,
+                                
+                                endereco=email_aleatorio,
+                                
+                                principal=True,
+                                
+                                confirmado=True)
+                email.save()
+
+                usuario = Usuario(email=email_aleatorio, 
+                                
+                                nome=nomeCompleto, 
+                                
+                                password=senha_aleatoria, 
+                                
+                                is_active=True)
+                usuario.save()
+
+                vinculo = VinculoEntidade(entidade=entidade, 
+                                            
+                                            usuario=usuario, 
+                                            
+                                            confirmado=True)
+                vinculo.save()
             
+            except IndexError:
+                continue
+
+
+        for x in range(num_voluntarios):
+                
             nome_entidade = random.choice(categoria)+" "+random.choice(nome)
-            group_nome.append(nome_entidade)
-            
             
             estados = random.choice(list(estados_cidades_bairros))
-            group_estados.append(estados)
                 
-            
-            cidade = random.choice(list(estados_cidades_bairros[group_estados[x]]))
-            group_cidades.append(cidade)
-                    
-            
-            bairros = random.choice(estados_cidades_bairros[group_estados[x]][group_cidades[x]])
-            group_bairros.append(bairros)
+            cidade = random.choice(list(estados_cidades_bairros[estados]))
+                  
+            bairros = random.choice(estados_cidades_bairros[estados][cidade])
 
             length = randint(2, 4)
             random_fantasia = ''.join(random.choices(string.ascii_uppercase, k=length))
-            group_fantasia.append(random_fantasia)
-
-            atuacao = random.choice(areas_atuacao)
-            group_atuacao.append(AreaAtuacao.objects.filter(nome=atuacao)[0])
 
             cep = randint(10000000, 99999999)
-            group_cep.append(cep)
 
-            cpnj = randint(10000000000000, 99999999999999)
-            group_cnpj.append(cpnj)
+            cnpj = randint(10000000000000, 99999999999999)
 
             numerovol_atual = randint(1, 20)
-            group_volnumatual.append(numerovol_atual)
 
             numerovol_necessario = randint(8, 30)
-            group_volnumnecessario.append(numerovol_necessario)
             
             nome_aleatorio = random.choice(nomes)
-            group_nomeresponsavel.append(nome_aleatorio)
 
             sobrenome_aleatorio = random.choice(sobrenome)
-            group_sobrenoresponsavel.append(sobrenome_aleatorio)
 
             cargo_aleatorio = random.choice(cargo)
-            group_cargo.append(cargo_aleatorio)
 
             logradouro_aleatorio = random.choice(logradouro)
-            group_logradouro.append(logradouro_aleatorio)
 
             length = randint(5, 10)
-            email_aleatorio = ''.join(random.choices(string.ascii_letters, k=length))
-            group_email.append(email_aleatorio + '@gmail.com')
+            email_aleatorio = ''.join(random.choices(string.ascii_letters, k=length)) + '@gmail.com'
 
             ddd = randint(11, 99)
-            group_ddd.append(ddd)
 
             telefone = randint(900000000, 999999999)
-            group_telefone.append(telefone)
-
-            ddd = randint(11, 99)
-            group_ddd_voluntario.append(ddd)
-
-            telefone = randint(900000000, 999999999)
-            group_telefone_voluntario.append(telefone)
-
-            nomeCompleto = random.choice(nomes)+" "+random.choice(sobrenome)
-            group_contato.append(nomeCompleto)
 
             length = randint(5, 10)
-            email_aleatorio = ''.join(random.choices(string.ascii_letters, k=length))
-            group_email.append(email_aleatorio + '@gmail.com')
+            email_aleatorio = ''.join(random.choices(string.ascii_letters, k=length)) + '@gmail.com'
 
             nomeCompleto = random.choice(nomes)+" "+random.choice(sobrenome)
-            group_nome_completo.append(nomeCompleto)
 
-            length = randint(8, 12)
-            parte_numerica = randint(1, 999)
-            parte_alfabetica = ''.join(random.choices(string.ascii_letters, k=length))
-            group_senha.append(str(parte_numerica) + parte_alfabetica)
+            nomeContato = nomeCompleto = random.choice(nomes)+" "+random.choice(sobrenome)
 
-            fake.date_between(start_date='-80y', end_date='-18y')
-            group_data.append(fake.date_between(start_date='-80y', end_date='-18y'))
+            length_senha = randint(8, 12)
+            senha_aleatoria = ''.join(random.choices(string.ascii_letters, k=length_senha)) + str(randint(1, 999))
 
-            entidade = Entidade(razao_social=group_nome[x], 
-                        
-                        estado=group_estados[x], 
-                        
-                        cidade=group_cidades[x], 
-                        
-                        bairro=group_bairros[x], 
-                        
-                        nome_fantasia=group_fantasia[x], 
-                        
-                        cep=group_cep[x], 
-                        
-                        area_atuacao=group_atuacao[x], 
-                        
-                        cnpj=group_cnpj[x], 
-                        
-                        num_vol=group_volnumatual[x], 
-                        
-                        num_vol_ano=group_volnumnecessario[x], 
-                        
-                        nome_resp=group_nomeresponsavel[x], 
-                        
-                        sobrenome_resp=group_sobrenoresponsavel[x], 
-                        
-                        cargo_resp=group_cargo[x], 
-                        
-                        logradouro=group_logradouro[x])
-            entidade.save()
-            
-            tel = Telefone(tipo='1', 
-                        
-                        prefixo=group_ddd[x], 
-                        
-                        numero=group_telefone[x], 
-                        
-                        confirmado=True,
+            agora = datetime.datetime.now()
+            ini = agora - datetime.timedelta(days=80*365)
+            fim = agora - datetime.timedelta(days=18*365)
+            data = ini + random.random()*(fim-ini)
 
-                        contato=group_contato[x], 
-                        
-                        entidade=entidade)
-            tel.save()
-
-            email = Email(entidade=entidade,
+            usuario = Usuario(email=email_aleatorio, 
                             
-                            endereco=group_email[x],
+                            nome=nomeCompleto, 
                             
-                            principal=True,
-                            
-                            confirmado=True)
-            email.save()
-
-            usuario = Usuario(email=group_email[x], 
-                            
-                            nome=group_nome_completo[x], 
-                            
-                            password=group_senha[x], 
+                            password=senha_aleatoria, 
                             
                             is_active=True)
             usuario.save()
 
             voluntarios = Voluntario(usuario=usuario,
                                     
-                                    estado=group_estados[x], 
+                                    estado=estados, 
                                     
-                                    cidade=group_cidades[x],
+                                    cidade=cidade,
 
-                                    data_aniversario=group_data[x],
+                                    data_aniversario=data,
 
-                                    ddd=group_ddd_voluntario[x],
+                                    ddd=ddd,
 
-                                    telefone=group_telefone_voluntario[x],
+                                    telefone=telefone,
             
                                     aprovado=True)
             voluntarios.save()
-            
-            vinculo = VinculoEntidade(entidade=entidade, 
-                                        
-                                        usuario=usuario, 
-                                        
-                                        confirmado=True)
-            vinculo.save()
+
+        print('Número de voluntários adicionados ao banco de dados:' + ' ' + str(num_voluntarios))
+        print('Número de entidades adicionadas ao banco de dados:' + ' ' + str(num_entidades))
+        
+    
