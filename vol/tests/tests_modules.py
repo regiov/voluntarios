@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-class ModulesTest(TestCase):
+class ModulesTestCase(TestCase):
 
     def test_tinymce(self):
         try:
