@@ -23,4 +23,3 @@ class UsuarioTestCase(TestCase):
     def test_retorno_get_short_name(self):
         usuario_teste = Usuario.objects.get(nome= 'Voluntario Teste')
         self.assertEqual(usuario_teste.get_short_name(), 'Voluntario')
-  
