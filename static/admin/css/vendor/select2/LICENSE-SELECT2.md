@@ -1,1 +1,0 @@
-C:/Users/gabri/OneDrive/Documentos/GitHub/voluntarios/venvoluntarios/Lib/site-packages/django/contrib/admin/static/admin/css/vendor/select2/LICENSE-SELECT2.md
