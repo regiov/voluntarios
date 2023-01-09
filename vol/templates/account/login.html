@@ -27,12 +27,11 @@
     </div>
 
     <div class="modal-body">
-      <ul style="display:block;">
+      {% if socialaccount_providers %}
       {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-      </ul>
+
       {% include "socialaccount/snippets/login_extra.html" %}
 
-      {% if socialaccount_providers %}
       <p style="text-align: center; margin:20px;">ou</p>
       {% endif %}
 
