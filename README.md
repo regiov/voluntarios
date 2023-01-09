@@ -161,6 +161,8 @@ Pronto!
 
 (obs: configurações opcionais, caso seja necessário habilitar o login por redes sociais)
 
+Primeiro obtenha as chaves secretas e o identificador de cliente para cada provedor de acordo com as instruções a seguir:
+
 #### Facebook
 
 Acesse a [interface do Facebook para desenvolvedores](https://developers.facebook.com/) e crie um novo app com o produto "Login do Facebook".
@@ -174,6 +176,15 @@ No menu superior mude o modo do aplicativo para "ao vivo" (produção).
 Na interface administrativa do Voluntários, adicione um novo aplicativo social do tipo "Facebook" colocando o id do aplicativo do Facebook no campo "Id do cliente" e a chave secreta do aplicativo no campo "chave secreta". Inclua o site sendo usado na lista "sites escolhidos" e salve as alterações.
 
 O Facebook requer o uso de SSL nas requisições, então será necessário configurar um servidor web para acessar o Django, habilitando também SSL. Consulte as instruções do seu servidor web para isso.
+
+#### Google
+
+Acesse a [interface console do Google](https://console.cloud.google.com/) e crie um novo projeto chamado, por exemplo, "Website Voluntários". Dentro de "APIs e Serviços" / "Credenciais", crie uma nova credencial do tipo "Id do Cliente OAuth". Em "Origens JavaScript autorizadas" inclua http://127.0.0.1:8000, e em "URIs de redirecionamento autorizados" inclua http://127.0.0.1:8000/aut/google/login/callback/
+
+Em seguida configure o app e a "Tela de permissão OAuth", marcando o tipo de usuário como "externo" e incluindo um e-mail para teste.
+
+
+Por fim, adicione todos os SocialApps desejados através da interface administrativa, indicando os ids de cliente e chaves secretas fornecidas pelos provedores.
 
 ### Orientações adicionais a novos desenvolvedores
 
