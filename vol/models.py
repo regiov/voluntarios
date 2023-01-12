@@ -1483,6 +1483,41 @@ class TermoAdesao(models.Model):
             return False
         return True
 
+STATUS = (
+    (0,"Rascunho"),
+    (1,"Publicado")
+)
+
+class PostagemBlog(models.Model):
+    id               = models.AutoField(primary_key=True)
+    titulo           = models.CharField(max_length=200, unique=True)
+    slug             = models.SlugField(max_length=200, unique=True)
+    autor            = models.CharField(max_length=100) # Não precisa ser alguém cadastrado no sistema!
+    texto            = models.TextField()
+    # campos de criação devem ser preenchidos automaticamente
+    # ao salvar o post pela primeira vez (via interface adm)
+    data_criacao     = models.DateTimeField(auto_now_add=True) # auto_now_add já preenche o valor ao salvar o registro
+    resp_criacao     = models.ForeignKey(Usuario, null=True, on_delete=models.SET_NULL, related_name='resp_criacao_postagem_set')
+    # campos de publicação devem ser preenchidos automaticamente
+    # ao salvar o post quando o campo status for "publicado" e
+    # estes campos estiverem vazios (via interface adm)
+    data_publicacao  = models.DateTimeField(null=True)
+    resp_publicacao  = models.ForeignKey(Usuario, null=True, on_delete=models.SET_NULL, related_name='resp_publicacao_postagem_set')
+    # campos de alteração devem ser preenchidos automaticamente
+    # quando estiverem vazios e quando os campos de publicação
+    # já estiverem preenchidos antes (via interface adm)
+    data_atualizacao = models.DateTimeField(null=True)
+    resp_atualizacao = models.ForeignKey(Usuario, null=True, on_delete=models.SET_NULL, related_name='resp_atualizacao_postagem_set')
+    status           = models.IntegerField(choices=STATUS, default=0)
+
+    class Meta:
+        verbose_name = 'Postagem no blog'
+        verbose_name_plural = 'Postagens no blog'
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return self.titulo
+
 class Funcao(MPTTModel):
     """Árvrore de funções a serem desempenhadas numa entidade"""
     id           = models.AutoField(primary_key=True)

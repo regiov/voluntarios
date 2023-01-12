@@ -21,7 +21,7 @@ from tinymce.widgets import TinyMCE
 
 from mptt.admin import DraggableMPTTAdmin, TreeRelatedFieldListFilter
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao, PostagemBlog
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -922,6 +922,47 @@ class AcessoAConteudoAdmin(admin.ModelAdmin):
 class TipoArtigoAdmin(admin.ModelAdmin):
     pass
 
+class PostagemBlogAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'slug', 'status', 'data_criacao')
+    list_filter = ("status",)
+    search_fields = ['titulo', 'texto']
+    readonly_fields = ['data_criacao', 'resp_criacao', 'data_atualizacao', 'resp_atualizacao', 'data_publicacao', 'resp_publicacao']
+    prepopulated_fields = {'slug': ('titulo',)}
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'texto':
+            return db_field.formfield(widget=TinyMCE(
+                attrs={'cols': 100, 'rows': 20},
+                mce_attrs={'external_link_list_url': reverse('tinymce-linklist')},
+                ))
+        return super(PostagemBlogAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+
+    # Gravações automáticas na Postagem
+    def save_model(self, request, obj, form, change):
+        # Postagem já existente
+        if obj.id:
+            # Situação atual no banco
+            antes = PostagemBlog.objects.get(pk=obj.id)
+            if antes.status == 0: # Era rascunho
+                if antes.data_publicacao is None: # sem data de publicação
+                    # e acaba de ser publicado
+                    if obj.status == 1:
+                        obj.resp_publicacao = request.user
+                        obj.data_publicacao = timezone.now()
+            elif antes.status == 1: # já estava publicado
+                # Continua publicado e houve alteração no texto
+                # obs: não cobre a situação de voltar para rascunho,
+                # alterar e republicar. Talvez seja o caso de não
+                # permitir a volta para rascunho (?)
+                if obj.status == 1 and antes.texto != obj.texto:
+                    obj.resp_atualizacao = request.user
+                    obj.data_atualizacao = timezone.now()
+        else:
+            # Postagem nova
+            obj.resp_criacao = request.user
+            
+        super().save_model(request, obj, form, change)
+
 @admin.register(Funcao)
 class FuncaoAdmin(DraggableMPTTAdmin):
     '''Interface administrativa para funções'''
@@ -949,3 +990,4 @@ admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
 admin.site.register(Conteudo, ConteudoAdmin)
 admin.site.register(AcessoAConteudo, AcessoAConteudoAdmin)
 admin.site.register(TipoArtigo, TipoArtigoAdmin)
+admin.site.register(PostagemBlog, PostagemBlogAdmin)
