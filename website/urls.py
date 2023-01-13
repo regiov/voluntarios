@@ -15,7 +15,7 @@ Including another URLconf
 """
 import os
 
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
@@ -160,6 +160,10 @@ urlpatterns = [
     re_path(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
     re_path(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
     re_path(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
+
+    # Blog
+    path('blog/<slug:slug>', views.PostagemNoBlog.as_view(), name='postagem_blog'),
+    path('blog', views.ListaDePostagensNoBlog.as_view(), name='blog'),
 
     # Charada
     re_path(r'^'+chr(120)+chr(100)+chr(101)+chr(118)+'$', views.exibir_charada),

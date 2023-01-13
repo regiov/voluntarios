@@ -25,6 +25,7 @@ from django.forms import inlineformset_factory
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
+from django.views import generic
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
@@ -33,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog
 
 from allauth.account.models import EmailAddress
 
@@ -2574,7 +2575,7 @@ def logo_rastreado(request):
     '''Retorna o logotipo, rastreando a origem da requisição'''
     if request.method == 'GET':
         if 'oe' in request.GET:
-            # onboarding de entidade
+            # imagem na mensagem de onboarding de entidade
             entidade = Entidade.objects.from_hmac_key(request.GET['oe'])
             if entidade and entidade.data_visualiza_onboarding is None:
                 entidade.data_visualiza_onboarding = timezone.now()
@@ -2585,3 +2586,11 @@ def logo_rastreado(request):
             return HttpResponse(f.read(), content_type="image/png")
     except IOError:
         return redirect(settings.STATIC_URL + 'images/logo.png')
+
+class ListaDePostagensNoBlog(generic.ListView):
+    queryset = PostagemBlog.objects.filter(status=1).order_by('-data_criacao')
+    template_name = 'vol/lista_postagens_blog.html'
+
+class PostagemNoBlog(generic.DetailView):
+    model = PostagemBlog
+    template_name = 'vol/postagem_blog.html'

@@ -1,0 +1,23 @@
+{% extends "vol/base.html" %}
+{% load static %}
+
+{% block title %}Blog{% endblock title %}
+
+{% block content %}
+
+<div class="faixa-com-textura">
+  <h1 class="margin-bottom">Blog do Voluntários</h1>
+</div>  
+
+{% for postagem in postagemblog_list %}
+<div class="card item-blog">
+   <div class="card-body">
+      <h2 class="card-title titulo-postagem">{{ postagem.titulo }}</h2>
+      <p class="card-text text-muted h6">{{ postagem.autor }} | {{ postagem.data_criacao }} </p>
+      <p class="card-text">{{ postagem.texto|truncatechars_html:170|safe }}</p>
+      <a href="{% url 'postagem_blog' postagem.slug  %}" class="btn btn-primary btn-sm">Leia mais &rarr;</a>
+   </div>
+</div>
+{% endfor %}
+
+{% endblock content %}
