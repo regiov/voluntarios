@@ -329,20 +329,21 @@ class Voluntario(models.Model):
         return TermoAdesao.objects.filter(voluntario=self).count() > 0
 
     def normalizar(self):
-        if self.telefone:
-            par = self.telefone.find(')')
+        telefone = self.telefone
+        if telefone:
+            par = telefone.find(')')
             if par > 0:
                 # Extrai prefixo se necessário
-                self.telefone = self.telefone[par+1:].strip()
+                self.telefone = telefone[par+1:].strip()
                 if not self.ddd:
                     # Move para DDD
-                    self.ddd = self.telefone[:par+1].strip()
+                    self.ddd = telefone[:par+1].strip()
         if self.ddd:
             # Remove eventual parentesis
             self.ddd = self.ddd.replace(')', '').replace('(', '')
-            if len(self.ddd) > 2 and self.ddd[:1] == '0':
+            if len(self.ddd) > 2 and self.ddd[0] == '0':
                 # Remove eventual zero inicial
-                self.ddd = self.ddd[1:]
+                self.ddd = self.ddd.replace('0', '')
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
         if self.usuario.email == self.usuario.email.upper():
