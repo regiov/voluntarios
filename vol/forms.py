@@ -10,8 +10,9 @@ from django.utils.functional import lazy
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, \
-    TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL
+from notification.utils import notify_support
+
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL
 
 
 def _limpa_cpf(val, obrigatorio=False):
@@ -347,6 +348,10 @@ class FormEntidade(forms.ModelForm):
                 entidade_tmp = Entidade(cnpj=self.cleaned_data['cnpj'])
                 if entidade_tmp.cnpj_valido() == False:
                     raise forms.ValidationError(u'CNPJ incorreto')
+                # Verifica se já existe outra entidade com o mesmo CNPJ
+                if Entidade.objects.filter(cnpj=self.cleaned_data['cnpj'], aprovado=True).count() > 0:
+                    notify_support(u'CNPJ repetido', u'Tentativa de cadastro de entidade com CNPJ existente: ' + self.cleaned_data['cnpj'])
+                    raise forms.ValidationError(u'Já existe uma entidade cadastrada com o mesmo CNPJ. Por favor, entre em contato conosco através do e-mail no final da página informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.')
         return self.cleaned_data['cnpj']
 
     def clean_num_vol(self):
