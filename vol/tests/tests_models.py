@@ -3,19 +3,19 @@
 from django.test import TestCase
 import datetime
 
-from ..models import Usuario
+from ..models import Usuario, Voluntario
 
 class UsuarioTestCase(TestCase):
 
-    def setUpTestData(self):
+    def setUp(self):
         usuario = Usuario.objects.create(
             email= 'voluntarios@gmail.com',
-            nome= 'Voluntario Teste'
+            nome= 'Voluntario Teste',
         )
 
     def test_retorno_str(self):
-        usuario_teste = Usuario.objects.get(email='voluntarioteste@gmail.com')
-        self.assertEqual(usuario_teste.__str__(), 'voluntarioteste@gmail.com')
+        usuario_teste = Usuario.objects.get(email='voluntarios@gmail.com')
+        self.assertEqual(usuario_teste.__str__(), 'voluntarios@gmail.com')
     
     def test_retorno_get_full_name(self):
         usuario_teste = Usuario.objects.get(nome= 'Voluntario Teste')
@@ -25,12 +25,21 @@ class UsuarioTestCase(TestCase):
         usuario_teste = Usuario.objects.get(nome= 'Voluntario Teste')
         self.assertEqual(usuario_teste.get_short_name(), 'Voluntario')
 
+    def test_retorno_is_voluntario(self):
+        usuario_teste = Usuario.objects.get(nome= 'Voluntario Teste')
+
+        voluntario_teste = Voluntario.objects.create(
+            usuario = usuario_teste
+        )
+        
+        self.assertTrue(usuario_teste.is_voluntario)
+
 class VoluntarioTestCase(TestCase):
 
-    def setUpUpTestData(self):
+    def setUp(self):
         usuario = Usuario.objects.create(
             email= 'voluntarios@gmail.com',
-            nome= 'Voluntario Teste'
+            nome= 'Voluntario Teste',
         )
         
         voluntario = Voluntario.objects.create(
