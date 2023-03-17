@@ -54,7 +54,7 @@ urlpatterns = [
     re_path(r'^contato.htm$', views.busca_voluntarios),#old
 
     re_path(r'^voluntario/(?P<id_voluntario>\d+)/?$', views.exibe_voluntario, name='exibe_voluntario'),
-    re_path(r'^voluntario.asp$', views.exibe_voluntario_old),#old
+    #re_path(r'^voluntario.asp$', views.exibe_voluntario_old),#old
 
     re_path(r'^mural/frase/?$', views.frase_mural, name='frase_mural'),
 
@@ -85,11 +85,11 @@ urlpatterns = [
 
     re_path(r'^entidade/busca$', views.busca_entidades, name='busca_entidades'),
     re_path(r'^pesquisa.htm$', views.busca_entidades),#old
-    re_path(r'^resultadoent.asp$', views.busca_entidades),#old
-    re_path(r'^ResultadoColocIcone.asp$', views.busca_entidades),#old
+    #re_path(r'^resultadoent.asp$', views.busca_entidades),#old
+    #re_path(r'^ResultadoColocIcone.asp$', views.busca_entidades),#old
 
     re_path(r'^entidade/(?P<id_entidade>\d+)/?$', views.exibe_entidade, name='exibe_entidade'),
-    re_path(r'^entidade.asp$', views.exibe_entidade_old),#old
+    #re_path(r'^entidade.asp$', views.exibe_entidade_old),#old
 
     re_path(r'^entidade/mapa$', views.mapa_entidades, name='mapa_entidades'),
     
