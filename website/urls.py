@@ -167,6 +167,8 @@ urlpatterns = [
 
     # Charada
     re_path(r'^'+chr(120)+chr(100)+chr(101)+chr(118)+'$', views.exibir_charada),
+
+    path('retorna_cidades/', views.retorna_cidades, name='retorna_cidades')
 ]
 
 if settings.DEBUG:

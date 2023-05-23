@@ -37,39 +37,6 @@ from .utils import track_data
 from django.contrib.auth import password_validation
 from allauth.socialaccount.models import SocialAccount
 
-# Unidades federativas do Brasil
-UFS = (
-    ( u'AC', u'Acre' ),
-    ( u'AL', u'Alagoas' ),
-    ( u'AM', u'Amazonas' ),
-    ( u'AP', u'Amapá' ),
-    ( u'BA', u'Bahia' ),
-    ( u'CE', u'Ceará' ),
-    ( u'DF', u'Distrito Federal' ),
-    ( u'ES', u'Espírito Santo' ),
-    ( u'GO', u'Goiás' ),
-    ( u'MA', u'Maranhão' ),
-    ( u'MG', u'Minas Gerais' ),
-    ( u'MS', u'Mato Grosso do Sul' ),
-    ( u'MT', u'Mato Grosso' ),
-    ( u'PA', u'Pará' ),
-    ( u'PB', u'Paraíba' ),
-    ( u'PE', u'Pernambuco' ),
-    ( u'PI', u'Piauí' ),
-    ( u'PR', u'Paraná' ),
-    ( u'RJ', u'Rio de Janeiro' ),
-    ( u'RN', u'Rio Grande do Norte' ),
-    ( u'RO', u'Rondônia' ),
-    ( u'RS', u'Rio Grande do Sul' ),
-    ( u'RR', u'Roraima' ),
-    ( u'SC', u'Santa Catarina' ),
-    ( u'SE', u'Sergipe' ),
-    ( u'SP', u'São Paulo' ),
-    ( u'TO', u'Tocantins' ),
-)
-
-UFS_SIGLA = [(uf[0], uf[0]) for uf in UFS]
-
 class MyUserManager(BaseUserManager):
 
     def get_by_natural_key(self, username):
@@ -239,7 +206,7 @@ class Voluntario(models.Model):
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
     #pais                 = models.CharField(u'País', max_length=50)
-    estado                = models.CharField(u'Estado', max_length=2)
+    estado                = models.CharField(u'Estado', max_length=100)
     cidade                = models.CharField(u'Cidade', max_length=100)
     empregado             = models.BooleanField(u'Empregado', null=True, blank=True)
     empresa               = models.CharField(u'Empresa', max_length=100, null=True, blank=True)
@@ -1541,5 +1508,19 @@ class Funcao(MPTTModel):
     class MPTTMeta:
         order_insertion_by = ['ordem']
 
+    def __str__(self):
+        return self.nome
+
+class Estado(models.Model):
+    nome =  models.CharField(max_length=100)
+    sigla = models.TextField(max_length=100)
+
+    def __str__(self):
+        return self.sigla
+
+class Cidade(models.Model):
+    nome =   models.CharField(max_length=100)
+    uf = models.CharField(max_length=50)
+    
     def __str__(self):
         return self.nome

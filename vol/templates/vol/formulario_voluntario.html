@@ -96,9 +96,37 @@
                         </td>
                     </tr>
                 </table>
-                {% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
                 {% include "vol/campo_formulario.html" with campo=form.estado required=True %}
+                {% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
+                        <script>
+                            var dropdown = $("#id_cidade");
+                            dropdown.empty()
+                            $("#id_estado").change(function () {
+                                dropdown.empty()
+                                const url = "{% url 'retorna_cidades' %}";  
+                                const estado = $(this).val(); 
+                                const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
+                          
+                                $.ajax({                    
+                                  url: url,     
+                                  headers: {
+                                    "X-CSRFToken": csrfToken
+                                  },          
+                                  data: {
+                                    'estado': estado   
+                                  },
+                                  success: function (response) {
+                                    for (var i = 0; i < response.length; i++) {
+                                        var cidade = response[i];
+                                        dropdown.append('<option value=' + cidade.id + '>' + cidade.nome + '</option>');
+                                    }
+                                  }
+                                });
+                              });
+                        </script>
+                    </script>
+        
                 <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
                     <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>
                     <p class="dica">Escolha a op&ccedil;&atilde;o que mais se aproxima do seu trabalho. Se quiser
