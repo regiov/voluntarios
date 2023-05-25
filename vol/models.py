@@ -37,6 +37,39 @@ from .utils import track_data
 from django.contrib.auth import password_validation
 from allauth.socialaccount.models import SocialAccount
 
+# Unidades federativas do Brasil
+UFS = (
+    ( u'AC', u'Acre' ),
+    ( u'AL', u'Alagoas' ),
+    ( u'AM', u'Amazonas' ),
+    ( u'AP', u'Amapá' ),
+    ( u'BA', u'Bahia' ),
+    ( u'CE', u'Ceará' ),
+    ( u'DF', u'Distrito Federal' ),
+    ( u'ES', u'Espírito Santo' ),
+    ( u'GO', u'Goiás' ),
+    ( u'MA', u'Maranhão' ),
+    ( u'MG', u'Minas Gerais' ),
+    ( u'MS', u'Mato Grosso do Sul' ),
+    ( u'MT', u'Mato Grosso' ),
+    ( u'PA', u'Pará' ),
+    ( u'PB', u'Paraíba' ),
+    ( u'PE', u'Pernambuco' ),
+    ( u'PI', u'Piauí' ),
+    ( u'PR', u'Paraná' ),
+    ( u'RJ', u'Rio de Janeiro' ),
+    ( u'RN', u'Rio Grande do Norte' ),
+    ( u'RO', u'Rondônia' ),
+    ( u'RS', u'Rio Grande do Sul' ),
+    ( u'RR', u'Roraima' ),
+    ( u'SC', u'Santa Catarina' ),
+    ( u'SE', u'Sergipe' ),
+    ( u'SP', u'São Paulo' ),
+    ( u'TO', u'Tocantins' ),
+)
+
+UFS_SIGLA = [(uf[0], uf[0]) for uf in UFS]
+
 class MyUserManager(BaseUserManager):
 
     def get_by_natural_key(self, username):
