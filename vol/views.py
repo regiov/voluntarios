@@ -1457,7 +1457,8 @@ def exibe_entidade(request, id_entidade):
         #raise SuspiciousOperation('Entidade inexistente')
         raise Http404
     entidade.hit()
-    necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
+    dois_meses_atras = timezone.now() - datetime.timedelta(days=60)
+    necessidades = entidade.necessidade_set.filter(data_solicitacao__gt=dois_meses_atras).order_by('-data_solicitacao')
     now = datetime.datetime.now()
     context = {'entidade': entidade,
                'agora': now,

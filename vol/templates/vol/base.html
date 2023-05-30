@@ -163,6 +163,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                                 {% endfor %}
                             </ul>
                         </div>
+                        {% if pedidos_recentes %}
                         <div class="sidebar-item  recent">
                             <h3>Pedidos recentes de serviço ou doação</h3>
                             {% for pedido in pedidos_recentes %}
@@ -180,6 +181,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                             </div>
                             {% endfor %}
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 {% endblock sidebar %}
