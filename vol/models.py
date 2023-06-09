@@ -1546,14 +1546,14 @@ class Funcao(MPTTModel):
 
 class Estado(models.Model):
     nome =  models.CharField(max_length=100)
-    sigla = models.TextField(max_length=100)
+    sigla = models.TextField(max_length=2)
 
     def __str__(self):
         return self.sigla
 
 class Cidade(models.Model):
     nome =   models.CharField(max_length=100)
-    uf = models.CharField(max_length=50)
+    uf   =   models.CharField(max_length=2)
     
     def __str__(self):
         return self.nome

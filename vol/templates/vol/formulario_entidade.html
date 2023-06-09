@@ -85,8 +85,8 @@
 {% include "vol/campo_formulario.html" with campo=form.cep required=True %}
 {% include "vol/campo_formulario.html" with campo=form.logradouro required=True %}
 {% include "vol/campo_formulario.html" with campo=form.bairro required=True %}
-{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
 {% include "vol/campo_formulario.html" with campo=form.estado required=True %}
+{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
 </fieldset>
 
 <fieldset>
@@ -136,7 +136,7 @@
 {{ form.doacoes }}
 </fieldset>
 
-{% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" invisible=form.instance.esconder_obs_doacoes %}
+{% comment %} {% include "vol/campo_formulario.html" with campo=form.obs_doacoes div_id="obs-doacoes" invisible=form.instance.esconder_obs_doacoes %} {% endcomment %}
 
 <div class="form-group">
   <input id="save" class="btn btn-primary" type="submit" name="submit" value="{% if form.instance.id %}Gravar alterações{% else %}Cadastrar{% endif %}">
@@ -234,5 +234,27 @@
     });
 
 </script> 
+
+<script>
+    var dropdown = $("#id_cidade"); // seleciona o campo de seleção de cidades
+    dropdown.empty() // esvazia as opcções do dropdown
+    $("#id_estado").change(function () {
+        dropdown.empty()
+        const url = "{% url 'retorna_cidades' %}";  //view que filtra as cidades
+        const estado = $(this).val(); 
+        $.ajax({           //inicia o ajax e faz uma requisição para a view mencionada acima         
+          url: url,     
+          data: {
+            'estado': estado   
+          },
+          success: function (response) {  //caso obtenha sucesso,itera pela resposta e cria uma opção
+            for (var i = 0; i < response.length; i++) { // para cada cidade retornada
+                var cidade = response[i];
+                dropdown.append('<option value=' + cidade.id + '>' + cidade.nome + '</option>');
+            }
+          }
+        });
+      });
+    </script>
 
 {% endblock content %}

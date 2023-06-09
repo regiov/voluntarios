@@ -2596,10 +2596,11 @@ class PostagemNoBlog(generic.DetailView):
     template_name = 'vol/postagem_blog.html'
 
 def retorna_cidades(request):
-    estado = request.GET.get('estado')
-    UF = Estado.objects.get(id=estado)
-    print(UF)
-    cidades = Cidade.objects.filter(uf=UF).values('nome','id').order_by('nome')
-    lista_cidades = list(cidades)
-    # cidades_json = serializers.serialize('json',cidades) 
-    return JsonResponse(lista_cidades, safe = False)
+    try:
+        estado = request.GET.get('estado')
+        UF = Estado.objects.get(id=estado)
+        cidades = Cidade.objects.filter(uf=UF).values('nome','id').order_by('nome')
+        lista_cidades = list(cidades)
+        return JsonResponse(lista_cidades, safe = False)
+    except Estado.DoesNotExist:
+        raise Http404

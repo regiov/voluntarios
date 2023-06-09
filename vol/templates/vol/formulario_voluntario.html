@@ -211,13 +211,8 @@ evitando problemas com o duplo clique
         dropdown.empty()
         const url = "{% url 'retorna_cidades' %}";  //view que filtra as cidades
         const estado = $(this).val(); 
-        const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
-
         $.ajax({           //inicia o ajax e faz uma requisição para a view mencionada acima         
           url: url,     
-          headers: {
-            "X-CSRFToken": csrfToken
-          },          
           data: {
             'estado': estado   
           },

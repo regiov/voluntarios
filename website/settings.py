@@ -83,7 +83,7 @@ ROOT_URLCONF = 'website.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates/vol')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'vol', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -237,7 +237,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 10
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '\o/ '
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/anonconf'
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/redirlogin'
@@ -276,9 +276,6 @@ ONBOARDING_EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS' # senha da caixa postal
 ONBOARDING_MAX_DAYS_WAITING_RESPONSE = 60 # número de dias em que se aguarda uma resposta da entidade
 ONBOARDING_NOTIFY_RESPONSE_ARRIVAL = 'SET IN LOCAL SETTINGS' # endereço de email a ser notificado quando chega uma resposta
 ONBOARDING_TEAM_EMAIL = 'SET IN LOCAL SETTINGS' # endereço(s) de email da(s) pessoa(s) do time de boas-vindas (separados por vírgula)
-
-GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal306.dll'
-GEOS_LIBRARY_PATH = r'C:\Program Files\PostgreSQL\15\bin\libgeos_c.dll'
 
 ##############################################################
 

@@ -147,11 +147,11 @@ class FormVoluntario(forms.ModelForm):
             raise forms.ValidationError(u'É obrigatório informar a data de nascimento.')
         return val
 
-    def clean_estado(self):
-        return self.cleaned_data['estado']
+    # def clean_estado(self):
+    #     return self.cleaned_data['estado']
 
-    def clean_cidade(self):
-        return self.cleaned_data['cidade']
+    # def clean_cidade(self):
+    #     return self.cleaned_data['cidade']
 
     def clean_profissao(self):
         val = self.cleaned_data['profissao'].strip()
@@ -239,16 +239,8 @@ class FormEntidade(forms.ModelForm):
                              widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}),
                              error_messages={'invalid': u'Digite o bairro.'},
                              help_text="")
-    cidade = forms.CharField(label=u'Cidade',
-                             max_length=60,
-                             widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}),
-                             error_messages={'invalid': u'Digite a cidade.'},
-                             help_text="")
-    estado = forms.ChoiceField(label=u'Estado',
-                               initial=None,
-                               choices=UFS_SIGLA,
-                               widget=forms.Select(attrs={'class': 'form-control'}),
-                               help_text="")
+    estado = forms.ModelChoiceField(label=u'Estado:',queryset=Estado.objects.all().order_by('sigla'))
+    cidade = forms.ModelChoiceField(label=u'Cidade:',queryset=Cidade.objects.all())
     nome_contato = forms.CharField(label=u'Falar com',
                                    max_length=100,
                                    widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}),
@@ -353,15 +345,18 @@ class FormEntidade(forms.ModelForm):
             raise forms.ValidationError(u'Digite apenas números na quantidade de voluntários necessária por ano')
         return val
 
-    def clean_estado(self):
-        val = self.cleaned_data['estado'].strip().upper()
-        ufs = dict(UFS_SIGLA)
-        if val not in ufs.keys():
-            raise forms.ValidationError(u'Estado inexistente')
-        return val
+    # Comentei essas funções pois da forma que estão não funcionam corretamente com o novo esquema
+    # Acredito que o Django valida automaticamente os ModelForms, como estávamos conversando
 
-    def clean_cidade(self):
-        return self.cleaned_data['cidade'].strip()
+    # def clean_estado(self):
+    #     val = self.cleaned_data['estado'].strip().upper()
+    #     ufs = dict(UFS_SIGLA)
+    #     if val not in ufs.keys():
+    #         raise forms.ValidationError(u'Estado inexistente')
+    #     return val
+
+    # def clean_cidade(self):
+    #     return self.cleaned_data['cidade'].strip()
 
     def clean(self):
         cleaned_data = super(FormEntidade, self).clean()
