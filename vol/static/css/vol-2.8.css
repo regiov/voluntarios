@@ -329,4 +329,17 @@ a.link-externo::after {
 #testimonials h1.title {
     margin-bottom: 25px;
 }
+.favorite-heart {
+    cursor: pointer;
+    color: black;
+    font-size: 22px;
+    margin-top: 5px;
+}
+.not-favorite {
+    color: black(0, 0, 0); 
+}
+.favorite {
+    color: red;
+}
+
 /* ------ */

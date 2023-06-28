@@ -168,7 +168,11 @@ urlpatterns = [
     # Charada
     re_path(r'^'+chr(120)+chr(100)+chr(101)+chr(118)+'$', views.exibir_charada),
 
-    path('retorna_cidades/', views.retorna_cidades, name='retorna_cidades')
+    path('retorna_cidades/', views.retorna_cidades, name='retorna_cidades'),
+
+    path('adicionar_entidade_favorita/', views.adicionar_entidade_favorita,name="adicionar_entidade_favorita"),
+
+    path('entidades_favoritas/', views.entidades_favoritas,name="entidades_favoritas")
 ]
 
 if settings.DEBUG:

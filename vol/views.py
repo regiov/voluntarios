@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita 
 
 from allauth.account.models import EmailAddress
 
@@ -1459,9 +1459,14 @@ def exibe_entidade(request, id_entidade):
     entidade.hit()
     necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
     now = datetime.datetime.now()
+    voluntario_id = request.user.voluntario.id
+    entidade_id = entidade.id
+    entidade_favorita = EntidadeFavorita.objects.filter(voluntario_id=voluntario_id, entidade_id=entidade_id).first()
+    is_favorite = entidade_favorita is not None
     context = {'entidade': entidade,
                'agora': now,
-               'necessidades': necessidades}
+               'necessidades': necessidades,
+               'is_favorite': is_favorite}
     template = loader.get_template('vol/exibe_entidade.html')
     return HttpResponse(template.render(context, request))
 
@@ -2604,3 +2609,47 @@ def retorna_cidades(request):
         return JsonResponse(lista_cidades, safe = False)
     except Estado.DoesNotExist:
         raise Http404
+
+@login_required 
+def adicionar_entidade_favorita(request):
+    try:
+        entidade_id = request.GET.get("entidade_id")
+        voluntario_id = request.GET.get("voluntario_id")
+        entidade_existente = EntidadeFavorita.objects.filter(entidade_id=entidade_id,voluntario_id=voluntario_id)
+        if entidade_existente.exists():
+            print("Entidade ja favoritada,deletando..")
+            entidade_existente.delete()
+            return HttpResponse(200)
+        else:
+            print("Entidade não favoritada,adicionando aos favoritos...")
+            entidade_favorita = EntidadeFavorita(
+                entidade_id=entidade_id,
+                voluntario_id=voluntario_id,
+            )
+            entidade_favorita.save()
+            print("Entidade salva como favorita")
+            return HttpResponse(200)
+    except:
+        print("error in view adicionar_entidade_favorita")
+
+def entidades_favoritas(request):
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    try:
+        voluntario_id = request.user.voluntario.id
+        id_entidades_favoritas = EntidadeFavorita.objects.filter(voluntario_id=voluntario_id).values('entidade_id')
+        entidades_favoritas = []
+        for entidade_id in id_entidades_favoritas:
+            entidade = list(Entidade.objects.filter(id=entidade_id['entidade_id']).values('nome_fantasia','id'))
+            entidades_favoritas.append(entidade)
+        context = {
+            "entidades_favoritas": entidades_favoritas,
+            "voluntario_id": voluntario_id
+        }
+        template = loader.get_template('vol/exibe_entidades_favoritas.html')
+        return HttpResponse(template.render(context, request))
+    except:
+        return HttpResponse("Usuário não registrado como voluntário ou não encontrado no sistema")
+
+    
