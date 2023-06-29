@@ -239,6 +239,9 @@ class Voluntario(models.Model):
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
     #pais                 = models.CharField(u'País', max_length=50)
+    # Como o banco de dados tem origem num sistema legado, optamos por manter o armazenamento de
+    # estado e cidade como strings. Futuramente a ideia é trocar por chaves de relacionamento com as
+    # tabelas cidade e estado.
     estado                = models.CharField(u'Estado', max_length=100)
     cidade                = models.CharField(u'Cidade', max_length=100)
     empregado             = models.BooleanField(u'Empregado', null=True, blank=True)
@@ -460,8 +463,11 @@ class Entidade(StatusCnpj):
     cep                = models.CharField(u'CEP', max_length=10, null=True, blank=True) 
     logradouro         = models.CharField(u'Logradouro', max_length=100, null=True, blank=True) 
     bairro             = models.CharField(u'Bairro', max_length=40, null=True, blank=True) 
+    # Como o banco de dados tem origem num sistema legado, optamos por manter o armazenamento de
+    # estado e cidade como strings. Futuramente a ideia é trocar por chaves de relacionamento com as
+    # tabelas cidade e estado.
     cidade             = models.CharField(u'Cidade', max_length=60, null=True, blank=True) 
-    estado             = models.CharField(u'Estado', max_length=4, null=True, blank=True) 
+    estado             = models.CharField(u'Estado', max_length=2, null=True, blank=True) 
     pais               = models.CharField(u'País', max_length=90, null=True, blank=True)
     coordenadas        = models.PointField(u'Coordenadas', null=True, blank=True)
     geocode_status     = models.CharField(u'Situação do georreferenciamento', choices=GEOCODE_STATUS, max_length=20, null=True, blank=True)
@@ -1545,15 +1551,17 @@ class Funcao(MPTTModel):
         return self.nome
 
 class Estado(models.Model):
-    nome =  models.CharField(max_length=100)
+    id    = models.AutoField(primary_key=True)
+    nome  = models.CharField(max_length=100)
     sigla = models.TextField(max_length=2)
 
     def __str__(self):
         return self.sigla
 
 class Cidade(models.Model):
-    nome =   models.CharField(max_length=100)
-    uf   =   models.CharField(max_length=2)
+    id   = models.AutoField(primary_key=True)
+    nome = models.CharField(max_length=100)
+    uf   = models.CharField(max_length=2)
     
     def __str__(self):
         return self.nome
@@ -1565,3 +1573,4 @@ class EntidadeFavorita(models.Model):
     
     class Meta:
         unique_together = ('entidade', 'voluntario')
+

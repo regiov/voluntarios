@@ -804,6 +804,7 @@ class TipoDocumentoAdmin(admin.ModelAdmin):
 class FraseMotivacionalAdmin(admin.ModelAdmin):
     list_display = ('frase', 'autor', 'utilizacao',)
     actions = ['utilizar_frase']
+    search_fields = ('frase', 'autor')
 
     @transaction.atomic
     def utilizar_frase(self, request, queryset):

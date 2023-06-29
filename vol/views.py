@@ -1457,7 +1457,8 @@ def exibe_entidade(request, id_entidade):
         #raise SuspiciousOperation('Entidade inexistente')
         raise Http404
     entidade.hit()
-    necessidades = entidade.necessidade_set.all().order_by('-data_solicitacao')
+    dois_meses_atras = timezone.now() - datetime.timedelta(days=60)
+    necessidades = entidade.necessidade_set.filter(data_solicitacao__gt=dois_meses_atras).order_by('-data_solicitacao')
     now = datetime.datetime.now()
     voluntario_id = request.user.voluntario.id
     entidade_id = entidade.id
@@ -2603,13 +2604,13 @@ class PostagemNoBlog(generic.DetailView):
 def retorna_cidades(request):
     try:
         estado = request.GET.get('estado')
-        UF = Estado.objects.get(id=estado)
-        cidades = Cidade.objects.filter(uf=UF).values('nome','id').order_by('nome')
+        UF = Estado.objects.get(sigla=estado)
+        cidades = Cidade.objects.filter(uf=UF).values('nome').order_by('nome')
         lista_cidades = list(cidades)
         return JsonResponse(lista_cidades, safe = False)
     except Estado.DoesNotExist:
         raise Http404
-
+        
 @login_required 
 def adicionar_entidade_favorita(request):
     try:
@@ -2651,5 +2652,3 @@ def entidades_favoritas(request):
         return HttpResponse(template.render(context, request))
     except:
         return HttpResponse("Usuário não registrado como voluntário ou não encontrado no sistema")
-
-    

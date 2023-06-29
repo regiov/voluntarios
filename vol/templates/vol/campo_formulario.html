@@ -1,4 +1,4 @@
-{% load form_extras %}  
+{% load form_extras static %}  
 
 <div 
   {% if div_id %} id="{{ div_id }}"{% endif %} 
@@ -10,7 +10,7 @@
     for="{{ campo.id_for_label }}" 
     class="nowrap"
   >
-    {% if required %}* {% endif %}{% if label %}{{ label }}{% else %}{{ campo.label }}{% endif %}
+    {% if required %}* {% endif %}{% if label %}{{ label }}{% else %}{{ campo.label }}{% endif %}{% if loader %}<img id="{{ campo.id_for_label }}_loader" src="{% static 'images/ajax-loader-circle-small.gif' %}" style="display:none;">{% endif %}
   </label>
 
   {% if htmlattributes %}{{ campo|htmlattributes:htmlattributes }}{% else %}{{ campo }}{% endif %}{% if after_field %} {{ after_field }}{% endif %}

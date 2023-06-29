@@ -86,7 +86,7 @@
 {% include "vol/campo_formulario.html" with campo=form.logradouro required=True %}
 {% include "vol/campo_formulario.html" with campo=form.bairro required=True %}
 {% include "vol/campo_formulario.html" with campo=form.estado required=True %}
-{% include "vol/campo_formulario.html" with campo=form.cidade required=True %}
+{% include "vol/campo_formulario.html" with campo=form.cidade required=True loader=True %}
 </fieldset>
 
 <fieldset>
@@ -233,28 +233,46 @@
         $("#save").prop("disabled", true);
     });
 
-</script> 
-
-<script>
-    var dropdown = $("#id_cidade"); // seleciona o campo de seleção de cidades
-    dropdown.empty() // esvazia as opcções do dropdown
-    $("#id_estado").change(function () {
-        dropdown.empty()
-        const url = "{% url 'retorna_cidades' %}";  //view que filtra as cidades
-        const estado = $(this).val(); 
-        $.ajax({           //inicia o ajax e faz uma requisição para a view mencionada acima         
+    function carrega_cidades(cidade_default) {
+        $('#id_cidade_loader').show();
+        const url = "{% url 'retorna_cidades' %}";
+        const estado = $('#id_estado option:selected').val();
+        var cidades = $("#id_cidade");
+        cidades.empty();
+        $.ajax({
           url: url,     
           data: {
             'estado': estado   
           },
-          success: function (response) {  //caso obtenha sucesso,itera pela resposta e cria uma opção
-            for (var i = 0; i < response.length; i++) { // para cada cidade retornada
+          success: function (response) {
+            cidades.append('<option value=""></option>');
+            for (var i = 0; i < response.length; i++) {
                 var cidade = response[i];
-                dropdown.append('<option value=' + cidade.id + '>' + cidade.nome + '</option>');
+                var selected = (cidade_default === cidade.nome) ? ' selected=""' : '';
+                cidades.append('<option value="' + cidade.nome + '"' + selected + '>' + cidade.nome + '</option>');
             }
+            $('#id_cidade_loader').hide();
+          },
+          error: function (response) {
+            $('#id_cidade_loader').hide();
           }
         });
-      });
-    </script>
+    }
+
+    {% comment %}Acrescenta opção vazia no combo estado caso não haja nenhuma{% endcomment %}
+    {% if form.instance.id and not form.instance.estado %}
+    $("#id_estado").prepend('<option value="" selected=""></option>');
+    {% endif %}
+
+    // Inicialização do combo cidades
+    if ($('#id_estado option:selected').val() !== '') {
+        carrega_cidades('{% if form.instance.cidade %}{{ form.instance.cidade }}{% endif %}');
+    }
+
+    $("#id_estado").change(function () {
+        carrega_cidades();
+    });
+
+</script>
 
 {% endblock content %}
