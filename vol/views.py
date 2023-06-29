@@ -2599,8 +2599,8 @@ class PostagemNoBlog(generic.DetailView):
 def retorna_cidades(request):
     try:
         estado = request.GET.get('estado')
-        UF = Estado.objects.get(id=estado)
-        cidades = Cidade.objects.filter(uf=UF).values('nome','id').order_by('nome')
+        UF = Estado.objects.get(sigla=estado)
+        cidades = Cidade.objects.filter(uf=UF).values('nome').order_by('nome')
         lista_cidades = list(cidades)
         return JsonResponse(lista_cidades, safe = False)
     except Estado.DoesNotExist:

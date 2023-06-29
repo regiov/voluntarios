@@ -53,7 +53,6 @@ def _limpa_cpf(val, obrigatorio=False):
 
     return val
 
-        
 class FormVoluntario(forms.ModelForm):
     "Formulário para cadastro de voluntário"
     data_aniversario = forms.DateField(label=u'Data de nascimento',
@@ -68,8 +67,12 @@ class FormVoluntario(forms.ModelForm):
                                        # portanto deixamos ele opcional e deixamos a verificação de obrigatoriedade para a
                                        # validação customizada em clean_data_aniversario
                                        required=False)
-    estado = forms.ModelChoiceField(label=u'Estado',queryset=Estado.objects.all().order_by('sigla'))
-    cidade = forms.ModelChoiceField(label=u'Cidade em que reside',queryset=Cidade.objects.all())
+    estado = forms.ChoiceField(label=u'Estado',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')])
+    cidade = forms.ChoiceField(label=u'Cidade em que reside',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[]) # definido via init para validação. No form é carregado via ajax.
     profissao = forms.CharField(label=u'Profissão',
                                 max_length=100,
                                 widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
@@ -103,7 +106,7 @@ class FormVoluntario(forms.ModelForm):
                               help_text="",
                               required=False)
     foi_voluntario = forms.ChoiceField(label=u'Já fez trabalho voluntário?',
-                                       # A classe list-inline do bootstrap faz com que as opções fiquem alinhadas horizontalmente
+                                       # A classe list-inline do bootstrap alinha as opções horizontalmente
                                        widget=forms.RadioSelect(attrs={'class': 'list-inline'}),
                                        choices=[(True, 'sim'), (False, 'não')],
                                        help_text="",
@@ -141,17 +144,22 @@ class FormVoluntario(forms.ModelForm):
                   "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho",
                   "area_interesse", "ciente_autorizacao", "invisivel")
 
+    def __init__(self, *args, **kwargs):
+
+        super(FormVoluntario, self).__init__(*args, **kwargs)
+
+        if self.instance:
+            # Atualiza opções válidas de cidades de acordo com o estado
+            cidades = Cidade.objects.filter(uf=self.instance.estado).order_by('nome')
+            self.fields['cidade'] = forms.ChoiceField(label=u'Cidade em que reside',
+                                                      widget=forms.Select(attrs={'class': 'form-control'}),
+                                                      choices=[(c.nome, c.nome) for c in cidades])
+
     def clean_data_aniversario(self):
         val = self.cleaned_data['data_aniversario']
         if not val:
             raise forms.ValidationError(u'É obrigatório informar a data de nascimento.')
         return val
-
-    # def clean_estado(self):
-    #     return self.cleaned_data['estado']
-
-    # def clean_cidade(self):
-    #     return self.cleaned_data['cidade']
 
     def clean_profissao(self):
         val = self.cleaned_data['profissao'].strip()
@@ -239,8 +247,12 @@ class FormEntidade(forms.ModelForm):
                              widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}),
                              error_messages={'invalid': u'Digite o bairro.'},
                              help_text="")
-    estado = forms.ModelChoiceField(label=u'Estado:',queryset=Estado.objects.all().order_by('sigla'))
-    cidade = forms.ModelChoiceField(label=u'Cidade:',queryset=Cidade.objects.all())
+    estado = forms.ChoiceField(label=u'Estado',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')])
+    cidade = forms.ChoiceField(label=u'Cidade',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[]) # definido via init para validação. No form é carregado via ajax.
     nome_contato = forms.CharField(label=u'Falar com',
                                    max_length=100,
                                    widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}),
@@ -292,15 +304,21 @@ class FormEntidade(forms.ModelForm):
 
         super(FormEntidade, self).__init__(*args, **kwargs)
 
+        if self.instance:
+            # Atualiza opções válidas de cidades de acordo com o estado
+            cidades = Cidade.objects.filter(uf=self.instance.estado).order_by('nome')
+            self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
+                                                      widget=forms.Select(attrs={'class': 'form-control'}),
+                                                      choices=[(c.nome, c.nome) for c in cidades])
+
         if not self.entidade_nova():
 
             # Eventuais artigos já marcados como aceitos para doação
-            self.initial['doacoes'] = list(
-                self.instance.necessidadeartigo_set.all().values_list('tipoartigo_id', flat=True))
+            self.initial['doacoes'] = list(self.instance.necessidadeartigo_set.all().values_list('tipoartigo_id',
+                                                                                                 flat=True))
 
             # Proibe edição de CNPJ válido de entidades já aprovadas
-            if self.instance.cnpj is not None and len(
-                    self.instance.cnpj) > 0 and self.instance.cnpj_valido() and self.instance.aprovado:
+            if self.instance.cnpj is not None and self.instance.cnpj_valido() and self.instance.aprovado:
                 self.fields['cnpj'].widget.attrs['readonly'] = True
                 self.fields['cnpj'].help_text = ''
 
@@ -344,19 +362,6 @@ class FormEntidade(forms.ModelForm):
         if not val.isdigit():
             raise forms.ValidationError(u'Digite apenas números na quantidade de voluntários necessária por ano')
         return val
-
-    # Comentei essas funções pois da forma que estão não funcionam corretamente com o novo esquema
-    # Acredito que o Django valida automaticamente os ModelForms, como estávamos conversando
-
-    # def clean_estado(self):
-    #     val = self.cleaned_data['estado'].strip().upper()
-    #     ufs = dict(UFS_SIGLA)
-    #     if val not in ufs.keys():
-    #         raise forms.ValidationError(u'Estado inexistente')
-    #     return val
-
-    # def clean_cidade(self):
-    #     return self.cleaned_data['cidade'].strip()
 
     def clean(self):
         cleaned_data = super(FormEntidade, self).clean()
