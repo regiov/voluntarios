@@ -239,7 +239,7 @@ class Voluntario(models.Model):
     ddd                   = models.CharField(u'DDD', max_length=4, null=True, blank=True)
     telefone              = models.CharField(u'Telefone', max_length=60, null=True, blank=True)
     #pais                 = models.CharField(u'País', max_length=50)
-    estado                = models.CharField(u'Estado', max_length=2)
+    estado                = models.CharField(u'Estado', max_length=100)
     cidade                = models.CharField(u'Cidade', max_length=100)
     empregado             = models.BooleanField(u'Empregado', null=True, blank=True)
     empresa               = models.CharField(u'Empresa', max_length=100, null=True, blank=True)
@@ -1541,5 +1541,19 @@ class Funcao(MPTTModel):
     class MPTTMeta:
         order_insertion_by = ['ordem']
 
+    def __str__(self):
+        return self.nome
+
+class Estado(models.Model):
+    nome =  models.CharField(max_length=100)
+    sigla = models.TextField(max_length=2)
+
+    def __str__(self):
+        return self.sigla
+
+class Cidade(models.Model):
+    nome =   models.CharField(max_length=100)
+    uf   =   models.CharField(max_length=2)
+    
     def __str__(self):
         return self.nome

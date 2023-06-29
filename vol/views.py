@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado
 
 from allauth.account.models import EmailAddress
 
@@ -2595,3 +2595,13 @@ class ListaDePostagensNoBlog(generic.ListView):
 class PostagemNoBlog(generic.DetailView):
     model = PostagemBlog
     template_name = 'vol/postagem_blog.html'
+
+def retorna_cidades(request):
+    try:
+        estado = request.GET.get('estado')
+        UF = Estado.objects.get(id=estado)
+        cidades = Cidade.objects.filter(uf=UF).values('nome','id').order_by('nome')
+        lista_cidades = list(cidades)
+        return JsonResponse(lista_cidades, safe = False)
+    except Estado.DoesNotExist:
+        raise Http404

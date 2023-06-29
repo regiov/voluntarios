@@ -117,6 +117,11 @@ python3 manage.py loaddata vol/fixtures/auth_*
 python3 manage.py loaddata vol/fixtures/notification_*
 python3 manage.py loaddata vol/fixtures/vol_*
 ```
+Popule o banco com os estados e cidades :
+
+```
+python3 manage.py atualiza_municipios
+```
 
 Exporte os arquivos estáticos para um diretório previamente criado e já especificado nas configurações locais:
 
