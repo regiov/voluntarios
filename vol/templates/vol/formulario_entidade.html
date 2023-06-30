@@ -171,50 +171,8 @@
 </form>
 
 <script type="text/javascript">
-    // Função que retorna os dados de um endereço a partir do CEP 
-    function consultarCEP() {
-        // Declarando o cep
-        // Lembrando que, para a API funcionar, o cep deve estar sem caracteres especiais
-        const cep = document.getElementById('id_cep').value.replace(/\D/g, '');
 
-        // Essa é a url da API da ViaCep
-        const url = `https://viacep.com.br/ws/${cep}/json`;
-
-        // Parâmetros para a requisição da API
-        const options = {
-            method: "GET",
-            mode: "cors",
-            headers: {
-                'content-type': 'application/json;charset=utf-8',
-            }
-        }
-
-        // Fazendo a requisição com fetch
-        fetch(url, options)
-            .then(response => response.json())
-            .then(data => {
-
-                // Mudando os valores de cada dado pertencente ao endereço vinculado ao cep
-                document.getElementById('id_logradouro').value = data.logradouro;
-                document.getElementById('id_bairro').value = data.bairro;
-                document.getElementById('id_cidade').value = data.localidade;
-                document.getElementById('id_estado').value = data.uf;
-            })
-            .catch(erro => console.log(erro))
-    }
-</script>
-
-<script>
-    // Chama a função consultarCEP toda vez que um novo CEP for inserido
-    document.getElementById('id_cep').addEventListener('change', consultarCEP);
-</script>
-
-<script type="text/javascript">
-
-    {% comment %}
-    Simula "input radio" com checkbox dos e-mails.
-    {% endcomment %}
-
+    {% comment %}Simula "input radio" com checkbox dos e-mails.{% endcomment %}
     $("input.input-principal").click(function() {
         var selected_id = $(this).attr('id');
         $("input.input-principal").each(function( index ) {
@@ -224,11 +182,8 @@
         });
     });
 
-    {% comment %}
-    Garante que o form seja submetido apenas uma vez, 
-    evitando problemas com o duplo clique 
-    {% endcomment %}
-
+    {% comment %}Garante que o form seja submetido apenas uma vez,
+    evitando problemas com o duplo clique{% endcomment %}
     $("#form-entidade").one("submit", function() {
         $("#save").prop("disabled", true);
     });
@@ -274,6 +229,43 @@
     $("#id_estado").change(function () {
         carrega_cidades();
     });
+
+    {% comment %}Função que retorna os dados de um endereço a partir do CEP.
+    Lembrando que, para a API funcionar, o cep deve estar sem caracteres especiais.
+    {% endcomment %}
+    function consultarCEP() {
+
+        const cep = document.getElementById('id_cep').value.replace(/\D/g, '');
+
+        const url = `https://viacep.com.br/ws/${cep}/json`;
+
+        const options = {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                'content-type': 'application/json;charset=utf-8',
+            }
+        }
+
+        fetch(url, options)
+            .then(response => response.json())
+            .then(data => {
+
+                {% comment %}Mudando os valores de cada dado pertencente ao endereço vinculado ao cep{% endcomment %}
+                if (data.logradouro) {
+                    document.getElementById('id_logradouro').value = data.logradouro;
+                }
+                if (data.bairro) {
+                    document.getElementById('id_bairro').value = data.bairro;
+                }
+                document.getElementById('id_estado').value = data.uf;
+                carrega_cidades(data.localidade);
+            })
+            .catch(erro => console.log(erro))
+    }
+
+    {% comment %}Chama a função consultarCEP toda vez que um novo CEP for inserido{% endcomment %}
+    document.getElementById('id_cep').addEventListener('change', consultarCEP);
 
 </script>
 
