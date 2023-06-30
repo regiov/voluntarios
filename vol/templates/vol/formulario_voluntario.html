@@ -208,24 +208,26 @@ evitando problemas com o duplo clique
         const estado = $('#id_estado option:selected').val();
         var cidades = $("#id_cidade");
         cidades.empty();
-        $.ajax({
-          url: url,     
-          data: {
-            'estado': estado   
-          },
-          success: function (response) {
-            cidades.append('<option value=""></option>');
-            for (var i = 0; i < response.length; i++) {
-                var cidade = response[i];
-                var selected = (cidade_default === cidade.nome) ? ' selected=""' : '';
-                cidades.append('<option value="' + cidade.nome + '"' + selected + '>' + cidade.nome + '</option>');
-            }
-            $('#id_cidade_loader').hide();
-          },
-          error: function (response) {
-            $('#id_cidade_loader').hide();
-          }
-        });
+        if (estado.length > 0) {
+            $.ajax({
+              url: url,     
+              data: {
+                'estado': estado   
+              },
+              success: function (response) {
+                cidades.append('<option value=""></option>');
+                for (var i = 0; i < response.length; i++) {
+                    var cidade = response[i];
+                    var selected = (cidade_default === cidade.nome) ? ' selected=""' : '';
+                    cidades.append('<option value="' + cidade.nome + '"' + selected + '>' + cidade.nome + '</option>');
+                }
+                $('#id_cidade_loader').hide();
+              },
+              error: function (response) {
+                $('#id_cidade_loader').hide();
+              }
+            });
+        }
     }
 
     // Inicialização do combo cidades
