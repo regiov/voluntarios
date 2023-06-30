@@ -148,9 +148,13 @@ class FormVoluntario(forms.ModelForm):
 
         super(FormVoluntario, self).__init__(*args, **kwargs)
 
-        if self.instance:
+        estado = self.data.get('estado')
+        if estado is None and self.instance:
+            estado = self.instance.estado
+
+        if estado:
             # Atualiza opções válidas de cidades de acordo com o estado
-            cidades = Cidade.objects.filter(uf=self.instance.estado).order_by('nome')
+            cidades = Cidade.objects.filter(uf=estado).order_by('nome')
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade em que reside',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                                       choices=[(c.nome, c.nome) for c in cidades])
@@ -304,9 +308,13 @@ class FormEntidade(forms.ModelForm):
 
         super(FormEntidade, self).__init__(*args, **kwargs)
 
-        if self.instance:
+        estado = self.data.get('estado')
+        if estado is None and self.instance:
+            estado = self.instance.estado
+
+        if estado:
             # Atualiza opções válidas de cidades de acordo com o estado
-            cidades = Cidade.objects.filter(uf=self.instance.estado).order_by('nome')
+            cidades = Cidade.objects.filter(uf=estado).order_by('nome')
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                                       choices=[(c.nome, c.nome) for c in cidades])
