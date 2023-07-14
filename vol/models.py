@@ -1375,7 +1375,11 @@ class TermoAdesaoManager(models.Manager):
         # use try except (signing.SignatureExpired, signing.BadSignature, TermoAdesao.DoesNotExist)
         max_age = (60 * 60 * 24 * 60) # 60 dias para aceitar
         slug = signing.loads(key, max_age=max_age, salt=TERMOADESAO_SALT)
-        return TermoAdesao.objects.get(slug=slug)
+        try:
+            termo = TermoAdesao.objects.get(slug=slug)
+            return termo
+        except TermoAdesao.DoesNotExist:
+            return None
 
 class TermoAdesao(models.Model):
     """Termo de adesão de trabalho voluntário em entidade"""
