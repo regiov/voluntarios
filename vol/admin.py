@@ -21,7 +21,7 @@ from tinymce.widgets import TinyMCE
 
 from mptt.admin import DraggableMPTTAdmin, TreeRelatedFieldListFilter
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao, PostagemBlog
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao, PostagemBlog, TermoAdesao
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -36,6 +36,7 @@ from .utils import notifica_aprovacao_voluntario
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
 
+@admin.register(Usuario)
 class MyUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
@@ -110,9 +111,14 @@ class MyFlatPageAdmin(FlatPageAdmin):
                 ))
         return super(MyFlatPageAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 
+admin.site.unregister(FlatPage)
+admin.site.register(FlatPage, MyFlatPageAdmin)
+
+@admin.register(AreaTrabalho)
 class AreaTrabalhoAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(AreaAtuacao)
 class AreaAtuacaoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'categoria', 'indice')
     fields = ['nome', 'categoria', 'indice', 'id_antigo',]
@@ -123,6 +129,7 @@ class AreaInteresseInline(admin.TabularInline):
     fields = ['area_atuacao',]
     extra = 0
 
+@admin.register(Voluntario)
 class VoluntarioAdmin(admin.ModelAdmin):
     list_select_related = ('usuario',)
     list_display = ('nome_usuario', 'email_usuario', 'data_cadastro', 'email_confirmado', 'aprovado',)
@@ -203,6 +210,7 @@ class RevisaoVoluntario(Voluntario):
         verbose_name = u'Revisão de voluntário'
         verbose_name_plural = u'Revisões de voluntários'
 
+@admin.register(RevisaoVoluntario)
 class RevisaoVoluntarioAdmin(admin.ModelAdmin):
     list_select_related = ('usuario', 'resp_analise',)
     list_display = ('data_analise', 'nome_responsavel', 'nome_voluntario', 'aprovado',)
@@ -454,6 +462,7 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
     email_confirmado.boolean = True
     email_confirmado.short_description = u'E-mail confirmado'
 
+@admin.register(Entidade)
 class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'email_confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
@@ -521,6 +530,7 @@ class FiltroPorCidade(admin.SimpleListFilter):
             return queryset.filter(cidade__iexact=request.GET.get(self.parameter_name).lower())
         return queryset
 
+@admin.register(EntidadeSemEmail)
 class EntidadeSemEmailAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'tem_anotacoes', 'situacao_cnpj',)
     ordering = ('estado', 'cidade', 'razao_social',)
@@ -563,6 +573,7 @@ class EntidadeDeFranca(Entidade):
         verbose_name = u'Entidade de Franca/SP'
         verbose_name_plural = u'Entidades de Franca/SP'
 
+@admin.register(EntidadeDeFranca)
 class EntidadeDeFrancaAdmin(EntidadeSemEmailAdmin):
 
     # Exibe apenas entidades aprovadas da cidade de Franca
@@ -576,6 +587,7 @@ class EntidadeAguardandoAprovacao(Entidade):
         verbose_name = u'Entidade aguardando aprovação'
         verbose_name_plural = u'Entidades aguardando aprovação'
 
+@admin.register(EntidadeAguardandoAprovacao)
 class EntidadeAguardandoAprovacaoAdmin(BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'estado', 'cidade', 'data_cadastro', 'resp_bloqueio', 'data_bloqueio',)
     ordering = ('data_cadastro',)
@@ -663,6 +675,7 @@ class RevisaoEntidade(Entidade):
         verbose_name = u'Revisão de entidade'
         verbose_name_plural = u'Revisões de entidades'
 
+@admin.register(RevisaoEntidade)
 class RevisaoEntidadeAdmin(BaseEntidadeAdmin):
     list_select_related = ('resp_analise',)
     list_display = ('data_analise', 'nome_responsavel', 'razao_social', 'aprovado',)
@@ -711,6 +724,7 @@ class EntidadeComProblemaNaReceita(Entidade):
         verbose_name = u'Entidade com problema na Receita Federal'
         verbose_name_plural = u'Entidades com problema na Receita Federal'
 
+@admin.register(EntidadeComProblemaNaReceita)
 class EntidadeComProblemaNaReceitaAdmin(EntidadeAdmin):
     list_display = ('razao_social', 'situacao_cnpj', 'data_situacao_cnpj', 'motivo_situacao_cnpj', 'situacao_especial_cnpj','tem_cartao_cnpj',)
     ordering = ('razao_social',)
@@ -763,6 +777,7 @@ class EmailDescoberto(Email):
         verbose_name = u'E-mail descoberto'
         verbose_name_plural = u'E-mails descobertos'
 
+@admin.register(EmailDescoberto)
 class EmailDescobertoAdmin(admin.ModelAdmin):
     list_display = ('razao_social_entidade', 'endereco', 'responsavel_cadastro', 'data_cadastro', 'confirmado',)
     ordering = ('-data_cadastro',)
@@ -798,9 +813,11 @@ class EmailDescobertoAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return self.model.objects.prefetch_related('entidade', 'resp_cadastro').filter(resp_cadastro__isnull=False, entidade__aprovado=True, entidade__vinculoentidade__isnull=True)
 
+@admin.register(TipoDocumento)
 class TipoDocumentoAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(FraseMotivacional)
 class FraseMotivacionalAdmin(admin.ModelAdmin):
     list_display = ('frase', 'autor', 'utilizacao',)
     actions = ['utilizar_frase']
@@ -823,6 +840,7 @@ class FraseMotivacionalAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     utilizar_frase.short_description = "Utilizar frase hoje"
 
+@admin.register(ForcaTarefa)
 class ForcaTarefaAdmin(admin.ModelAdmin):
     list_display = ('tarefa', 'data_cadastro', 'meta',)
     readonly_fields = ['meta']
@@ -834,6 +852,7 @@ class AnotacaoAguardandoRevisao(AnotacaoEntidade):
         verbose_name = u'Anotação sobre entidade'
         verbose_name_plural = u'Anotações sobre entidades'
 
+@admin.register(AnotacaoAguardandoRevisao)
 class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
     list_select_related = ('entidade', 'usuario',)
     list_display = ('momento', 'razao_social', 'anotacao', 'nome_responsavel',)
@@ -897,9 +916,11 @@ class AnotacaoAguardandoRevisaoAdmin(admin.ModelAdmin):
         self.message_user(request, "%s%s" % (main_msg, extra_msg))
     marcar_como_revisada.short_description = "Marcar anotações como revisadas"
 
+@admin.register(Conteudo)
 class ConteudoAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(AcessoAConteudo)
 class AcessoAConteudoAdmin(admin.ModelAdmin):
     list_display = ('conteudo', 'usuario', 'momento',)
     ordering = ('-momento',)
@@ -920,9 +941,11 @@ class AcessoAConteudoAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+@admin.register(TipoArtigo)
 class TipoArtigoAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(PostagemBlog)
 class PostagemBlogAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'slug', 'status', 'data_criacao')
     list_filter = ("status",)
@@ -964,31 +987,32 @@ class PostagemBlogAdmin(admin.ModelAdmin):
             
         super().save_model(request, obj, form, change)
 
+@admin.register(TermoAdesao)
+class TermoAdesaoAdmin(admin.ModelAdmin):
+    '''Interface administrativa para termos de adesão'''
+    list_display = ('nome_entidade', 'email_voluntario', 'data_cadastro', 'data_envio_vol', 'data_aceitacao_vol',)
+    ordering = ('-data_cadastro',)
+    actions = ['reenviar_para_voluntario']
+
+    # Desabilita inclusão
+    def has_add_permission(self, request):
+        return False
+
+    # Desabilita modificação
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def reenviar_para_voluntario(self, request, queryset):
+        num_messages = 0
+        for obj in queryset:
+            obj.enviar_para_voluntario(request)
+            num_messages = num_messages + 1
+        main_msg = u'%s usuário(s) notificado(s). ' % num_messages
+        self.message_user(request, "%s" % (main_msg))
+    reenviar_para_voluntario.short_description = "Reenviar mensagem para voluntário"
+
 @admin.register(Funcao)
 class FuncaoAdmin(DraggableMPTTAdmin):
     '''Interface administrativa para funções'''
     list_display = ('tree_actions', 'indented_title', 'qtde_pessoas', 'responsaveis',)
     raw_id_fields = ('entidade',)
-
-admin.site.register(Usuario, MyUserAdmin)
-admin.site.unregister(FlatPage)
-admin.site.register(FlatPage, MyFlatPageAdmin)
-admin.site.register(AreaTrabalho, AreaTrabalhoAdmin)
-admin.site.register(AreaAtuacao, AreaAtuacaoAdmin)
-admin.site.register(Voluntario, VoluntarioAdmin)
-admin.site.register(RevisaoVoluntario, RevisaoVoluntarioAdmin)
-admin.site.register(Entidade, EntidadeAdmin)
-admin.site.register(EntidadeSemEmail, EntidadeSemEmailAdmin)
-admin.site.register(EntidadeDeFranca, EntidadeDeFrancaAdmin)
-admin.site.register(EntidadeAguardandoAprovacao, EntidadeAguardandoAprovacaoAdmin)
-admin.site.register(EntidadeComProblemaNaReceita, EntidadeComProblemaNaReceitaAdmin)
-admin.site.register(RevisaoEntidade, RevisaoEntidadeAdmin)
-admin.site.register(TipoDocumento, TipoDocumentoAdmin)
-admin.site.register(FraseMotivacional, FraseMotivacionalAdmin)
-admin.site.register(ForcaTarefa, ForcaTarefaAdmin)
-admin.site.register(AnotacaoAguardandoRevisao, AnotacaoAguardandoRevisaoAdmin)
-admin.site.register(EmailDescoberto, EmailDescobertoAdmin)
-admin.site.register(Conteudo, ConteudoAdmin)
-admin.site.register(AcessoAConteudo, AcessoAConteudoAdmin)
-admin.site.register(TipoArtigo, TipoArtigoAdmin)
-admin.site.register(PostagemBlog, PostagemBlogAdmin)

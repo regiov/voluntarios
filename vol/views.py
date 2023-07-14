@@ -43,8 +43,7 @@ from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
 
-from notification.models import Message
-from notification.utils import notify_support, notify_email_template, notify_email_msg
+from notification.utils import notify_support, notify_email_template
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
@@ -929,24 +928,6 @@ def termos_de_adesao_de_voluntario(request):
     template = loader.get_template('vol/termos_de_adesao_de_voluntario.html')
     return HttpResponse(template.render(context, request))
 
-def _enviar_termo_de_adesao(request, termo):
-    '''Lógica de envio de termo de adesão por e-mail para o voluntário'''
-
-    msg = Message.objects.get(code='NOTIFICA_TERMO_DE_ADESAO_VOL')
-
-    link_assinatura = termo.link_assinatura_vol(request)
-
-    try:
-        notify_email_msg(termo.email_voluntario, msg, context={'termo': termo, 'link_assinatura': link_assinatura})
-        termo.data_envio_vol = timezone.now()
-        termo.erro_envio_vol = None
-    except Exception as e:
-        termo.erro_envio_vol = str(e)
-
-    termo.save()
-    
-    return True
-
 @login_required
 @transaction.atomic
 def enviar_termo_de_adesao(request, slug_termo):
@@ -959,7 +940,7 @@ def enviar_termo_de_adesao(request, slug_termo):
     if termo.entidade_id not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    _enviar_termo_de_adesao(request, termo)
+    termo.enviar_para_voluntario(request)
 
     return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': termo.entidade_id}))
 
@@ -1125,7 +1106,7 @@ def novo_termo_de_adesao(request, id_entidade):
                         except Voluntario.DoesNotExist:
                             pass # sem problema
                         novo_termo.save()
-                        _enviar_termo_de_adesao(request, novo_termo)
+                        novo_termo.enviar_para_voluntario(request)
                         enviados.append(email)
                 return redirect(reverse('termos_de_adesao_de_entidade', kwargs={'id_entidade': id_entidade}))
     else:

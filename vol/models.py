@@ -30,7 +30,8 @@ from allauth.account.models import EmailAddress
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-from notification.utils import notify_support
+from notification.utils import notify_support, notify_email_msg
+from notification.models import Message
 
 from .utils import track_data
 
@@ -1489,6 +1490,22 @@ class TermoAdesao(models.Model):
         if self.data_fim and self.data_fim < hoje:
             return False
         return True
+
+    def enviar_para_voluntario(self, request):
+        '''Lógica de envio de termo de adesão por e-mail para o voluntário'''
+
+        msg = Message.objects.get(code='NOTIFICA_TERMO_DE_ADESAO_VOL')
+
+        link_assinatura = self.link_assinatura_vol(request)
+
+        try:
+            notify_email_msg(self.email_voluntario, msg, context={'termo': termo, 'link_assinatura': link_assinatura})
+            self.data_envio_vol = timezone.now()
+            self.erro_envio_vol = None
+        except Exception as e:
+            self.erro_envio_vol = str(e)
+
+        self.save()
 
 STATUS = (
     (0,"Rascunho"),
