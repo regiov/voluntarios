@@ -1499,7 +1499,7 @@ class TermoAdesao(models.Model):
         link_assinatura = self.link_assinatura_vol(request)
 
         try:
-            notify_email_msg(self.email_voluntario, msg, context={'termo': termo, 'link_assinatura': link_assinatura})
+            notify_email_msg(self.email_voluntario, msg, context={'termo': self, 'link_assinatura': link_assinatura})
             self.data_envio_vol = timezone.now()
             self.erro_envio_vol = None
         except Exception as e:
