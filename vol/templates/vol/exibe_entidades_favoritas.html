@@ -1,0 +1,16 @@
+{% extends "vol/base_nosidebar.html" %}
+{% block content %}
+
+<h1>Entidades favoritas:</h1>
+
+<div class="list-group">
+    {% for entidade in entidades_favoritas %}
+        {% for i in entidade %}
+            <a href="/entidade/{{i.id}}/" class="list-group-item list-group-item-action">
+                {{ i.nome_fantasia }} 
+            </a>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+{% endblock content %}

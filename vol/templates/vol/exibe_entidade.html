@@ -11,6 +11,11 @@
 {% else %}
 <h2 class="nome-entidade"><span>{{ entidade.nome_fantasia|default:entidade.razao_social }}</span></h2>
 {% endif %}
+
+{%if request.user.is_voluntario %}
+<i id="icone-favorito" class="fas fa-heart favorite-heart not-favorite" title="Adicionar entidade as favoritas"></i>
+{%endif%}
+ 
 <div class="registro">
 
 <p><label>Razão Social:</label> {{ entidade.razao_social }}</p>
@@ -109,5 +114,49 @@
     {% endif %}
   {% endif %}
 {% endif %}
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+      var isFavorite = {{ is_favorite|lower|safe }}; //verifica se a entidade já é favorita do voluntário
+      var favoriteIcon = $('#icone-favorito');
+      
+      function updateIconState() {
+        if (isFavorite) {
+          favoriteIcon.removeClass('not-favorite');
+          favoriteIcon.addClass('favorite');
+          favoriteIcon.attr('title', 'Remover entidade das favoritas');
+        } else {
+          favoriteIcon.removeClass('favorite');
+          favoriteIcon.addClass('not-favorite');
+          favoriteIcon.attr('title', 'Adicionar entidade as favoritas');
+        }
+      }
+      
+      updateIconState(); // carregamento inical, para mostrar o ícone com a class e title corretos
+
+      entidade_id   = {{entidade.id}}
+      voluntario_id = {{request.user.voluntario.id}}
+
+      favoriteIcon.click(function() {
+        $.ajax({
+          url: "{% url 'adicionar_entidade_favorita' %}",
+          data: {
+            entidade_id : entidade_id,
+            voluntario_id : voluntario_id
+          },
+          success: function(response) {
+            isFavorite = !isFavorite; // muda o valor do boolean que verifica se já é favorita
+            updateIconState(); // atualiza o icone
+            console.log('Entity saved/unsaved successfully!');
+          },
+          error: function(xhr, errmsg, err) {
+            console.log('Error saving/deleting entity:', errmsg);
+          }
+        });
+      });
+    });
+
+</script>
 
 {% endblock content %}
