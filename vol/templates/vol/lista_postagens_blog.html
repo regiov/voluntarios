@@ -12,7 +12,7 @@
 {% for postagem in postagemblog_list %}
 <div class="card item-blog">
    <div class="card-body">
-      <h2 class="card-title titulo-postagem">{{ postagem.titulo }}</h2>
+      <h2 class="card-title titulo-postagem{% if postagem.status == 0 %} text-danger{% endif %}">{{ postagem.titulo }}{% if postagem.status == 0 %} <i class="fas fa-pen dica" title="rascunho">...</i>{% endif %}</h2>
       <p class="card-text text-muted h6">{{ postagem.autor }} | {{ postagem.data_criacao }} </p>
       <p class="card-text">{{ postagem.texto|truncatewords_html:28|safe }}</p>
       <a href="{% url 'postagem_blog' postagem.slug  %}" class="btn btn-primary btn-sm">Leia mais &rarr;</a>

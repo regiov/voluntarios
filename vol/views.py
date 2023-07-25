@@ -2570,8 +2570,13 @@ def logo_rastreado(request):
         return redirect(settings.STATIC_URL + 'images/logo.png')
 
 class ListaDePostagensNoBlog(generic.ListView):
-    queryset = PostagemBlog.objects.filter(status=1).order_by('-data_criacao')
     template_name = 'vol/lista_postagens_blog.html'
+
+    def get_queryset(self):
+        status_list = [1]
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            status_list.append(0)
+        return PostagemBlog.objects.filter(status__in=status_list).order_by('-data_criacao')
 
 class PostagemNoBlog(generic.DetailView):
     model = PostagemBlog
