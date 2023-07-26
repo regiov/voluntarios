@@ -22,7 +22,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
     <link href="{% static 'css/main-3.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 
-    <link href="{% static 'css/vol-2.8.css' %}" rel="stylesheet">
+    <link href="{% static 'css/vol-2.9.css' %}" rel="stylesheet">
 
     <!--[if lt IE 9]>
       {% comment %}This script is the defacto way to enable use 
@@ -122,7 +122,6 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                                 <li><a href="{% url 'busca_entidades' %}">Busca de entidades</a></li>
                                 <li><a href="{% url 'busca_voluntarios' %}" rel="nofollow">Encontre voluntários</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='leis/' %}">Leis</a></li>
-                                {% if user.is_voluntario %}<li><a href="{% url 'entidades_favoritas' %}">Entidades favoritas</a></li>{% endif %}
                             </ul>
                         </li>
                         <li class="dropdown"><a href="#">Mais <i class="fa fa-angle-down"></i></a>
