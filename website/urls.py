@@ -170,9 +170,9 @@ urlpatterns = [
 
     path('retorna_cidades/', views.retorna_cidades, name='retorna_cidades'),
 
-    path('adicionar_entidade_favorita/', views.adicionar_entidade_favorita,name="adicionar_entidade_favorita"),
+    path('alternar_entidade_favorita/', views.alternar_entidade_favorita, name="alternar_entidade_favorita"),
 
-    path('entidades_favoritas/', views.entidades_favoritas,name="entidades_favoritas")
+    path('entidades/favoritas/', views.entidades_favoritas, name="entidades_favoritas")
 ]
 
 if settings.DEBUG:

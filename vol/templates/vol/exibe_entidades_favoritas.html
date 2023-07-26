@@ -1,16 +1,21 @@
-{% extends "vol/base_nosidebar.html" %}
+{% extends "vol/base_voluntario.html" %}
+
 {% block content %}
 
-<h1>Entidades favoritas:</h1>
+<h1 class="margin-bottom">Entidades favoritas</h1>
 
-<div class="list-group">
-    {% for entidade in entidades_favoritas %}
-        {% for i in entidade %}
-            <a href="/entidade/{{i.id}}/" class="list-group-item list-group-item-action">
-                {{ i.nome_fantasia }} 
-            </a>
-        {% endfor %}
-    {% endfor %}
+{% if favoritas %}
+<div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <tbody>
+  {% for entidade in favoritas %}
+    <tr><td><a href="{% url 'exibe_entidade' entidade.id %}">{{ entidade.menor_nome }}</a></td></tr>
+  {% endfor %}
+  </tbody>
+  </table>
 </div>
+{% else %}
+<p>Nenhuma entidade marcada como favorita. Se você gostar de alguma entidade cadastrada no site, pode marcá-la como favorita, podendo depois consultar aqui todas que foram marcadas. Faça uma <a href="{% url 'busca_entidades' %}">busca por entidades</a> cadastradas no site.</p>
+{% endif %}
 
 {% endblock content %}

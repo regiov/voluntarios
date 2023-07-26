@@ -4,6 +4,7 @@
 {% url 'cadastro_usuario' as cadastro_usuario %}
 {% url 'cadastro_voluntario' as cadastro_voluntario %}
 {% url 'termos_de_adesao_de_voluntario' as termos_de_adesao_de_voluntario %}
+{% url 'entidades_favoritas' as entidades_favoritas %}
 <section id="content">
   <div class="container">
     <div class="row profile">
@@ -26,6 +27,11 @@
 		<a href="{{ termos_de_adesao_de_voluntario }}">
 		  <i class="fas fa-file"></i>
 		  Termos de adesão </a>
+	      </li>
+	      <li{% if request.path == entidades_favoritas %} class="active"{% endif %}>
+		<a href="{{ entidades_favoritas }}">
+		  <i class="fas fa-heart"></i>
+		  Entidades favoritas </a>
 	      </li>
 	    </ul>
 	  </div>

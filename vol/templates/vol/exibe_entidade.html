@@ -7,14 +7,10 @@
 {% block content %}
 
 {% if user.is_authenticated and entidade in user.entidades %}
-<a href="{% url 'cadastro_entidade_id' entidade.id %}"><h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}</h2></a>
+<a href="{% url 'cadastro_entidade_id' entidade.id %}"><h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}{% if request.user.is_voluntario %} <i id="icone-favorito" class="fas fa-heart{% if favorita %} fill{% endif %}" title="{% if favorita %}Remover entidade das favoritas{% else %}Marcar entidade como favorita{% endif %}"></i>{% endif %}</h2></a>
 {% else %}
-<h2 class="nome-entidade"><span>{{ entidade.nome_fantasia|default:entidade.razao_social }}</span></h2>
+<h2 class="nome-entidade">{{ entidade.nome_fantasia|default:entidade.razao_social }}{% if request.user.is_voluntario %} <i id="icone-favorito" class="fas fa-heart{% if favorita %} fill{% endif %}" title="{% if favorita %}Remover entidade das favoritas{% else %}Marcar entidade como favorita{% endif %}"></i>{% endif %}</h2>
 {% endif %}
-
-{%if request.user.is_voluntario %}
-<i id="icone-favorito" class="fas fa-heart favorite-heart not-favorite" title="Adicionar entidade as favoritas"></i>
-{%endif%}
  
 <div class="registro">
 
@@ -117,45 +113,26 @@
 
 <script type="text/javascript">
 
-    $(document).ready(function() {
-      var isFavorite = {{ is_favorite|lower|safe }}; //verifica se a entidade já é favorita do voluntário
-      var favoriteIcon = $('#icone-favorito');
-      
-      function updateIconState() {
-        if (isFavorite) {
-          favoriteIcon.removeClass('not-favorite');
-          favoriteIcon.addClass('favorite');
-          favoriteIcon.attr('title', 'Remover entidade das favoritas');
-        } else {
-          favoriteIcon.removeClass('favorite');
-          favoriteIcon.addClass('not-favorite');
-          favoriteIcon.attr('title', 'Adicionar entidade as favoritas');
-        }
-      }
-      
-      updateIconState(); // carregamento inical, para mostrar o ícone com a class e title corretos
+  $("#icone-favorito").click(function() {
 
-      entidade_id   = {{entidade.id}}
-      voluntario_id = {{request.user.voluntario.id}}
-
-      favoriteIcon.click(function() {
-        $.ajax({
-          url: "{% url 'adicionar_entidade_favorita' %}",
+      $.ajax({
+          url: "{% url 'alternar_entidade_favorita' %}",
           data: {
-            entidade_id : entidade_id,
-            voluntario_id : voluntario_id
+            entidade_id : {{ entidade.id }},
           },
           success: function(response) {
-            isFavorite = !isFavorite; // muda o valor do boolean que verifica se já é favorita
-            updateIconState(); // atualiza o icone
-            console.log('Entity saved/unsaved successfully!');
+              $("#icone-favorito").toggleClass("fill");
+              if ($("#icone-favorito").hasClass("fill")) {
+                  $("#icone-favorito").attr('title', 'Remover entidade das favoritas');
+              } else {
+                  $("#icone-favorito").attr('title', 'Marcar entidade como favorita');
+              }
           },
           error: function(xhr, errmsg, err) {
-            console.log('Error saving/deleting entity:', errmsg);
+            console.log('Erro ao alternar entidade favorita: ', errmsg);
           }
-        });
       });
-    });
+  });
 
 </script>
 

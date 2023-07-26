@@ -1588,10 +1588,11 @@ class Cidade(models.Model):
         return self.nome
 
 class EntidadeFavorita(models.Model):
-    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    entidade   = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
-    momento = models.DateTimeField(u'Momento', default=timezone.now)
-    
+    inicio     = models.DateTimeField(u'Início', default=timezone.now)
+    fim        = models.DateTimeField(u'Fim', null=True, blank=True)
+   
     class Meta:
-        unique_together = ('entidade', 'voluntario')
+        unique_together = ('entidade', 'voluntario', 'fim')
 
