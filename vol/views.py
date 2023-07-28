@@ -1776,7 +1776,7 @@ def aprovacao_voluntarios(request):
                 usuario_update_fields.append('email')
                 myvol.usuario.email = request.POST.get('email')
 
-            campos_editaveis = ['profissao', 'ddd', 'telefone', 'cidade', 'estado', 'empresa',  'entidade_que_ajudou',  'descricao']
+            campos_editaveis = ['profissao', 'ddd', 'telefone', 'empresa',  'entidade_que_ajudou',  'descricao']
 
             for campo in campos_editaveis:
                 if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
