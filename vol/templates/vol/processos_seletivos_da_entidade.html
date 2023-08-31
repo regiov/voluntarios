@@ -1,0 +1,16 @@
+{% extends "vol/base_entidade.html" %}
+{% load static %}
+
+{% block title %}Processos seletivos{% endblock title %}
+
+{% block content %}
+
+<h2 class="margin-bottom">Processos seletivos da entidade</h2>
+
+{% if termos|length > 0 %}
+    <p>placehold para a lista de processos seletivos</p>
+    {% else %}
+    <p>placehold para quando a entidade nao tiver processos seletivos</p>
+{% endif %}
+
+{% endblock content %}
