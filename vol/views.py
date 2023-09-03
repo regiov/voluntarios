@@ -2627,3 +2627,28 @@ def entidades_favoritas(request):
     context = {'favoritas': favoritas }
     template = loader.get_template('vol/exibe_entidades_favoritas.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+def processos_seletivos_entidade(request, id_entidade):
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    context = {'entidade': entidade}
+    template = loader.get_template('vol/processos_seletivos_da_entidade.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def lista_processos_voluntario(request):
+    # try:
+    #     processos = Processos.objects.get(id_voluntario=request.user.voluntario)
+    # except Voluntario.DoesNotExist:
+    #     raise PermissionDenied
+    processos = ["placehold"]
+    context = { 'processos' : processos }
+    template = loader.get_template('vol/lista_processos_voluntario.html')
+    return HttpResponse(template.render(context,request))

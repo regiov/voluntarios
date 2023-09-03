@@ -172,7 +172,12 @@ urlpatterns = [
 
     path('alternar_entidade_favorita/', views.alternar_entidade_favorita, name="alternar_entidade_favorita"),
 
-    path('entidades/favoritas/', views.entidades_favoritas, name="entidades_favoritas")
+    path('entidades/favoritas/', views.entidades_favoritas, name="entidades_favoritas"),
+
+    re_path(r'^entidade/(?P<id_entidade>\d+)/processos/?$', views.processos_seletivos_entidade, name='processos_seletivos_entidade'),
+
+    re_path(r'^voluntario/processos/?$', views.lista_processos_voluntario, name='lista_processos_voluntario'),
+
 ]
 
 if settings.DEBUG:

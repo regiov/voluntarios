@@ -4,7 +4,8 @@
 {% url 'cadastro_entidade' as lista_entidades %}
 {% url 'cadastro_entidade_id' entidade.id as cadastro_entidade %}
 {% url 'termos_de_adesao_de_entidade' entidade.id as termos_de_adesao_de_entidade %}
-<section id="content">
+{% url 'processos_seletivos_entidade' entidade.id as processos_seletivos_entidade %}
+<section id="content"> 
   <div class="container">
     <div class="row profile">
       <div class="col-md-3 col-sm-4">
@@ -37,7 +38,12 @@
 		  <i class="fas fa-file"></i>
 		  Termos de adesão </a>
 	      </li>
-	      {% endif %}
+		  {% endif %}
+		<li{% if request.path == processos_seletivos_entidade %} class="active"{% endif %}>
+		<a href="{{ processos_seletivos_entidade }}">
+		  <i class="fas fa-rocket"></i>
+		  Processos seletivos </a>
+	      </li>
 	    </ul>
 	  </div>
 	  <!-- END MENU -->
