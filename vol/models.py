@@ -1644,7 +1644,7 @@ class ProcessoSeletivo(models.Model):
     cadastrado_em      = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
     status             = FSMIntegerField(u'Status', default=StatusProcessoSeletivo.EM_ELABORACAO)
     # código gerado automaticamente para ser usado na URL do processo seletivo
-    slug               = models.SlugField(max_length=20, unique=True)
+    codigo             = models.CharField(max_length=20, unique=True)
     # dados do processo seletivo
     titulo             = models.CharField(u'Título', max_length=100)
     resumo_entidade    = models.TextField(u'Resumo sobre a entidade', null=True, blank=True) # futuramente deve vir de campo da Entidade (cópia literal)
@@ -1659,6 +1659,8 @@ class ProcessoSeletivo(models.Model):
     carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')
     # obs: futuramente podemos tb pensar em algum esquema com tags de habilidades em paralelo a isso
     requisitos         = models.TextField(u'Requisitos', null=True, blank=True)
+    # Link opcional de formulário a ser exibido depois que alguém se inscreve
+    link_formulario    = models.URLField(max_length=200, null=True, blank=True)
     inicio_inscricoes  = models.DateTimeField(u'Início das inscrições', default=timezone.now)
     limite_inscricoes  = models.DateTimeField(u'Limite para inscrições', null=True, blank=True) # Deve ser maior que o início!
     previsao_resultado = models.DateField(u'Data prevista para os resultados', null=True, blank=True) # Deve ser maior que o início e maior que o limite (se houver limite)
@@ -1726,7 +1728,7 @@ class ProcessoSeletivo(models.Model):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CONCLUIDO)
+    @transition(field=status, source=[StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CONCLUIDO)
     def concluir(self, by=None):
         pass
 
