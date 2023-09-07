@@ -33,17 +33,17 @@
 		  Dados cadastrais </a>
 	      </li>
 	      {% if entidade.aprovado %}
+              <li{% if request.path == processos_seletivos_entidade %} class="active"{% endif %}>
+		<a href="{{ processos_seletivos_entidade }}">
+		  <i class="fas fa-filter"></i>
+		  Processos seletivos </a>
+	      </li>
 	      <li{% if request.path == termos_de_adesao_de_entidade %} class="active"{% endif %}>
 		<a href="{{ termos_de_adesao_de_entidade }}">
 		  <i class="fas fa-file"></i>
 		  Termos de adesão </a>
 	      </li>
-		  {% endif %}
-		<li{% if request.path == processos_seletivos_entidade %} class="active"{% endif %}>
-		<a href="{{ processos_seletivos_entidade }}">
-		  <i class="fas fa-rocket"></i>
-		  Processos seletivos </a>
-	      </li>
+              {% endif %}
 	    </ul>
 	  </div>
 	  <!-- END MENU -->
