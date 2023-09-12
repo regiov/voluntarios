@@ -6,6 +6,8 @@
 
 {% block content %}
 
+{% url 'lista_processos_entidade' entidade.id as lista_processos_entidade %}
+
 {% if user.is_authenticated and entidade in user.entidades %}
 <a href="{% url 'cadastro_entidade_id' entidade.id %}"><h2>{{ entidade.nome_fantasia|default:entidade.razao_social }}{% if request.user.is_voluntario %} <i id="icone-favorito" class="fas fa-heart{% if favorita %} fill{% endif %}" title="{% if favorita %}Remover entidade das favoritas{% else %}Marcar entidade como favorita{% endif %}"></i>{% endif %}</h2></a>
 {% else %}
@@ -31,7 +33,6 @@
 <span style="display: inline-block;">{% if entidade.logradouro %}{{ entidade.logradouro }} {% endif %}{% if entidade.logradouro and entidade.bairro %}<br>{% endif %}{{ entidade.bairro|default:"" }}{% if entidade.logradouro or entidade.bairro %}<br>{% endif %}{% if entidade.cep %}CEP {{ entidade.cep }}<br>{% endif %}{{ entidade.cidade|default:"" }}{% if entidade.cidade and entidade.estado %} - {% endif %}{{ entidade.estado|default:"" }}</span>
 </p>
 {% endif %}
-
 
 {% if entidade.nome_contato %}<p><i class="fas fa-user" title="contato"></i> {{ entidade.nome_contato|default:"-" }}</p>{% endif %}
 {% if entidade.telefones %}<p><i class="fas fa-phone" title="telefone"></i> {{ entidade.telefones }}{% endif %}
@@ -72,6 +73,8 @@
 </div>
 <br>
 {% endif %}
+
+<h3><a href="{{ lista_processos_entidade }}">Clique aqui e veja os processos seletivos dessa entidade</a></h3>
 
 <!-- p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p -->
 

@@ -178,6 +178,10 @@ urlpatterns = [
 
     re_path(r'^voluntario/processos/?$', views.lista_processos_voluntario, name='lista_processos_voluntario'),
 
+    re_path(r'^processos$', views.lista_processos_seletivos, name='lista_processos_seletivos'),
+
+    re_path(r'^entidade/(?P<id_entidade>\d+)/processos-abertos/?$', views.lista_processos_entidade, name='lista_processos_entidade')
+
 ]
 
 if settings.DEBUG:
