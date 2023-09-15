@@ -1659,8 +1659,6 @@ class ProcessoSeletivo(models.Model):
     carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')
     # obs: futuramente podemos tb pensar em algum esquema com tags de habilidades em paralelo a isso
     requisitos         = models.TextField(u'Requisitos', null=True, blank=True)
-    # Link opcional de formulário a ser exibido depois que alguém se inscreve
-    link_formulario    = models.URLField(max_length=200, null=True, blank=True)
     inicio_inscricoes  = models.DateTimeField(u'Início das inscrições', default=timezone.now)
     limite_inscricoes  = models.DateTimeField(u'Limite para inscrições', null=True, blank=True) # Deve ser maior que o início!
     previsao_resultado = models.DateField(u'Data prevista para os resultados', null=True, blank=True) # Deve ser maior que o início e maior que o limite (se houver limite)
@@ -1756,4 +1754,93 @@ class CausaEmProcessoSeletivo(models.Model):
 
     def __str__(self):
         return self.area_atuacao.nome
+
+TIPO_DE_ETAPA_EM_PROCESSO_SELETIVO = (
+    ('E','Entrevista'),
+    ('F','Formulário'),
+    ('T','Triagem'),
+    ('C','Comunicado'),
+)
+
+class EtapaPrevistaEmProcessoSeletivo(models.Model):
+    """Etapa prevista em processo seletivo de trabalho voluntário"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    tipo              = models.CharField(u'Tipo de etapa', max_length=1, choices=TIPO_DE_ETAPA_EM_PROCESSO_SELETIVO)
+    nome              = models.CharField(u'Nome da etapa', max_length=100)
+    descricao         = models.TextField(u'Descrição', null=True, blank=True)
+    ordem             = models.PositiveIntegerField(u'Ordem de execução', default=1)
+    mensagem          = models.TextField(u'Mensagem', null=True, blank=True) # obrigatório quando houver link
+    link              = models.URLField(max_length=200, null=True, blank=True)
+    opcoes_avaliacao  = models.TextField(u'Opções de avaliação', help_text=u'Utilize intervalo numérico para notas (ex: 0-5) ou sequência de termos separados por vírgula (ex: selecionado, em dúvida, descartado).', null=True, blank=True)
+    opcoes_positivas  = models.TextField(u'Opções de avaliação consideradas positivas', help_text=u'Utilize um subconjunto do foi especificado no campo anterior. Ex: 4-5 ou selecionado.', null=True, blank=True)
+
+class StatusParticipacaoEmProcessoSeletivo(object):
+    # IMPORTANTE: Os códigos aqui são usados no campo status do modelo ParticipacaoEmProcessoSeletivo, portanto podem
+    # estar no banco de dados. Qualquer alteração nos códigos deve ser muito criteriosa e acompanhada
+    # de atualizações nos registros no banco.
+    INSCRITO         = 10
+    DESISTENCIA      = 20
+    CANCELAMENTO     = 30
+    REPROVADO        = 40
+    APROVADO         = 100
+
+    @classmethod
+    def nome(cls, code):
+        if code == 10:
+            return u'Inscrição efetuada'
+        elif code == 20:
+            return u'Desistência'
+        elif code == 30:
+            return u'Processo cancelado'
+        elif code == 40:
+            return u'Não selecionado'
+        elif code == 100:
+            return u'Selecionado'
+        return '?'
+
+class ParticipacaoEmProcessoSeletivo(models.Model):
+    """Participação de voluntário em processo seletivo"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    voluntario        = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
+    status            = FSMIntegerField(u'Status', default=StatusParticipacaoEmProcessoSeletivo.INSCRITO)
+    data_inscricao    = models.DateTimeField(u'Data de inscrição', auto_now_add=True)
+
+    def nome_status(self):
+        return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
+
+    # Transições de estado
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.DESISTENCIA)
+    def desistir(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.REPROVADO)
+    def reprovar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.APROVADO)
+    def aprovar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.REPROVADO, StatusParticipacaoEmProcessoSeletivo.APROVADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
+    def cancelar(self, by=None):
+        pass
+
+class EtapaEmParticipacaoEmProcessoSeletivo(models.Model):
+    """Etapa realizada por participante em processo seletivo de trabalho voluntário"""
+    id             = models.AutoField(primary_key=True)
+    etapa          = models.ForeignKey(EtapaPrevistaEmProcessoSeletivo, on_delete=models.CASCADE)
+    participacao   = models.ForeignKey(ParticipacaoEmProcessoSeletivo, on_delete=models.CASCADE)
+    realizada_em   = models.DateTimeField(u'Data de realização da etapa', null=True, blank=True)
+    abriu_mensagem = models.DateTimeField(u'Data/hora de visualização da mensagem', null=True, blank=True)
+    clicou_no_link = models.DateTimeField(u'Data/hora de clique no link', null=True, blank=True)
+    link_resposta  = models.URLField(max_length=200, null=True, blank=True) # para acessar respostas de formulário
+    avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
+    anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
 
