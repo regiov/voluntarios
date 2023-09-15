@@ -20,6 +20,7 @@ from django.core import signing
 from django.core.validators import validate_email
 from django.dispatch import receiver
 from django.urls import reverse
+from django.apps import apps
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -73,6 +74,20 @@ UFS = (
 )
 
 UFS_SIGLA = [(uf[0], uf[0]) for uf in UFS]
+
+def codigo_aleatorio(modelo):
+    # Gera código aleatório no formato: 836-583-387 (máx. de cem milhões)
+    # Apenas para uso com modelos que possuam o campo codigo.
+    model = apps.get_model('vol', modelo)
+    while True:
+        partes = []
+        for i in range(0, 3):
+            partes.append(get_random_string(length=3, allowed_chars='0123456789'))
+        codigo = '-'.join(partes)
+        try:
+            model.objects.get(codigo=codigo)
+        except model.DoesNotExist:
+            return codigo
 
 class MyUserManager(BaseUserManager):
 
@@ -1641,6 +1656,9 @@ class StatusProcessoSeletivo(object):
             return u'Cancelado'
         return '?'
 
+def codigo_aleatorio_processo_seletivo():
+    return codigo_aleatorio('ProcessoSeletivo')
+
 class ProcessoSeletivo(models.Model):
     """Processo seletivo de trabalho voluntário"""
     id                 = models.AutoField(primary_key=True)
@@ -1650,7 +1668,7 @@ class ProcessoSeletivo(models.Model):
     cadastrado_em      = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
     status             = FSMIntegerField(u'Status', default=StatusProcessoSeletivo.EM_ELABORACAO)
     # código gerado automaticamente para ser usado na URL do processo seletivo
-    codigo             = models.CharField(max_length=20, unique=True)
+    codigo             = models.CharField(max_length=20, default=codigo_aleatorio_processo_seletivo, unique=True)
     # dados do processo seletivo
     titulo             = models.CharField(u'Título', max_length=100)
     resumo_entidade    = models.TextField(u'Resumo sobre a entidade', null=True, blank=True) # futuramente deve vir de campo da Entidade (cópia literal)
