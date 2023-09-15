@@ -2652,3 +2652,19 @@ def lista_processos_voluntario(request):
     context = { 'processos' : processos }
     template = loader.get_template('vol/lista_processos_voluntario.html')
     return HttpResponse(template.render(context,request))
+
+def lista_processos_seletivos(request):
+    processos_abertos = ["placehold"]
+    context = { 'processos_abertos' : processos_abertos }
+    template = loader.get_template('vol/lista_processos_seletivos.html')
+    return HttpResponse(template.render(context,request))
+
+def lista_processos_entidade(request, id_entidade):
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+    processos = ["placehold"]
+    context = { 'processos' : processos }
+    template = loader.get_template('vol/lista_processos_entidade.html')
+    return HttpResponse(template.render(context,request))
