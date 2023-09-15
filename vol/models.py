@@ -351,6 +351,11 @@ class Voluntario(models.Model):
             if len(self.ddd) > 2 and self.ddd[0] == '0':
                 # Remove eventual zero inicial
                 self.ddd = self.ddd.replace('0', '')
+            if self.ddd == '+55' and self.telefone and len(self.telefone) > 2 and self.telefone[0] != '9':
+                # Remove prefixo internacional e tenta extrair prefixo do telefone
+                self.ddd = self.telefone[:2]
+                self.telefone = self.telefone[2:]
+                
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
         if self.usuario.email == self.usuario.email.upper():
@@ -1591,6 +1596,7 @@ class Cidade(models.Model):
         return self.nome
 
 class EntidadeFavorita(models.Model):
+    id         = models.AutoField(primary_key=True)
     entidade   = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     inicio     = models.DateTimeField(u'Início', default=timezone.now)
