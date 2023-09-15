@@ -1856,7 +1856,7 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     def cancelar(self, by=None):
         pass
 
-class EtapaEmParticipacaoEmProcessoSeletivo(models.Model):
+class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
     """Etapa realizada por participante em processo seletivo de trabalho voluntário"""
     id             = models.AutoField(primary_key=True)
     etapa          = models.ForeignKey(EtapaPrevistaEmProcessoSeletivo, on_delete=models.CASCADE)
