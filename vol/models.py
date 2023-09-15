@@ -1593,6 +1593,7 @@ class Cidade(models.Model):
         return self.nome
 
 class EntidadeFavorita(models.Model):
+    id         = models.AutoField(primary_key=True)
     entidade   = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     inicio     = models.DateTimeField(u'Início', default=timezone.now)
