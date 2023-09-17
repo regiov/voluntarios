@@ -48,9 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.gis',
     'django.contrib.postgres',
-    'mptt',           # para representações hierárquicas no banco
-    # 'bootstrapform',  # para renderizar formulários compatíveis com bootstrap
+    'mptt',          # para representações hierárquicas no banco
     'crispy_forms',  # para renderizar formulários (substituto do bootstrap_forms)
+    'django_fsm_log',# para armazenar logs de máquinas de estado
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #

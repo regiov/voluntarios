@@ -20,6 +20,7 @@ from django.core import signing
 from django.core.validators import validate_email
 from django.dispatch import receiver
 from django.urls import reverse
+from django.apps import apps
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -29,6 +30,9 @@ from allauth.account import app_settings as allauth_settings
 from allauth.account.models import EmailAddress
 
 from mptt.models import MPTTModel, TreeForeignKey
+
+from django_fsm import FSMIntegerField, transition
+from django_fsm_log.decorators import fsm_log_by
 
 from notification.utils import notify_support, notify_email_msg
 from notification.models import Message
@@ -70,6 +74,20 @@ UFS = (
 )
 
 UFS_SIGLA = [(uf[0], uf[0]) for uf in UFS]
+
+def codigo_aleatorio(modelo):
+    # Gera código aleatório no formato: 836-583-387 (máx. de cem milhões)
+    # Apenas para uso com modelos que possuam o campo codigo.
+    model = apps.get_model('vol', modelo)
+    while True:
+        partes = []
+        for i in range(0, 3):
+            partes.append(get_random_string(length=3, allowed_chars='0123456789'))
+        codigo = '-'.join(partes)
+        try:
+            model.objects.get(codigo=codigo)
+        except model.DoesNotExist:
+            return codigo
 
 class MyUserManager(BaseUserManager):
 
@@ -348,6 +366,11 @@ class Voluntario(models.Model):
             if len(self.ddd) > 2 and self.ddd[0] == '0':
                 # Remove eventual zero inicial
                 self.ddd = self.ddd.replace('0', '')
+            if self.ddd == '+55' and self.telefone and len(self.telefone) > 2 and self.telefone[0] != '9':
+                # Remove prefixo internacional e tenta extrair prefixo do telefone
+                self.ddd = self.telefone[:2]
+                self.telefone = self.telefone[2:]
+                
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
         if self.usuario.email == self.usuario.email.upper():
@@ -1588,6 +1611,7 @@ class Cidade(models.Model):
         return self.nome
 
 class EntidadeFavorita(models.Model):
+    id         = models.AutoField(primary_key=True)
     entidade   = models.ForeignKey(Entidade, on_delete=models.CASCADE)
     voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     inicio     = models.DateTimeField(u'Início', default=timezone.now)
@@ -1595,4 +1619,252 @@ class EntidadeFavorita(models.Model):
    
     class Meta:
         unique_together = ('entidade', 'voluntario', 'fim')
+
+MODO_TRABALHO = (
+    (1,'Presencial'),
+    (0,'Remoto'),
+    (2,'Híbrido')
+)
+
+class StatusProcessoSeletivo(object):
+    # IMPORTANTE: Os códigos aqui são usados no campo status do modelo ProcessoSeletivo, portanto podem
+    # estar no banco de dados. Qualquer alteração nos códigos deve ser muito criteriosa e acompanhada
+    # de atualizações nos registros no banco.
+    EM_ELABORACAO         = 10
+    AGUARDANDO_APROVACAO  = 20
+    AGUARDANDO_PUBLICACAO = 30
+    ABERTO_A_INSCRICOES   = 40
+    AGUARDANDO_SELECAO    = 50
+    CONCLUIDO             = 60
+    CANCELADO             = 100
+
+    @classmethod
+    def nome(cls, code):
+        if code == 10:
+            return u'Em elaboração'
+        elif code == 20:
+            return u'Aguardando aprovação'
+        elif code == 30:
+            return u'Aguardando publicação'
+        elif code == 40:
+            return u'Aberto a inscrições'
+        elif code == 50:
+            return u'Aguardando seleção'
+        elif code == 60:
+            return u'Concluído'
+        elif code == 100:
+            return u'Cancelado'
+        return '?'
+
+def codigo_aleatorio_processo_seletivo():
+    return codigo_aleatorio('ProcessoSeletivo')
+
+class ProcessoSeletivo(models.Model):
+    """Processo seletivo de trabalho voluntário"""
+    id                 = models.AutoField(primary_key=True)
+    # campos que devem ser preenchidos automaticamente pelo sistema
+    entidade           = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    cadastrado_por     = models.ForeignKey(Usuario, on_delete=models.PROTECT)
+    cadastrado_em      = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
+    status             = FSMIntegerField(u'Status', default=StatusProcessoSeletivo.EM_ELABORACAO)
+    # código gerado automaticamente para ser usado na URL do processo seletivo
+    codigo             = models.CharField(max_length=20, default=codigo_aleatorio_processo_seletivo, unique=True)
+    # dados do processo seletivo
+    titulo             = models.CharField(u'Título', max_length=100)
+    resumo_entidade    = models.TextField(u'Resumo sobre a entidade', null=True, blank=True) # futuramente deve vir de campo da Entidade (cópia literal)
+    modo_trabalho      = models.IntegerField(u'Modo de trabalho', choices=MODO_TRABALHO)
+    # para modos de trabalho presencial/híbrido, pegar estado/cidade da entidade porém permitindo editar,
+    # pois nada impede que uma entidade sediada num local queira voluntários para trabalhar num projeto
+    # em outro local
+    estado_trabalho    = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
+    cidade_trabalho    = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
+    # melhor ter isso em campo próprio, assim pode ser mais facilmente reutilizado em futuro termo de adesão
+    atividades         = models.TextField(u'Atividades') # atividades a serem desenvolvidas
+    carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')
+    # obs: futuramente podemos tb pensar em algum esquema com tags de habilidades em paralelo a isso
+    requisitos         = models.TextField(u'Requisitos', null=True, blank=True)
+    inicio_inscricoes  = models.DateTimeField(u'Início das inscrições', default=timezone.now)
+    limite_inscricoes  = models.DateTimeField(u'Limite para inscrições', null=True, blank=True) # Deve ser maior que o início!
+    previsao_resultado = models.DateField(u'Data prevista para os resultados', null=True, blank=True) # Deve ser maior que o início e maior que o limite (se houver limite)
+
+    def nome_status(self):
+        return StatusProcessoSeletivo.nome(self.status)
+
+    def inscricoes_nao_iniciadas(self):
+        agora = timezone.now()
+        if self.inicio_inscricoes > agora:
+            return True
+        return False
+
+    def inscricoes_encerradas(self):
+        agora = timezone.now()
+        if self.limite_inscricoes < agora:
+            return True
+        return False
+
+    def inscricoes_abertas(self):
+        if self.inscricoes_nao_iniciadas():
+            # Ainda não está aberto a inscrição
+            return False
+
+        agora = timezone.now()
+
+        # Verifica se já terminou o prazo para inscrições
+        if self.limite_inscricoes is None:
+            # Não tem prazo pra terminar - inscrições permanentemente abertas
+            return True
+        if self.inscricoes_encerradas():
+            # Passou o prazo de término - inscrições encerradas
+            return False
+
+        # Dentro do prazo estipulado
+        return True
+
+    # Transições de estado
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.EM_ELABORACAO, StatusProcessoSeletivo.AGUARDANDO_APROVACAO, StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CANCELADO)
+    def cancelar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO], target=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, conditions=[inscricoes_nao_iniciadas])
+    def aprovar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
+    def aprovar(self, by=None):
+        pass
+
+    # Transição automática feita por cron diário
+    # (SELECT processos aguardando publicação com inico_inscricoes no passado)
+    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
+    def publicar(self):
+        pass
+
+    # Transição automática feita por cron diário
+    # (SELECT processos abertos a inscricao com limite_inscricoes no passado)
+    @transition(field=status, source=[StatusProcessoSeletivo.ABERTO_A_INSCRICOES], target=StatusProcessoSeletivo.AGUARDANDO_SELECAO, conditions=[inscricoes_encerradas])
+    def encerrar_inscricoes(self):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CONCLUIDO)
+    def concluir(self, by=None):
+        pass
+
+class AreaTrabalhoEmProcessoSeletivo(models.Model):
+    """Área de trabalho relacionada a processo seletivo"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    area_trabalho     = models.ForeignKey(AreaTrabalho, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ('processo_seletivo', 'area_trabalho')
+
+    def __str__(self):
+        return self.area_trabalho.nome
+
+class CausaEmProcessoSeletivo(models.Model):
+    """Causa relacionada a processo seletivo"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    # a causa deve estar entre as áreas de atuação da entidade!
+    area_atuacao      = models.ForeignKey(AreaAtuacao, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ('processo_seletivo', 'area_atuacao')
+
+    def __str__(self):
+        return self.area_atuacao.nome
+
+TIPO_DE_ETAPA_EM_PROCESSO_SELETIVO = (
+    ('E','Entrevista'),
+    ('F','Formulário'),
+    ('T','Triagem'),
+    ('C','Comunicado'),
+)
+
+class EtapaPrevistaEmProcessoSeletivo(models.Model):
+    """Etapa prevista em processo seletivo de trabalho voluntário"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    tipo              = models.CharField(u'Tipo de etapa', max_length=1, choices=TIPO_DE_ETAPA_EM_PROCESSO_SELETIVO)
+    nome              = models.CharField(u'Nome da etapa', max_length=100)
+    descricao         = models.TextField(u'Descrição', null=True, blank=True)
+    ordem             = models.PositiveIntegerField(u'Ordem de execução', default=1)
+    mensagem          = models.TextField(u'Mensagem', null=True, blank=True) # obrigatório quando houver link
+    link              = models.URLField(max_length=200, null=True, blank=True)
+    opcoes_avaliacao  = models.TextField(u'Opções de avaliação', help_text=u'Utilize intervalo numérico para notas (ex: 0-5) ou sequência de termos separados por vírgula (ex: selecionado, em dúvida, descartado).', null=True, blank=True)
+    opcoes_positivas  = models.TextField(u'Opções de avaliação consideradas positivas', help_text=u'Utilize um subconjunto do foi especificado no campo anterior. Ex: 4-5 ou selecionado.', null=True, blank=True)
+
+class StatusParticipacaoEmProcessoSeletivo(object):
+    # IMPORTANTE: Os códigos aqui são usados no campo status do modelo ParticipacaoEmProcessoSeletivo, portanto podem
+    # estar no banco de dados. Qualquer alteração nos códigos deve ser muito criteriosa e acompanhada
+    # de atualizações nos registros no banco.
+    INSCRITO         = 10
+    DESISTENCIA      = 20
+    CANCELAMENTO     = 30
+    REPROVADO        = 40
+    APROVADO         = 100
+
+    @classmethod
+    def nome(cls, code):
+        if code == 10:
+            return u'Inscrição efetuada'
+        elif code == 20:
+            return u'Desistência'
+        elif code == 30:
+            return u'Processo cancelado'
+        elif code == 40:
+            return u'Não selecionado'
+        elif code == 100:
+            return u'Selecionado'
+        return '?'
+
+class ParticipacaoEmProcessoSeletivo(models.Model):
+    """Participação de voluntário em processo seletivo"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    voluntario        = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
+    status            = FSMIntegerField(u'Status', default=StatusParticipacaoEmProcessoSeletivo.INSCRITO)
+    data_inscricao    = models.DateTimeField(u'Data de inscrição', auto_now_add=True)
+
+    def nome_status(self):
+        return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
+
+    # Transições de estado
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.DESISTENCIA)
+    def desistir(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.REPROVADO)
+    def reprovar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.APROVADO)
+    def aprovar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.REPROVADO, StatusParticipacaoEmProcessoSeletivo.APROVADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
+    def cancelar(self, by=None):
+        pass
+
+class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
+    """Etapa realizada por participante em processo seletivo de trabalho voluntário"""
+    id             = models.AutoField(primary_key=True)
+    etapa          = models.ForeignKey(EtapaPrevistaEmProcessoSeletivo, on_delete=models.CASCADE)
+    participacao   = models.ForeignKey(ParticipacaoEmProcessoSeletivo, on_delete=models.CASCADE)
+    realizada_em   = models.DateTimeField(u'Data de realização da etapa', null=True, blank=True)
+    abriu_mensagem = models.DateTimeField(u'Data/hora de visualização da mensagem', null=True, blank=True)
+    clicou_no_link = models.DateTimeField(u'Data/hora de clique no link', null=True, blank=True)
+    link_resposta  = models.URLField(max_length=200, null=True, blank=True) # para acessar respostas de formulário
+    avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
+    anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
 

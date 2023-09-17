@@ -10,6 +10,8 @@
 * [django-tinymce](https://github.com/jazzband/django-tinymce/releases) >= 3.4.0
 * [django-allauth](https://github.com/pennersr/django-allauth/tags) >= 0.50.0
 * [django-mptt](https://github.com/django-mptt/django-mptt/tags) >= 0.13.4
+* [django-fsm](https://github.com/viewflow/django-fsm) >= 2.7.1
+* [django-fsm-log](https://github.com/gizmag/django-fsm-log) >= 2.0.1
 
 ## Configuração
 
