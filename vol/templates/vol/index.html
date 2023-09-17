@@ -28,28 +28,30 @@
     <section id="services">
         <div class="container">
             <div class="row">
-                <div class="col-sm-4 text-center padding">
+                <div class="col-sm-6 text-center padding">
                     <div class="single-service">
                         <a href="{% url 'busca_entidades' %}"><img src="{% static 'images/home/busca-peq.png' %}" alt="busca"></a>
                         <a href="{% url 'busca_entidades' %}"><h2>Busca de Entidades</h2></a>
                         <p>Procure por entidades que podem precisar de voluntários. Utilize vários critérios na busca, como cidade, bairro e área de atuação.</p>
                     </div>
                 </div>
-                <div class="col-sm-4 text-center padding">
+                <div class="col-sm-6 text-center padding">
                     <div class="single-service">
                         <a href="{% url 'lista_processos_seletivos' %}"><img src="{% static 'images/home/processos-peq.png' %}" alt="vagas"></a>
                         <a href="{% url 'lista_processos_seletivos' %}"><h2>Processos Seletivos</h2></a>
-                        <p>Veja os processos seletivos abertos e se inscreva.</p>
+                        <p>Veja os processos seletivos em aberto para vagas de trabalho voluntário e se inscreva.</p>
                     </div>
                 </div>
-                <div class="col-sm-4 text-center padding">
+            </div>
+            <div class="row">
+                <div class="col-sm-6 text-center padding">
                     <div class="single-service">
                         <a href="{% url 'mapa_entidades' %}"><img src="{% static 'images/home/gmaps-brasil-peq.png' %}" alt="mapa"></a>
                         <a href="{% url 'mapa_entidades' %}"><h2>Mapa de Entidades</h2></a>
                         <p>Veja onde se localizam as entidades cadastradas no sistema. Digite um endereço para encontrar aquelas que estão mais próximas de você.</p>
                     </div>
                 </div>
-                <div class="col-sm-4 text-center padding">
+                <div class="col-sm-6 text-center padding">
                     <div class="single-service">
                         <a href="{% url 'link_entidade_nova' %}" rel="nofollow"><img src="{% static 'images/home/cadastro-peq.png' %}" alt="cadastro"></a>
                         <a href="{% url 'link_entidade_nova' %}" rel="nofollow"><h2>Cadastro de Entidades</h2></a>
