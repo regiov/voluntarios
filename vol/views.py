@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita 
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, ProcessoSeletivo
 
 from allauth.account.models import EmailAddress
 
@@ -1944,10 +1944,10 @@ def painel(request):
     duracao = Voluntario.objects.filter(data_analise__isnull=False).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
 
     # Tempo médio
-    tempo_vol = int(duracao['avg'].total_seconds()/3600)
+    # tempo_vol = int(duracao['avg'].total_seconds()/3600)
 
     # Tempo máximo
-    tempo_vol_max = int(duracao['max'].total_seconds()/3600)
+    # tempo_vol_max = int(duracao['max'].total_seconds()/3600)
 
     # Intervalo de tempo nos últimos 7 dias para revisão de cadastros de voluntários
     current_tz = timezone.get_current_timezone()
@@ -2067,6 +2067,8 @@ def painel(request):
     except Exception as e:
         motivo = type(e).__name__ + str(e.args)
         notify_support(u'Erro na api do github', motivo, request)
+    
+    processos_para_revisao = ProcessoSeletivo.objects.filter(status=20)
 
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
@@ -2085,7 +2087,8 @@ def painel(request):
                'total_emails_descobertos': total_emails_descobertos,
                'tarefas': tarefas,
                'num_tickets': num_tickets,
-               'ultimos_commits': ultimos_commits}
+               'ultimos_commits': ultimos_commits,
+               'processos_para_revisao': processos_para_revisao }
     template = loader.get_template('vol/painel.html')
     return HttpResponse(template.render(context, request))
 
