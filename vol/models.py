@@ -1798,6 +1798,7 @@ class EtapaPrevistaEmProcessoSeletivo(models.Model):
     link              = models.URLField(max_length=200, null=True, blank=True)
     opcoes_avaliacao  = models.TextField(u'Opções de avaliação', help_text=u'Utilize intervalo numérico para notas (ex: 0-5) ou sequência de termos separados por vírgula (ex: selecionado, em dúvida, descartado).', null=True, blank=True)
     opcoes_positivas  = models.TextField(u'Opções de avaliação consideradas positivas', help_text=u'Utilize um subconjunto do foi especificado no campo anterior. Ex: 4-5 ou selecionado.', null=True, blank=True)
+    so_selecionados   = models.BooleanField(u'Aplicar apenas em candidatos selecionados', help_text=u'Aplicar etapa apenas em candidatos selecionados na etapa anterior', default=False)
 
 class StatusParticipacaoEmProcessoSeletivo(object):
     # IMPORTANTE: Os códigos aqui são usados no campo status do modelo ParticipacaoEmProcessoSeletivo, portanto podem
