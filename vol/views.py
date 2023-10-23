@@ -2628,3 +2628,20 @@ def entidades_favoritas(request):
     context = {'favoritas': favoritas }
     template = loader.get_template('vol/exibe_entidades_favoritas.html')
     return HttpResponse(template.render(context, request))
+
+def numeros(request):
+    '''Página com números do site'''
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+    um_mes = datetime.timedelta(days=31)
+    ref = now-um_mes
+    num_voluntarios = Voluntario.objects.filter(aprovado=True).count()
+    num_novos_voluntarios_por_mes = Voluntario.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    num_entidades = Entidade.objects.filter(aprovado=True).count()
+    num_novas_entidades_por_mes = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    context = {'num_voluntarios': num_voluntarios,
+               'num_novos_voluntarios_por_mes': num_novos_voluntarios_por_mes,
+               'num_entidades': num_entidades,
+               'num_novas_entidades_por_mes': num_novas_entidades_por_mes}
+    template = loader.get_template('vol/numeros.html')
+    return HttpResponse(template.render(context, request))

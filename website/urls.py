@@ -102,6 +102,8 @@ urlpatterns = [
     # (o google indexou o kml, acredita?)
     re_path(r'^entidades.kml$', views.busca_entidades),
     re_path(r'^kmls/010205/entidades.kml$', views.busca_entidades),
+
+    re_path(r'^numeros$', views.numeros, name='numeros'),
     
     # Páginas estáticas
     re_path(r'^p/', include('django.contrib.flatpages.urls')),
