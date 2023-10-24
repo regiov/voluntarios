@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 
 from notification.utils import notify_support
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL, Estado, Cidade
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL, Estado, Cidade, ProcessoSeletivo
 
 def _limpa_cpf(val, obrigatorio=False):
     if (val is None or len(val) == 0) and obrigatorio:
@@ -695,3 +695,42 @@ class FormAssinarTermoAdesaoVol(forms.Form):
             raise forms.ValidationError(
                 u'Para submeter é preciso marcar a opção de aceitação do termo no final do formulário')
         return aceitou
+
+class ProcessoSeletivoForm(forms.ModelForm):
+    class Meta:
+        model = ProcessoSeletivo
+        fields = '__all__'
+
+    MODO_TRABALHO = (
+    (1,'Presencial'),
+    (0,'Remoto'),
+    (2,'Híbrido'))
+
+    titulo = forms.CharField(label=u'Título',
+                             max_length=100,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}))
+    resumo_entidade = forms.CharField(label=u'Resumo da entidade',
+                             max_length=100,
+                             widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'cols': 30}))
+    modo_trabalho = forms.ChoiceField(label=u'Modalidade de trabalho',
+                                            choices=MODO_TRABALHO,
+                                            widget=forms.Select(attrs={'class': 'form-control'}))
+    estado_trabalho = forms.ModelChoiceField(label='Estado de trabalho', queryset=Estado.objects.all(), required=False)
+    cidade_trabalho = forms.ModelChoiceField(label='Cidade de trabalho', queryset=Cidade.objects.all(), required=False)
+    atividades = forms.CharField(label='Atividades', widget=forms.Textarea)
+    carga_horaria = forms.CharField(label='Dias e horários de execução das atividades', widget=forms.Textarea)
+    requisitos = forms.CharField(label='Requisitos', widget=forms.Textarea, required=False)
+    inicio_inscricoes = forms.DateTimeField(label=u'Início',
+                                  initial=date.today,
+                                  widget=forms.SelectDateWidget(
+                                      years=[y for y in range(date.today().year, date.today().year + 10)],
+                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+    limite_inscricoes = forms.DateTimeField(label='Limite para inscrições', initial=date.today,
+                                  widget=forms.SelectDateWidget(
+                                      years=[y for y in range(date.today().year, date.today().year + 10)],
+                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+    previsao_resultado = forms.DateTimeField(label='Data prevista para os resultados', initial=date.today,
+                                  widget=forms.SelectDateWidget(
+                                      years=[y for y in range(date.today().year, date.today().year + 10)],
+                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+

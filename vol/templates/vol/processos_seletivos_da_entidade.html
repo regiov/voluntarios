@@ -7,10 +7,12 @@
 
 <h2 class="margin-bottom">Processos seletivos da entidade</h2>
 
-{% if termos|length > 0 %}
+{% if processos|length > 0 %}
     <p>placehold para a lista de processos seletivos</p>
     {% else %}
     <p>placehold para quando a entidade nao tiver processos seletivos</p>
 {% endif %}
+
+<a href="{% url 'novo_processo_seletivo' entidade.id %}" class="btn btn-primary">Novo processo seletivo</a>
 
 {% endblock content %}

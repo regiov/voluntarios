@@ -180,7 +180,9 @@ urlpatterns = [
 
     re_path(r'^processos$', views.lista_processos_seletivos, name='lista_processos_seletivos'),
 
-    re_path(r'^entidade/(?P<id_entidade>\d+)/processos-abertos/?$', views.lista_processos_entidade, name='lista_processos_entidade')
+    re_path(r'^entidade/(?P<id_entidade>\d+)/processos-abertos/?$', views.lista_processos_entidade, name='lista_processos_entidade'),
+
+    re_path(r'^entidade/(?P<id_entidade>\d+)/processos/novo/?$', views.novo_processo_seletivo, name='novo_processo_seletivo')
 
 ]
 

@@ -74,7 +74,16 @@
 <br>
 {% endif %}
 
-<h3><a href="{{ lista_processos_entidade }}">Clique aqui e veja os processos seletivos dessa entidade</a></h3>
+
+{% if processos_abertos %}
+<h3>Processos seletivos abertos</h3>
+    {% for processo in processos_abertos %}
+        <h4>{{ processo.titulo }}</h4>
+        <p>{{ processo.atividades }}</p>
+    {% endfor %}
+{% else %}
+<h3>Não há processos seletivos abertos para esta entidade.</h3>
+{% endif %}
 
 <!-- p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p -->
 
