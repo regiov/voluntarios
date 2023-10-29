@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 
 from notification.utils import notify_support
 
-from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL, Estado, Cidade, ProcessoSeletivo
+from vol.models import AreaTrabalho, AreaAtuacaoHierarquica, Voluntario, Entidade, UFS_SIGLA, AreaInteresse, Telefone, TIPO_TEL, Email, TipoArtigo, TermoAdesao, TIPO_DOC_IDENTIF, ESTADO_CIVIL, Estado, Cidade, ProcessoSeletivo, MODO_TRABALHO
 
 def _limpa_cpf(val, obrigatorio=False):
     if (val is None or len(val) == 0) and obrigatorio:
@@ -700,11 +700,6 @@ class FormProcessoSeletivo(forms.ModelForm):
     class Meta:
         model = ProcessoSeletivo
         fields = '__all__'
-
-    MODO_TRABALHO = (
-    (1,'Presencial'),
-    (0,'Remoto'),
-    (2,'Híbrido'))
 
     titulo = forms.CharField(label=u'Título',
                              max_length=100,
