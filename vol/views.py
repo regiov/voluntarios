@@ -1944,10 +1944,10 @@ def painel(request):
     duracao = Voluntario.objects.filter(data_analise__isnull=False).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
 
     # Tempo médio
-    # tempo_vol = int(duracao['avg'].total_seconds()/3600)
+    tempo_vol = int(duracao['avg'].total_seconds()/3600)
 
     # Tempo máximo
-    # tempo_vol_max = int(duracao['max'].total_seconds()/3600)
+    tempo_vol_max = int(duracao['max'].total_seconds()/3600)
 
     # Intervalo de tempo nos últimos 7 dias para revisão de cadastros de voluntários
     current_tz = timezone.get_current_timezone()
