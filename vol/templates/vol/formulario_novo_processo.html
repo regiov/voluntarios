@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<h1 class="margin-bottom">Novo(s) processo(s) seletivo(s)</h1>
+<h1 class="margin-bottom">Novo processo seletivo</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -15,14 +15,14 @@
 <hr>
 <form id="form-processo-seletivo" method="post">
     {% csrf_token %}
-    {% include "vol/campo_formulario.html" with campo=form.titulo required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.resumo_entidade required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=False div_class="combo-data" %} 
-    {% include "vol/campo_formulario.html" with campo=form.estado_trabalho required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.cidade_trabalho required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.atividades required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=False div_class="combo-data" %}
-    {% include "vol/campo_formulario.html" with campo=form.requisitos required=False div_class="combo-data" %}
+    {% include "vol/campo_formulario.html" with campo=form.titulo required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.resumo_entidade required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
+    {% include "vol/campo_formulario.html" with campo=form.estado_trabalho required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.cidade_trabalho required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}
     {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
