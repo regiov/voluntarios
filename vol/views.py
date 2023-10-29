@@ -38,7 +38,7 @@ from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEnti
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, ProcessoSeletivoForm
+from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
@@ -2684,7 +2684,7 @@ def novo_processo_seletivo(request, id_entidade):
 
     if request.method == 'POST':
 
-        form = ProcessoSeletivoForm(request.POST)
+        form = FormProcessoSeletivo(request.POST)
         
         form.initial['entidade'] = entidade
         form.initial['cadastrado_por'] = request.user
@@ -2712,7 +2712,7 @@ def novo_processo_seletivo(request, id_entidade):
             return redirect(reverse('lista_processos_entidade'))
     else:
         
-        form = ProcessoSeletivoForm()
+        form = FormProcessoSeletivo()
 
     context = { 'form' : form,
                 'entidade': entidade }

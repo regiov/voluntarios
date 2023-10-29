@@ -696,7 +696,7 @@ class FormAssinarTermoAdesaoVol(forms.Form):
                 u'Para submeter é preciso marcar a opção de aceitação do termo no final do formulário')
         return aceitou
 
-class ProcessoSeletivoForm(forms.ModelForm):
+class FormProcessoSeletivo(forms.ModelForm):
     class Meta:
         model = ProcessoSeletivo
         fields = '__all__'
