@@ -38,7 +38,7 @@ from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEnti
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding
+from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, ProcessoSeletivoForm
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
@@ -2670,4 +2670,52 @@ def lista_processos_entidade(request, id_entidade):
     processos = ["placehold"]
     context = { 'processos' : processos }
     template = loader.get_template('vol/lista_processos_entidade.html')
+    return HttpResponse(template.render(context,request))
+
+@login_required
+@transaction.atomic
+def novo_processo_seletivo(request, id_entidade):
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+
+        form = ProcessoSeletivoForm(request.POST)
+        
+        form.initial['entidade'] = entidade
+        form.initial['cadastrado_por'] = request.user
+        form.initial['status'] = 20
+        
+        if form.is_valid():
+            
+            form.entidade = entidade
+            form.cadastrado_por = request.user
+            form.status = 20
+
+            processo_seletivo = ProcessoSeletivo(titulo=form.titulo,
+                             nome_entidade=form.razao_social,
+                             resumo_entidade=form.resumo_entidade,
+                             modo_trabalho=form.modo_trabalho,
+                             estado_trabalho=form.estado_trabalho,
+                             cidade_trabalho=form.cidade_trabalho,
+                             atividades=form.atividades,
+                             carga_horaria=form.carga_horaria,
+                             requisitos=form.requisitos,
+                             inicio_inscricoes=form.inicio_inscricoes,
+                             limite_inscricoes=form.limite_inscricoes,
+                             previsao_resultado=form.previsao_resultado)
+            processo_seletivo.save()
+            return redirect(reverse('lista_processos_entidade'))
+    else:
+        
+        form = ProcessoSeletivoForm()
+
+    context = { 'form' : form,
+                'entidade': entidade }
+    template = loader.get_template('vol/formulario_novo_processo.html')
+    
     return HttpResponse(template.render(context,request))
