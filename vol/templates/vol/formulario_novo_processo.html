@@ -3,6 +3,31 @@
 
 {% block title %}Novo processo seletivo{% endblock title %}
 
+{% block head %}
+<script type="text/javascript">
+
+  // Controle de exibição de estado/cidade
+    function controla_exibicao_de_local() {
+        if ($("#id_modo_trabalho").val() !== "0") {
+            $("#estado").show();
+            $("#cidade").show();
+            return false;
+        } 
+        else {
+            $("#estado").hide();
+            $("#cidade").hide();
+        }
+    }
+
+    $(document).ready(function () {
+        $("#id_modo_trabalho").change(function() {
+            controla_exibicao_de_local();
+        });
+    });
+
+</script>
+{% endblock head %}
+
 {% block content %}
 
 <h1 class="margin-bottom">Novo processo seletivo</h1>
@@ -18,8 +43,8 @@
     {% include "vol/campo_formulario.html" with campo=form.titulo required=True %}
     {% include "vol/campo_formulario.html" with campo=form.resumo_entidade required=False %}
     {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
-    {% include "vol/campo_formulario.html" with campo=form.estado_trabalho required=False %}
-    {% include "vol/campo_formulario.html" with campo=form.cidade_trabalho required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.estado_trabalho required=False div_id="estado" invisible=form.instance.esconder_local_de_trabalho %}
+    {% include "vol/campo_formulario.html" with campo=form.cidade_trabalho required=False div_id="cidade" invisible=form.instance.esconder_local_de_trabalho %}
     {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
     {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
     {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}

@@ -1720,6 +1720,10 @@ class ProcessoSeletivo(models.Model):
         # Dentro do prazo estipulado
         return True
 
+    def esconder_local_de_trabalho(self):
+        '''Indica se os campos estado e cidade devem ser escondidos no formulário'''
+        return self.modo_trabalho != 0
+
     # Transições de estado
 
     @fsm_log_by
