@@ -707,8 +707,8 @@ class FormProcessoSeletivo(forms.ModelForm):
     resumo_entidade = forms.CharField(label=u'Resumo sobre a entidade',
                                       max_length=100,
                                       widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
-    modo_trabalho = forms.ChoiceField(label=u'Modalidade de trabalho',
-                                      choices=MODO_TRABALHO,
+    modo_trabalho = forms.ChoiceField(label=u'Modo de trabalho',
+                                      choices=[('', u'-- Escolha uma opção --')] + list(MODO_TRABALHO),
                                       widget=forms.Select(attrs={'class': 'form-control'}))
     estado_trabalho = forms.ModelChoiceField(label='Estado onde será realizado o trabalho',
                                              queryset=Estado.objects.all(),
