@@ -1139,10 +1139,11 @@ def termo_de_adesao(request, slug_termo):
         raise Http404
 
     if termo.data_aceitacao_vol is None:
-        if termo.email_voluntario == request.user.email:
+        # Caso o termo ainda não tenha sido aceito
+        if request.user.is_authenticated and termo.email_voluntario == request.user.email:
             link_assinatura = termo.link_assinatura_vol(request, absolute=False)
             return redirect(link_assinatura)
-        return mensagem(request, u'Este termo ainda não foi aceito. Utilize o link fornecido por e-mail para acessá-lo.')
+        return mensagem(request, u'Este termo ainda não foi aceito. Se ele estiver relacionado a você, utilize o link fornecido por e-mail para poder acessá-lo.')
 
     contexto = request.GET.get('contexto')
 
@@ -1152,7 +1153,7 @@ def termo_de_adesao(request, slug_termo):
         exibir_no_contexto_do_voluntario = True
     elif contexto == 'entidade':
         # Exibe o termo no contexto da entidade somente se o usuário estiver vinculado à entidade
-        if termo.entidade.id in request.user.entidades().values_list('pk', flat=True):
+        if request.user.is_authenticated and termo.entidade.id in request.user.entidades().values_list('pk', flat=True):
             exibir_no_contexto_do_voluntario = False
             entidade = termo.entidade
 
@@ -2631,6 +2632,23 @@ def entidades_favoritas(request):
     template = loader.get_template('vol/exibe_entidades_favoritas.html')
     return HttpResponse(template.render(context, request))
 
+def numeros(request):
+    '''Página com números do site'''
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+    um_mes = datetime.timedelta(days=31)
+    ref = now-um_mes
+    num_voluntarios = Voluntario.objects.filter(aprovado=True).count()
+    num_novos_voluntarios_por_mes = Voluntario.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    num_entidades = Entidade.objects.filter(aprovado=True).count()
+    num_novas_entidades_por_mes = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    context = {'num_voluntarios': num_voluntarios,
+               'num_novos_voluntarios_por_mes': num_novos_voluntarios_por_mes,
+               'num_entidades': num_entidades,
+               'num_novas_entidades_por_mes': num_novas_entidades_por_mes}
+    template = loader.get_template('vol/numeros.html')
+    return HttpResponse(template.render(context, request))
+
 @login_required
 def processos_seletivos_entidade(request, id_entidade):
     try:
@@ -2719,3 +2737,4 @@ def novo_processo_seletivo(request, id_entidade):
     template = loader.get_template('vol/formulario_novo_processo.html')
     
     return HttpResponse(template.render(context,request))
+
