@@ -170,8 +170,19 @@
 <p class="help-block dica">(*) campos obrigatórios</p>
 </form>
 
+{% endblock content %}
+
+{% block post_footer %}
+
+<script type="text/javascript" src="{% if debug %}{% static 'js/vol-combo-estado-cidade-1.0.debug.js' %}{% else %}{% static 'js/vol-combo-estado-cidade-1.0.min.js' %}{% endif %}"></script>
+
 <script type="text/javascript">
 
+    // Parâmetros: url que retorna cidades de um estado,
+    //             necesidade de inclusão de opção vazia no combo estado,
+    //             cidade default
+    init_combos_estado_cidade('{% url 'retorna_cidades' %}', {% if form.instance.id and not form.instance.estado %}true{% else %}false{% endif %}, '{% if form.instance.cidade %}{{ form.instance.cidade }}{% endif %}');
+  
     {% comment %}Simula "input radio" com checkbox dos e-mails.{% endcomment %}
     $("input.input-principal").click(function() {
         var selected_id = $(this).attr('id');
@@ -186,48 +197,6 @@
     evitando problemas com o duplo clique{% endcomment %}
     $("#form-entidade").one("submit", function() {
         $("#save").prop("disabled", true);
-    });
-
-    function carrega_cidades(cidade_default) {
-        $('#id_cidade_loader').show();
-        const url = "{% url 'retorna_cidades' %}";
-        const estado = $('#id_estado option:selected').val();
-        var cidades = $("#id_cidade");
-        cidades.empty();
-        if (estado.length > 0) {
-            $.ajax({
-              url: url,     
-              data: {
-                'estado': estado   
-              },
-              success: function (response) {
-                cidades.append('<option value=""></option>');
-                for (var i = 0; i < response.length; i++) {
-                    var cidade = response[i];
-                    var selected = (cidade_default === cidade.nome) ? ' selected=""' : '';
-                    cidades.append('<option value="' + cidade.nome + '"' + selected + '>' + cidade.nome + '</option>');
-                }
-                $('#id_cidade_loader').hide();
-              },
-              error: function (response) {
-                $('#id_cidade_loader').hide();
-              }
-            });
-        }
-    }
-
-    {% comment %}Acrescenta opção vazia no combo estado caso não haja nenhuma{% endcomment %}
-    {% if form.instance.id and not form.instance.estado %}
-    $("#id_estado").prepend('<option value="" selected=""></option>');
-    {% endif %}
-
-    // Inicialização do combo cidades
-    if ($('#id_estado option:selected').val() !== '') {
-        carrega_cidades('{% if form.instance.cidade %}{{ form.instance.cidade }}{% endif %}');
-    }
-
-    $("#id_estado").change(function () {
-        carrega_cidades();
     });
 
     {% comment %}Função que retorna os dados de um endereço a partir do CEP.
@@ -259,7 +228,7 @@
                     document.getElementById('id_bairro').value = data.bairro;
                 }
                 document.getElementById('id_estado').value = data.uf;
-                carrega_cidades(data.localidade);
+                carrega_cidades('{% url 'retorna_cidades' %}', data.localidade);
             })
             .catch(erro => console.log(erro))
     }
@@ -269,4 +238,4 @@
 
 </script>
 
-{% endblock content %}
+{% endblock post_footer %}
