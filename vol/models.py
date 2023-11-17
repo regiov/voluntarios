@@ -1676,8 +1676,8 @@ class ProcessoSeletivo(models.Model):
     # para modos de trabalho presencial/híbrido, pegar estado/cidade da entidade porém permitindo editar,
     # pois nada impede que uma entidade sediada num local queira voluntários para trabalhar num projeto
     # em outro local
-    estado_trabalho    = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
-    cidade_trabalho    = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
+    estado             = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
+    cidade             = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
     # melhor ter isso em campo próprio, assim pode ser mais facilmente reutilizado em futuro termo de adesão
     atividades         = models.TextField(u'Atividades') # atividades a serem desenvolvidas
     carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')

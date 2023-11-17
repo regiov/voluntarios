@@ -710,14 +710,14 @@ class FormProcessoSeletivo(forms.ModelForm):
     modo_trabalho = forms.ChoiceField(label=u'Modo de trabalho',
                                       choices=[('', u'-- Escolha uma opção --')] + list(MODO_TRABALHO),
                                       widget=forms.Select(attrs={'class': 'form-control'}))
-    estado_trabalho = forms.ModelChoiceField(label='Estado onde será realizado o trabalho',
-                                             queryset=Estado.objects.all(),
-                                             widget=forms.Select(attrs={'class': 'form-control'}),
-                                             required=False)
-    cidade_trabalho = forms.ModelChoiceField(label='Cidade',
-                                             queryset=Cidade.objects.all(),
-                                             widget=forms.Select(attrs={'class': 'form-control'}),
-                                             required=False)
+    estado = forms.ChoiceField(label=u'Estado',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')],
+                               required=False)
+    cidade = forms.ChoiceField(label=u'Cidade',
+                               widget=forms.Select(attrs={'class': 'form-control'}),
+                               choices=[], # definido via init para validação. No form é carregado via ajax.
+                               required=False)
     atividades = forms.CharField(label='Atividades a serem realizadas',
                                  widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
     requisitos = forms.CharField(label='Pré-requisitos',
@@ -738,4 +738,19 @@ class FormProcessoSeletivo(forms.ModelForm):
                                   widget=forms.SelectDateWidget(
                                       years=[y for y in range(date.today().year, date.today().year + 10)],
                                       empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+
+        super(FormProcessoSeletivo, self).__init__(*args, **kwargs)
+
+        estado = self.data.get('estado')
+        if estado is None and self.instance:
+            estado = self.instance.estado
+
+        if estado:
+            # Atualiza opções válidas de cidades de acordo com o estado
+            cidades = Cidade.objects.filter(uf=estado).order_by('nome')
+            self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
+                                                      widget=forms.Select(attrs={'class': 'form-control'}),
+                                                      choices=[(c.nome, c.nome) for c in cidades])
 
