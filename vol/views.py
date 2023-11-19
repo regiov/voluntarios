@@ -38,7 +38,7 @@ from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEnti
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, ProcessoSeletivoForm
+from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
@@ -1139,10 +1139,11 @@ def termo_de_adesao(request, slug_termo):
         raise Http404
 
     if termo.data_aceitacao_vol is None:
-        if termo.email_voluntario == request.user.email:
+        # Caso o termo ainda não tenha sido aceito
+        if request.user.is_authenticated and termo.email_voluntario == request.user.email:
             link_assinatura = termo.link_assinatura_vol(request, absolute=False)
             return redirect(link_assinatura)
-        return mensagem(request, u'Este termo ainda não foi aceito. Utilize o link fornecido por e-mail para acessá-lo.')
+        return mensagem(request, u'Este termo ainda não foi aceito. Se ele estiver relacionado a você, utilize o link fornecido por e-mail para poder acessá-lo.')
 
     contexto = request.GET.get('contexto')
 
@@ -1152,7 +1153,7 @@ def termo_de_adesao(request, slug_termo):
         exibir_no_contexto_do_voluntario = True
     elif contexto == 'entidade':
         # Exibe o termo no contexto da entidade somente se o usuário estiver vinculado à entidade
-        if termo.entidade.id in request.user.entidades().values_list('pk', flat=True):
+        if request.user.is_authenticated and termo.entidade.id in request.user.entidades().values_list('pk', flat=True):
             exibir_no_contexto_do_voluntario = False
             entidade = termo.entidade
 
@@ -1944,10 +1945,10 @@ def painel(request):
     duracao = Voluntario.objects.filter(data_analise__isnull=False).aggregate(avg=Avg(F('data_analise') - F('data_cadastro')), max=Max(F('data_analise') - F('data_cadastro')))
 
     # Tempo médio
-    # tempo_vol = int(duracao['avg'].total_seconds()/3600)
+    tempo_vol = int(duracao['avg'].total_seconds()/3600)
 
     # Tempo máximo
-    # tempo_vol_max = int(duracao['max'].total_seconds()/3600)
+    tempo_vol_max = int(duracao['max'].total_seconds()/3600)
 
     # Intervalo de tempo nos últimos 7 dias para revisão de cadastros de voluntários
     current_tz = timezone.get_current_timezone()
@@ -2631,6 +2632,23 @@ def entidades_favoritas(request):
     template = loader.get_template('vol/exibe_entidades_favoritas.html')
     return HttpResponse(template.render(context, request))
 
+def numeros(request):
+    '''Página com números do site'''
+    current_tz = timezone.get_current_timezone()
+    now = timezone.now().astimezone(current_tz)
+    um_mes = datetime.timedelta(days=31)
+    ref = now-um_mes
+    num_voluntarios = Voluntario.objects.filter(aprovado=True).count()
+    num_novos_voluntarios_por_mes = Voluntario.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    num_entidades = Entidade.objects.filter(aprovado=True).count()
+    num_novas_entidades_por_mes = Entidade.objects.filter(aprovado=True, data_cadastro__gt=ref).count()
+    context = {'num_voluntarios': num_voluntarios,
+               'num_novos_voluntarios_por_mes': num_novos_voluntarios_por_mes,
+               'num_entidades': num_entidades,
+               'num_novas_entidades_por_mes': num_novas_entidades_por_mes}
+    template = loader.get_template('vol/numeros.html')
+    return HttpResponse(template.render(context, request))
+
 @login_required
 def processos_seletivos_entidade(request, id_entidade):
     try:
@@ -2687,7 +2705,7 @@ def novo_processo_seletivo(request, id_entidade):
 
     if request.method == 'POST':
 
-        form = ProcessoSeletivoForm(request.POST)
+        form = FormProcessoSeletivo(request.POST)
         
         form.initial['entidade'] = entidade
         form.initial['cadastrado_por'] = request.user
@@ -2703,8 +2721,8 @@ def novo_processo_seletivo(request, id_entidade):
                              nome_entidade=form.razao_social,
                              resumo_entidade=form.resumo_entidade,
                              modo_trabalho=form.modo_trabalho,
-                             estado_trabalho=form.estado_trabalho,
-                             cidade_trabalho=form.cidade_trabalho,
+                             estado=form.estado,
+                             cidade=form.cidade,
                              atividades=form.atividades,
                              carga_horaria=form.carga_horaria,
                              requisitos=form.requisitos,
@@ -2715,10 +2733,11 @@ def novo_processo_seletivo(request, id_entidade):
             return redirect(reverse('lista_processos_entidade'))
     else:
         
-        form = ProcessoSeletivoForm()
+        form = FormProcessoSeletivo()
 
     context = { 'form' : form,
                 'entidade': entidade }
     template = loader.get_template('vol/formulario_novo_processo.html')
     
     return HttpResponse(template.render(context,request))
+

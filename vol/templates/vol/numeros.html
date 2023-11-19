@@ -1,0 +1,89 @@
+{% extends "vol/base.html" %}
+
+{% block head %}
+<title>Números</title>
+
+<style type='text/css'>
+
+.counter-box {
+    display: block;
+    background: #f6f6f6;
+    padding: 40px 20px 37px;
+    text-align: center
+}
+
+.counter-box p {
+    margin: 5px 0 0;
+    padding: 0;
+    color: #909090;
+    font-size: 18px;
+    font-weight: 500
+}
+
+.counter-box i {
+    font-size: 60px;
+    margin: 0 0 15px;
+    color: #d2d2d2
+}
+
+.counter { 
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #666;
+    line-height: 28px
+}
+
+h4 {
+    color: #909090;
+    font-weight: 500
+}
+</style>
+
+{% endblock head %}
+
+{% block content %}
+
+<h1 class="text-center margin-bottom">Números do site</h1>
+
+<div class="col-md-6">
+  <div class="counter-box">
+    <i class="fas fa-users"></i>
+      <span class="counter">{{ num_voluntarios }}</span>
+      <p>Voluntários</p>
+  </div>
+  <h4 class="text-center">{{ num_novos_voluntarios_por_mes }} novos cadastros em 30 dias</h4>
+</div>
+<div class="col-md-6">
+  <div class="counter-box">
+    <i class="fas fa-university"></i>
+      <span class="counter">{{ num_entidades }}</span>
+      <p>Entidades</p>
+  </div>
+  <h4 class="text-center">{{ num_novas_entidades_por_mes }} novos cadastros em 30 dias</h4>
+</div>
+
+{% endblock content %}
+
+
+{% block post_footer %}
+
+<script id="js" type="text/javascript">
+
+$(document).ready(function() {
+
+    $('.counter').each(function () {
+        $(this).prop('Counter',0).animate({
+            Counter: $(this).text()
+        }, {
+            duration: 1000,
+            easing: 'swing',
+            step: function (now) {
+                $(this).text(parseInt(Math.ceil(now)).toLocaleString('pt-BR')) ;
+            }
+        });
+    });
+});
+</script>
+
+{% endblock post_footer %}

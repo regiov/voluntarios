@@ -351,6 +351,10 @@ class Voluntario(models.Model):
         return TermoAdesao.objects.filter(voluntario=self).count() > 0
 
     def normalizar(self):
+        # Remove prefixo internacional do Brasil
+        # obs: o que fazer com voluntários com telefone do exterior?
+        if self.ddd and self.ddd == '+55':
+            self.ddd = ''
         telefone = self.telefone
         if telefone:
             par = telefone.find(')')
@@ -366,10 +370,6 @@ class Voluntario(models.Model):
             if len(self.ddd) > 2 and self.ddd[0] == '0':
                 # Remove eventual zero inicial
                 self.ddd = self.ddd.replace('0', '')
-            if self.ddd == '+55' and self.telefone and len(self.telefone) > 2 and self.telefone[0] != '9':
-                # Remove prefixo internacional e tenta extrair prefixo do telefone
-                self.ddd = self.telefone[:2]
-                self.telefone = self.telefone[2:]
                 
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
@@ -1676,8 +1676,8 @@ class ProcessoSeletivo(models.Model):
     # para modos de trabalho presencial/híbrido, pegar estado/cidade da entidade porém permitindo editar,
     # pois nada impede que uma entidade sediada num local queira voluntários para trabalhar num projeto
     # em outro local
-    estado_trabalho    = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
-    cidade_trabalho    = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
+    estado             = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
+    cidade             = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
     # melhor ter isso em campo próprio, assim pode ser mais facilmente reutilizado em futuro termo de adesão
     atividades         = models.TextField(u'Atividades') # atividades a serem desenvolvidas
     carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')
@@ -1719,6 +1719,10 @@ class ProcessoSeletivo(models.Model):
 
         # Dentro do prazo estipulado
         return True
+
+    def esconder_local_de_trabalho(self):
+        '''Indica se os campos estado e cidade devem ser escondidos no formulário'''
+        return self.modo_trabalho != 0
 
     # Transições de estado
 
@@ -1798,6 +1802,7 @@ class EtapaPrevistaEmProcessoSeletivo(models.Model):
     link              = models.URLField(max_length=200, null=True, blank=True)
     opcoes_avaliacao  = models.TextField(u'Opções de avaliação', help_text=u'Utilize intervalo numérico para notas (ex: 0-5) ou sequência de termos separados por vírgula (ex: selecionado, em dúvida, descartado).', null=True, blank=True)
     opcoes_positivas  = models.TextField(u'Opções de avaliação consideradas positivas', help_text=u'Utilize um subconjunto do foi especificado no campo anterior. Ex: 4-5 ou selecionado.', null=True, blank=True)
+    so_selecionados   = models.BooleanField(u'Aplicar apenas em candidatos selecionados', help_text=u'Aplicar etapa apenas em candidatos selecionados na etapa anterior', default=False)
 
 class StatusParticipacaoEmProcessoSeletivo(object):
     # IMPORTANTE: Os códigos aqui são usados no campo status do modelo ParticipacaoEmProcessoSeletivo, portanto podem
