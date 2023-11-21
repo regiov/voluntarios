@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, ProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo
 
 from allauth.account.models import EmailAddress
 
@@ -2706,26 +2706,26 @@ def novo_processo_seletivo(request, id_entidade):
         
         form.initial['entidade'] = entidade
         form.initial['cadastrado_por'] = request.user
-        form.initial['status'] = 20
+        form.initial['status'] = StatusProcessoSeletivo.AGUARDANDO_APROVACAO
         
         if form.is_valid():
             
             form.entidade = entidade
             form.cadastrado_por = request.user
-            form.status = 20
+            form.status = StatusProcessoSeletivo.AGUARDANDO_APROVACAO
 
             processo_seletivo = ProcessoSeletivo(titulo=form.titulo,
-                             nome_entidade=form.razao_social,
-                             resumo_entidade=form.resumo_entidade,
-                             modo_trabalho=form.modo_trabalho,
-                             estado=form.estado,
-                             cidade=form.cidade,
-                             atividades=form.atividades,
-                             carga_horaria=form.carga_horaria,
-                             requisitos=form.requisitos,
-                             inicio_inscricoes=form.inicio_inscricoes,
-                             limite_inscricoes=form.limite_inscricoes,
-                             previsao_resultado=form.previsao_resultado)
+                                                 nome_entidade=form.razao_social,
+                                                 resumo_entidade=form.resumo_entidade,
+                                                 modo_trabalho=form.modo_trabalho,
+                                                 estado=form.estado,
+                                                 cidade=form.cidade,
+                                                 atividades=form.atividades,
+                                                 carga_horaria=form.carga_horaria,
+                                                 requisitos=form.requisitos,
+                                                 inicio_inscricoes=form.inicio_inscricoes,
+                                                 limite_inscricoes=form.limite_inscricoes,
+                                                 previsao_resultado=form.previsao_resultado)
             processo_seletivo.save()
             return redirect(reverse('lista_processos_entidade'))
     else:
