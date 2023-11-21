@@ -725,7 +725,7 @@ class FormProcessoSeletivo(forms.ModelForm):
                                  required=False)
     carga_horaria = forms.CharField(label='Dias e horários de execução das atividades',
                                     widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'cols': 30}))
-    inicio_inscricoes = forms.DateTimeField(label=u'Início',
+    inicio_inscricoes = forms.DateTimeField(label=u'Início das inscrições',
                                   initial=date.today,
                                   widget=forms.SelectDateWidget(
                                       years=[y for y in range(date.today().year, date.today().year + 10)],
@@ -753,4 +753,25 @@ class FormProcessoSeletivo(forms.ModelForm):
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                                       choices=[(c.nome, c.nome) for c in cidades])
+
+    def clean_estado(self):
+        '''Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado'''
+        val = self.cleaned_data['estado']
+        if isinstance(val, str):
+            try:
+                val = Estado.objects.get(sigla=val)
+            except Estado.DoesNotExist:
+                raise forms.ValidationError(u'Escolha um estado da lista')
+        return val
+
+    def clean_cidade(self):
+        '''Como o campo cidade não é um ModelChoiceField, transforma o nome da cidade numa instância de Cidade'''
+        val = self.cleaned_data['cidade']
+        estado = self.clean_estado()
+        if isinstance(val, str):
+            try:
+                val = Cidade.objects.get(uf=estado, nome=val)
+            except Cidade.DoesNotExist:
+                raise forms.ValidationError(u'Escolha uma cidade da lista')
+        return val
 
