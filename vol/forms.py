@@ -697,9 +697,12 @@ class FormAssinarTermoAdesaoVol(forms.Form):
         return aceitou
 
 class FormProcessoSeletivo(forms.ModelForm):
+
     class Meta:
         model = ProcessoSeletivo
-        fields = '__all__'
+        fields = ('titulo', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade',
+                  'atividades', 'requisitos', 'carga_horaria', 'inicio_inscricoes',
+                  'limite_inscricoes', 'previsao_resultado',)
 
     titulo = forms.CharField(label=u'Título da vaga',
                              max_length=100,

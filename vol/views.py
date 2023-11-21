@@ -2704,30 +2704,24 @@ def novo_processo_seletivo(request, id_entidade):
 
         form = FormProcessoSeletivo(request.POST)
         
-        form.initial['entidade'] = entidade
-        form.initial['cadastrado_por'] = request.user
-        form.initial['status'] = StatusProcessoSeletivo.AGUARDANDO_APROVACAO
-        
         if form.is_valid():
             
-            form.entidade = entidade
-            form.cadastrado_por = request.user
-            form.status = StatusProcessoSeletivo.AGUARDANDO_APROVACAO
-
-            processo_seletivo = ProcessoSeletivo(titulo=form.titulo,
-                                                 nome_entidade=form.razao_social,
-                                                 resumo_entidade=form.resumo_entidade,
-                                                 modo_trabalho=form.modo_trabalho,
-                                                 estado=form.estado,
-                                                 cidade=form.cidade,
-                                                 atividades=form.atividades,
-                                                 carga_horaria=form.carga_horaria,
-                                                 requisitos=form.requisitos,
-                                                 inicio_inscricoes=form.inicio_inscricoes,
-                                                 limite_inscricoes=form.limite_inscricoes,
-                                                 previsao_resultado=form.previsao_resultado)
+            processo_seletivo = ProcessoSeletivo(entidade=entidade,
+                                                 cadastrado_por=request.user,
+                                                 status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO,
+                                                 titulo=form.cleaned_data['titulo'],
+                                                 resumo_entidade=form.cleaned_data['resumo_entidade'],
+                                                 modo_trabalho=form.cleaned_data['modo_trabalho'],
+                                                 estado=form.cleaned_data['estado'],
+                                                 cidade=form.cleaned_data['cidade'],
+                                                 atividades=form.cleaned_data['atividades'],
+                                                 carga_horaria=form.cleaned_data['carga_horaria'],
+                                                 requisitos=form.cleaned_data['requisitos'],
+                                                 inicio_inscricoes=form.cleaned_data['inicio_inscricoes'],
+                                                 limite_inscricoes=form.cleaned_data['limite_inscricoes'],
+                                                 previsao_resultado=form.cleaned_data['previsao_resultado'])
             processo_seletivo.save()
-            return redirect(reverse('lista_processos_entidade'))
+            return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
     else:
         
         form = FormProcessoSeletivo()
