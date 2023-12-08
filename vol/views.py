@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError, SuspiciousOperation, Permiss
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import mail
 from django.core.validators import URLValidator
+from django.core.signing import SignatureExpired
 from django.db import transaction
 from django.db.models import Q, F, Count, Avg, Max, Min
 from django.db.models.functions import TruncMonth, TruncWeek
@@ -1189,7 +1190,11 @@ def assinatura_vol_termo_de_adesao(request):
         if 'h' not in request.POST:
             return HttpResponseBadRequest('Ausência do parâmetro h')
         hmac_key = request.POST['h']
-    termo = TermoAdesao.objects.from_hmac_key(hmac_key)
+    try:
+        termo = TermoAdesao.objects.from_hmac_key(hmac_key)
+    except SignatureExpired:
+        messages.error(request, u'O prazo para confirmar este termo de adesão expirou. Favor solicitar a emissão de novo termo junto à entidade emissora.')
+        return mensagem(request, u'Assinatura de termo de adesão')
     if termo is None:
         messages.error(request, u'Não foi possível localizar este termo de adesão. Certifique-se de ter usado corretamente o link fornecido na mensagem. Na dúvida, copie o link manualmente e cole no campo de endereço do seu navegador. Caso você tenha recebido a notificação há muito tempo, pode ser também que a entidade tenha cancelado o termo de adesão, portanto também vale a pena confirmar com a entidade se o termo continua disponível, ou se é necessário emitir um novo termo. Se precisar de ajuda, entre em contato conosco.')
         return mensagem(request, u'Assinatura de termo de adesão')
