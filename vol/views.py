@@ -2659,7 +2659,10 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    context = {'entidade': entidade}
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade)
+
+    context = {'entidade': entidade,
+               'processos': processos}
     template = loader.get_template('vol/processos_seletivos_da_entidade.html')
     return HttpResponse(template.render(context, request))
 

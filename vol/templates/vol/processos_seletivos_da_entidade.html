@@ -8,9 +8,17 @@
 <h2 class="margin-bottom">Gerenciamento de processos seletivos</h2>
 
 {% if processos|length > 0 %}
-    <p>placehold para a lista de processos seletivos</p>
+        {% for processo in processos %}
+        <div class="card" style="width: 25rem;">
+            <div class="card-body" style="border: 1px solid rgba(0,0,0,.125)">
+              <h4 class="card-title"><a href="{{ processo }}">{{ processo.titulo }}</a></h4>
+              <h5 class="card-subtitle mb-2">Iniciado em : <br> {{ processo.inicio_inscricoes }}</h5>
+              <h5 class="card-subtitle mb-2">Limite das inscrições : <br> {{ processo.limite_inscricoes }}</h5>
+            </div>
+          </div>
+        {% endfor %}
     {% else %}
-    <p>Nenhum processos seletivo cadastrado</p>
+    <h4>Essa entidade não possui processos seletivos cadastrados.</h4>
 {% endif %}
 
 <a href="{% url 'novo_processo_seletivo' entidade.id %}" class="btn btn-primary">Novo processo seletivo</a>
