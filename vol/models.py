@@ -1720,9 +1720,17 @@ class ProcessoSeletivo(models.Model):
         # Dentro do prazo estipulado
         return True
 
-    def esconder_local_de_trabalho(self):
+    def trabalho_remoto(self):
         '''Indica se os campos estado e cidade devem ser escondidos no formulário'''
-        return self.modo_trabalho != 0
+        return self.modo_trabalho == 0
+
+    def editavel(self):
+        '''Indica se o processo ainda pode ser editado'''
+        return self.status in (StatusProcessoSeletivo.EM_ELABORACAO, StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
+
+    def em_elaboracao(self):
+        '''Indica se o processo está em elaboração'''
+        return self.status == StatusProcessoSeletivo.EM_ELABORACAO
 
     # Transições de estado
 

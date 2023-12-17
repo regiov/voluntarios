@@ -720,7 +720,8 @@ class FormProcessoSeletivo(forms.ModelForm):
     cidade = forms.ChoiceField(label=u'Cidade',
                                widget=forms.Select(attrs={'class': 'form-control'}),
                                choices=[], # definido via init para validação. No form é carregado via ajax.
-                               required=False)
+                               required=False,
+                               initial='')
     atividades = forms.CharField(label='Atividades a serem realizadas',
                                  widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
     requisitos = forms.CharField(label='Pré-requisitos',
@@ -755,7 +756,13 @@ class FormProcessoSeletivo(forms.ModelForm):
             cidades = Cidade.objects.filter(uf=estado).order_by('nome')
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
-                                                      choices=[(c.nome, c.nome) for c in cidades])
+                                                      choices=[(c.nome, c.nome) for c in cidades],
+                                                      initial='')
+
+        # Exibe campos desabilitados a depender do status
+        if self.instance and not self.instance.editavel():
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
 
     def clean_estado(self):
         '''Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado'''

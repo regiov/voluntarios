@@ -2659,7 +2659,7 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade)
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscritos=Count('participacaoemprocessoseletivo'))
 
     context = {'entidade': entidade,
                'processos': processos}
@@ -2708,10 +2708,15 @@ def novo_processo_seletivo(request, id_entidade):
         form = FormProcessoSeletivo(request.POST)
         
         if form.is_valid():
+
+            status = StatusProcessoSeletivo.EM_ELABORACAO
+
+            if 'solicitar_aprovacao' in request.POST:
+                status = StatusProcessoSeletivo.AGUARDANDO_APROVACAO
             
             processo_seletivo = ProcessoSeletivo(entidade=entidade,
                                                  cadastrado_por=request.user,
-                                                 status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO,
+                                                 status=status,
                                                  titulo=form.cleaned_data['titulo'],
                                                  resumo_entidade=form.cleaned_data['resumo_entidade'],
                                                  modo_trabalho=form.cleaned_data['modo_trabalho'],
@@ -2726,12 +2731,49 @@ def novo_processo_seletivo(request, id_entidade):
             processo_seletivo.save()
             return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
     else:
-        
-        form = FormProcessoSeletivo()
 
-    context = { 'form' : form,
-                'entidade': entidade }
-    template = loader.get_template('vol/formulario_novo_processo.html')
+        # Copia alguns dados do último processo cadastrado para agilizar
+        initial = {}
+        ultimo_processo = ProcessoSeletivo.objects.all().last()
+        if ultimo_processo is not None:
+            initial['resumo_entidade'] = ultimo_processo.resumo_entidade
+            initial['modo_trabalho'] = ultimo_processo.modo_trabalho
+            initial['estado'] = ultimo_processo.estado
+            initial['cidade'] = ultimo_processo.cidade
+        
+        form = FormProcessoSeletivo(initial=initial)
+
+    context = {'form': form,
+               'entidade': entidade}
+    template = loader.get_template('vol/formulario_processo_seletivo.html')
     
     return HttpResponse(template.render(context,request))
 
+@login_required
+@transaction.atomic
+def editar_processo_seletivo(request, id_entidade, codigo_processo):
+    try:
+        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+    if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+
+        form = FormProcessoSeletivo(request.POST, instance=processo)
+        
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
+    else:
+        
+        form = FormProcessoSeletivo(instance=processo)
+
+    context = {'form': form,
+               'entidade': processo.entidade,
+               'processo': processo}
+
+    template = loader.get_template('vol/formulario_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context,request))
