@@ -745,6 +745,13 @@ class FormProcessoSeletivo(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
 
+        # Parâmetro customizado
+        disabled = False
+        if 'disabled' in kwargs:
+            disabled = kwargs['disabled']
+            # precisa ser removido antes do super para evitar erro
+            del kwargs['disabled']
+
         super(FormProcessoSeletivo, self).__init__(*args, **kwargs)
 
         estado = self.data.get('estado')
@@ -760,9 +767,10 @@ class FormProcessoSeletivo(forms.ModelForm):
                                                       initial='')
 
         # Exibe campos desabilitados a depender do status
-        if self.instance and not self.instance.editavel():
+        if disabled or (self.instance and not self.instance.editavel()):
             for field_name, field in self.fields.items():
-                field.widget.attrs['readonly'] = True
+                # se utilizarmos readonly, os combos continuam podendo ser alterados
+                field.widget.attrs['disabled'] = 'disabled'
 
     def clean_estado(self):
         '''Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado'''

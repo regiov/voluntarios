@@ -162,6 +162,8 @@ urlpatterns = [
     re_path(r'^painel/entidades/problemacnpj$', views.exibe_entidades_com_problema_na_receita, name='exibe_entidades_com_problema_na_receita'),
     re_path(r'^painel/entidades/onboarding/?$', views.onboarding_entidades, name='onboarding_entidades'),
     re_path(r'^painel/entidades/onboarding/(?P<id_entidade>\d+)/?$', views.onboarding_entidade, name='onboarding_entidade'),
+    re_path(r'^painel/processos$', views.revisao_processos_seletivos, name='revisao_processos_seletivos'),
+    re_path(r'^painel/processos/(?P<codigo_processo>[\d-]+)$', views.revisao_processo_seletivo, name='revisao_processo_seletivo'),
 
     # Blog
     path('blog/<slug:slug>', views.PostagemNoBlog.as_view(), name='postagem_blog'),

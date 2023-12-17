@@ -2008,6 +2008,9 @@ def painel(request):
     # Total de e-mails de entidades descobertos pelo usuário
     total_emails_descobertos = Email.objects.filter(entidade__isnull=False, entidade__aprovado=True, resp_cadastro=request.user).count()
 
+    # Total de processos seletivos aguardando revisão
+    total_procs = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).count()
+
     # Forças tarefas
     tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')
 
@@ -2069,8 +2072,6 @@ def painel(request):
         motivo = type(e).__name__ + str(e.args)
         notify_support(u'Erro na api do github', motivo, request)
     
-    processos_para_revisao = ProcessoSeletivo.objects.filter(status=20)
-
     context = {'total_vol': total_vol,
                'tempo_vol': tempo_vol,
                'tempo_vol_max': tempo_vol_max,
@@ -2086,11 +2087,73 @@ def painel(request):
                'total_problemas_cnpj': total_problemas_cnpj,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
+               'total_procs': total_procs,
                'tarefas': tarefas,
                'num_tickets': num_tickets,
-               'ultimos_commits': ultimos_commits,
-               'processos_para_revisao': processos_para_revisao }
+               'ultimos_commits': ultimos_commits }
     template = loader.get_template('vol/painel.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def revisao_processos_seletivos(request):
+    '''Página para revisar novos processos seletivos'''
+
+    processos = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).order_by('inicio_inscricoes')
+
+    if len(processos) == 0:
+        # Um usuário só entrará aqui nessa condição se tiver armazenado o link da página (pouco provável)
+        # ou se tiver acabado de aprovar o último processo seletivo, situação em que faz mais sentido
+        # já redirecionar para o painel de controle.
+        return painel(request)
+
+    context = {'processos': processos}
+
+    template = loader.get_template('vol/revisao_processos_seletivos.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def revisao_processo_seletivo(request, codigo_processo):
+    '''Página para revisar um processo seletivo'''
+    metodos = ['GET', 'POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    try:
+
+        if request.method == 'POST':
+            if 'aprovar' in request.POST:
+                qs = ProcessoSeletivo.objects.select_for_update().filter(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
+                with transaction.atomic():
+                    for processo in qs:
+                        if processo.inscricoes_encerradas():
+                            messages.error(request, u'As inscrições para este processo já estão encerradas! Entre em contato com a entidade para atualizar as datas.')
+                        else:
+                            processo.aprovar(by=request.user)
+                            processo.save()
+                            return revisao_processos_seletivos(request)
+            else:
+                return revisao_processos_seletivos(request)
+        else:
+            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
+                
+    except ProcessoSeletivo.DoesNotExist:
+        messages.error(request, u'Este processo não existe ou já foi revisado...')
+        return revisao_processos_seletivos(request)
+
+    # Em princípio, vamos deixar tudo desabilitado. Se houver algum problema será preciso
+    # entrar em contato com a entidade para que ela faça a alteração. Futuramente podemos pensar
+    # em permitir alterações na revisão ou então em criar um status novo "aguardando revisão", mas
+    # antes de complicar vamos tentar a solução mais simples.
+    form = FormProcessoSeletivo(instance=processo, disabled=True)
+
+    context = {'form': form,
+               'processo': processo}
+
+    template = loader.get_template('vol/revisao_processo_seletivo.html')
+    
     return HttpResponse(template.render(context, request))
 
 @login_required
@@ -2747,7 +2810,7 @@ def novo_processo_seletivo(request, id_entidade):
                'entidade': entidade}
     template = loader.get_template('vol/formulario_processo_seletivo.html')
     
-    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))
 
 @login_required
 @transaction.atomic
@@ -2765,7 +2828,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
         
         if form.is_valid():
             form.save()
-            return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
+            return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:
         
         form = FormProcessoSeletivo(instance=processo)
@@ -2776,4 +2839,4 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
     template = loader.get_template('vol/formulario_processo_seletivo.html')
     
-    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))

@@ -1,0 +1,36 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Processo seletivo{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Processo seletivo aguardando revisão</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% include "vol/erros.html" %}
+
+<label class="nowrap">Entidade: </label> <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}" target="_blank">{{ processo.entidade.menor_nome }}</a>
+<hr>
+<form id="form-processo-seletivo" method="post">
+    {% csrf_token %}
+    {% include "vol/campo_formulario.html" with campo=form.titulo required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.resumo_entidade required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
+    {% include "vol/campo_formulario.html" with campo=form.estado required=False div_id="estado" invisible=form.instance.trabalho_remoto %}
+    {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto loader=True %}
+    {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
+    {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}
+    {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=False div_class="combo-data" %}
+    {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
+    {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
+
+    <div class="form-group">
+        <input class="btn btn-primary btn-warning" type="submit" name="pular"  value="Pular">
+        <input class="btn btn-primary" type="submit" name="aprovar"  value="Aprovar">
+    </div>
+</form>
+
+{% endblock content %}

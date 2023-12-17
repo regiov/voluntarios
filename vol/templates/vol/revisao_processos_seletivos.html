@@ -1,0 +1,30 @@
+{% extends "vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Processos seletivos{% endblock title %}
+
+{% block content %}
+
+<h2 class="margin-bottom">Revisão de processos seletivos</h2>
+
+{% include "vol/mensagens.html" %}
+
+{% if processos|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Título</th><th>Entidade</th><th>Inscrições</th></thead>
+  <tbody>
+  {% for processo in processos %}
+  <tr>
+    <td><a href="{% url 'revisao_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
+    <td>{{ processo.entidade.menor_nome }}</td>
+    <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+{% else %}
+  <h4>Nenhum processo seletivo aguardando revisão.</h4>
+{% endif %}
+
+{% endblock content %}
