@@ -44,6 +44,26 @@
 {% if entidade.youtube %}<p><i class="fab fa-youtube" title="Youtube"></i> <a href="{% if entidade.youtube|length > 4 and entidade.youtube|slice:":4" != 'http' %}http://{% endif %}{{ entidade.youtube }}" target="_blank">{{ entidade.youtube }}</a></p>{% endif %}
 {% for doc in entidade.documento_set.all %}{% if doc.tipodoc.codigo == 'folder' %}<p><i class="fas fa-download" title="folder"></i> <a href="{{ doc.doc.url }}">{{ doc.tipodoc.nome|lower }}</a>{% endif %}{% endfor %}
 </div>
+
+<h3 class="secao-entidade"><span>Processos seletivos</span></h3>
+{% if processos_abertos %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <tbody>
+  {% for processo in processos_abertos %}
+  <tr>
+    <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
+    <td>inscrições: {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+   
+{% else %}
+<p>No momento não há processos seletivos abertos para esta entidade.</p>
+{% endif %}
+
 {% with doacoes=entidade.necessidadeartigo_set.all %}
 {% if doacoes %}
 <h3 class="secao-entidade"><span>Artigos aceitos como doação</span></h3>
@@ -72,17 +92,6 @@
 </table>
 </div>
 <br>
-{% endif %}
-
-
-{% if processos_abertos %}
-<h3>Processos seletivos abertos</h3>
-    {% for processo in processos_abertos %}
-        <h4>{{ processo.titulo }}</h4>
-        <p>{{ processo.atividades }}</p>
-    {% endfor %}
-{% else %}
-<h3>Não há processos seletivos abertos para esta entidade.</h3>
 {% endif %}
 
 <!-- p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p -->

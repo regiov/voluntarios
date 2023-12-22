@@ -1690,6 +1690,12 @@ class ProcessoSeletivo(models.Model):
     def nome_status(self):
         return StatusProcessoSeletivo.nome(self.status)
 
+    def nome_modo_trabalho(self):
+        for entry in MODO_TRABALHO:
+            if entry[0] == self.modo_trabalho:
+                return entry[1]
+        return None
+
     def inscricoes_nao_iniciadas(self):
         agora = timezone.now()
         if self.inicio_inscricoes > agora:

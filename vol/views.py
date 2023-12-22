@@ -1438,9 +1438,14 @@ def exibe_entidade(request, id_entidade):
     except Entidade.DoesNotExist:
         #raise SuspiciousOperation('Entidade inexistente')
         raise Http404
+
     entidade.hit()
+
+    processos_abertos = ProcessoSeletivo.objects.filter(entidade_id=entidade, status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).order_by('titulo')
+    
     dois_meses_atras = timezone.now() - datetime.timedelta(days=60)
     necessidades = entidade.necessidade_set.filter(data_solicitacao__gt=dois_meses_atras).order_by('-data_solicitacao')
+
     now = datetime.datetime.now()
     favorita = False
     if request.user.is_authenticated and request.user.is_voluntario:
@@ -1449,8 +1454,10 @@ def exibe_entidade(request, id_entidade):
             favorita = True
         except EntidadeFavorita.DoesNotExist:
             pass
+
     context = {'entidade': entidade,
                'agora': now,
+               'processos_abertos': processos_abertos,
                'necessidades': necessidades,
                'favorita': favorita}
     template = loader.get_template('vol/exibe_entidade.html')
@@ -2746,16 +2753,6 @@ def lista_processos_seletivos(request):
     template = loader.get_template('vol/lista_processos_seletivos.html')
     return HttpResponse(template.render(context,request))
 
-def lista_processos_entidade(request, id_entidade):
-    try:
-        entidade = Entidade.objects.get(pk=id_entidade)
-    except Entidade.DoesNotExist:
-        raise Http404
-    processos = ["placehold"]
-    context = { 'processos' : processos }
-    template = loader.get_template('vol/lista_processos_entidade.html')
-    return HttpResponse(template.render(context,request))
-
 @login_required
 @transaction.atomic
 def novo_processo_seletivo(request, id_entidade):
@@ -2838,5 +2835,22 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                'processo': processo}
 
     template = loader.get_template('vol/formulario_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+def exibe_processo_seletivo(request, codigo_processo):
+    try:
+        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    if request.method == 'POST':
+
+        # lidar com inscrição...
+        pass
+
+    context = {'processo': processo}
+
+    template = loader.get_template('vol/exibe_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))

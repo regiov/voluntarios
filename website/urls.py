@@ -178,16 +178,14 @@ urlpatterns = [
 
     path('entidades/favoritas/', views.entidades_favoritas, name="entidades_favoritas"),
 
+    # Processos seletivos
     re_path(r'^entidade/(?P<id_entidade>\d+)/processos/?$', views.processos_seletivos_entidade, name='processos_seletivos_entidade'),
-
     re_path(r'^voluntario/processos/?$', views.lista_processos_voluntario, name='lista_processos_voluntario'),
-
     re_path(r'^processos$', views.lista_processos_seletivos, name='lista_processos_seletivos'),
 
-    re_path(r'^entidade/(?P<id_entidade>\d+)/processos-abertos/?$', views.lista_processos_entidade, name='lista_processos_entidade'),
-
     re_path(r'^entidade/(?P<id_entidade>\d+)/processos/novo/?$', views.novo_processo_seletivo, name='novo_processo_seletivo'),
-    re_path(r'^entidade/(?P<id_entidade>\d+)/processo/(?P<codigo_processo>[\d-]+)/?$', views.editar_processo_seletivo, name='editar_processo_seletivo')
+    re_path(r'^entidade/(?P<id_entidade>\d+)/processo/(?P<codigo_processo>[\d-]+)/?$', views.editar_processo_seletivo, name='editar_processo_seletivo'),
+    re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/?$', views.exibe_processo_seletivo, name='exibe_processo_seletivo'),
 
 ]
 

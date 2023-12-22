@@ -1,0 +1,29 @@
+{% extends "vol/base.html" %}
+
+{% block title %}Processo seletivo{% endblock title %}
+
+{% block content %}
+
+{% include "vol/mensagens.html" %}
+
+<h1 class="margin-bottom">{{ processo.titulo }}</h1>
+<div class="registro">
+<p><label class="nowrap">Entidade: </label> <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}" target="_blank">{{ processo.entidade.menor_nome }}</a></p>
+<p>{{ processo.resumo_entidade }}</p>
+<p><label>Atividades: </label> {{ processo.atividades }}</p>
+<p><label>Carga horária: </label> {{ processo.carga_horaria }}</p>
+<p><label>Requisitos: </label> {{ processo.requisitos }}</p>
+<p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }}</p>
+{% if not processo.trabalho_remoto %}<p><label>Local: </label> {{ processo.cidade }} - {{ processo.estado }}</p>{% endif %}
+<p><label>Inscrições: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</p>
+{% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label>{{ processo.previsao_resultado }}}</p>{% endif %}
+</div>
+
+<form id="inscricao-processo-seletivo" method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <input class="btn btn-primary" type="submit" name="inscrever"  value="Inscrever-se">
+    </div>
+</form>
+
+{% endblock content %}

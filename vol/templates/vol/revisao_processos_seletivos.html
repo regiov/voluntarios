@@ -1,5 +1,4 @@
 {% extends "vol/base_nosidebar.html" %}
-{% load static %}
 
 {% block title %}Processos seletivos{% endblock title %}
 
@@ -19,6 +18,7 @@
     <td><a href="{% url 'revisao_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
     <td>{{ processo.entidade.menor_nome }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+  </tr>
   {% endfor %}
   </tbody>
   </table>
