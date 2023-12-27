@@ -18,9 +18,9 @@ class Command(BaseCommand):
 
         i = 0
 
-        for processo in processos:
+        for processo in processos_em_aberto:
             processo.encerrar_inscricoes()
             processo.save()
             i = i + 1
 
-        self.stdout.write(self.style.INFO(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
+        self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
