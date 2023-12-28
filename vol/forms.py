@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import lazy
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from notification.utils import notify_support
 
@@ -769,11 +770,23 @@ class FormProcessoSeletivo(forms.ModelForm):
         # Exibe campos desabilitados a depender do status
         if disabled or (self.instance and not self.instance.editavel()):
             for field_name, field in self.fields.items():
-                # se utilizarmos readonly, os combos continuam podendo ser alterados
-                field.widget.attrs['disabled'] = 'disabled'
+                if field_name == 'inicio_inscricoes':
+                    # Permite edição de início das inscrições caso o processo ainda esteja aguardando publicação
+                    if not self.instance.passivel_de_antecipar_inscricoes():
+                        # se utilizarmos readonly, combos continuam podendo ser alterados
+                        field.widget.attrs['disabled'] = 'disabled'
+                elif field_name in ('limite_inscricoes', 'previsao_resultado'):
+                    # Permite edição de data limite e previsão de resultado quando o processo se encontra
+                    # aberto a inscrições ou mesmo aguardando seleção
+                    if not self.instance.passivel_de_estender_inscricoes():
+                        # se utilizarmos readonly, combos continuam podendo ser alterados
+                        field.widget.attrs['disabled'] = 'disabled'
+                else:
+                    # se utilizarmos readonly, combos continuam podendo ser alterados
+                    field.widget.attrs['disabled'] = 'disabled'
 
     def clean_estado(self):
-        '''Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado'''
+        # Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado
         val = self.cleaned_data['estado']
         if isinstance(val, str):
             try:
@@ -783,7 +796,7 @@ class FormProcessoSeletivo(forms.ModelForm):
         return val
 
     def clean_cidade(self):
-        '''Como o campo cidade não é um ModelChoiceField, transforma o nome da cidade numa instância de Cidade'''
+        # Como o campo cidade não é um ModelChoiceField, transforma o nome da cidade numa instância de Cidade
         val = self.cleaned_data['cidade']
         estado = self.clean_estado()
         if isinstance(val, str):
@@ -793,3 +806,62 @@ class FormProcessoSeletivo(forms.ModelForm):
                 raise forms.ValidationError(u'Escolha uma cidade da lista')
         return val
 
+    def clean_inicio_inscricoes(self):
+        # Garante que a data não esteja no passado em caso de antecipação de inscrições
+        val = self.cleaned_data['inicio_inscricoes']
+        if self.instance and self.instance.pk and self.instance.passivel_de_antecipar_inscricoes():
+            current_tz = timezone.get_current_timezone()
+            now = timezone.now().astimezone(current_tz)
+            # obs: um processo pode estar aguardando publicação já com a data de início no passado, caso
+            # a aprovação do processo tenha demorado ou caso a própria entidade tenha demorado para solicitar
+            # aprovação, portanto a validação abaixo só deve ser feita em caso de antecipação de início de
+            # inscrições quando a data de início a ser alterada estiver no futuro
+            if val and self.instance.inicio_inscricoes > now and val < now:
+                raise forms.ValidationError(u'A data de início das inscrições deve ser maior ou igual a data de hoje')
+        return val
+
+    def clean_limite_inscricoes(self):
+        # Garante que o limite, quando definido, seja sempre maior ou igual ao início
+        val = self.cleaned_data['limite_inscricoes']
+        if val:
+            inicio_inscricoes = self.cleaned_data.get('inicio_inscricoes', None)
+            if inicio_inscricoes is None:
+                inicio_inscricoes = self.instance.inicio_inscricoes
+
+            if val < inicio_inscricoes:
+                raise forms.ValidationError(u'A data limite das inscrições deve ser maior ou igual à data de início das inscrições')
+            # Em caso de alteração do limite de inscrições, a nova data não pode estar no passado
+            if self.instance and self.instance.pk and self.instance.passivel_de_estender_inscricoes():
+                current_tz = timezone.get_current_timezone()
+                now = timezone.now().astimezone(current_tz)
+                if val and self.instance.limite_inscricoes > val and val < now:
+                    raise forms.ValidationError(u'A data limite das inscrições deve ser maior ou igual a data de hoje')
+
+        return val
+
+    def clean_previsao_resultado(self):
+        # Garante que a previsão de resultado, quando definida, seja sempre maior ou igual ao início e ao limite
+        val = self.cleaned_data['previsao_resultado']
+        if val:
+            # Se o campo estiver desabilitado, não haverá valor em cleaned_data, portanto podemos pegar direto do processo
+            inicio_inscricoes = self.cleaned_data.get('inicio_inscricoes', None)
+            if inicio_inscricoes is None:
+                inicio_inscricoes = self.instance.inicio_inscricoes
+
+            if val < inicio_inscricoes:
+                raise forms.ValidationError(u'A data da previsão do resultado deve ser maior ou igual à data de início das inscrições')
+
+            # O campo limite não é obrigatório
+            limite_inscricoes = self.cleaned_data.get('limite_inscricoes', None)
+            if limite_inscricoes:
+                if val < self.cleaned_data['limite_inscricoes']:
+                    raise forms.ValidationError(u'A data da previsão do resultado deve ser maior ou igual à data limite das inscrições')
+
+            # Em caso de alteração da previsão do resultado, a nova data não pode estar no passado
+            if self.instance and self.instance.pk and self.instance.passivel_de_estender_inscricoes():
+                current_tz = timezone.get_current_timezone()
+                now = timezone.now().astimezone(current_tz)
+                if val and self.instance.previsao_resultado > val.date() and val < now.date():
+                    raise forms.ValidationError(u'A data de previsão do resultado deve ser maior ou igual a data de hoje')
+
+        return val

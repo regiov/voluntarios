@@ -8,6 +8,8 @@ import datetime
 import re
 
 from django.db import models, transaction
+from django.db.models import F, Q
+from django.db.models.functions import TruncDate
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -1687,6 +1689,25 @@ class ProcessoSeletivo(models.Model):
     limite_inscricoes  = models.DateTimeField(u'Limite para inscrições', null=True, blank=True) # Deve ser maior que o início!
     previsao_resultado = models.DateField(u'Data prevista para os resultados', null=True, blank=True) # Deve ser maior que o início e maior que o limite (se houver limite)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(limite_inscricoes__isnull=True) | Q(limite_inscricoes__gte=F('inicio_inscricoes')),
+                name="limite_maior_igual_inicio_inscricoes"
+            ),
+            models.CheckConstraint(
+                check=Q(previsao_resultado__isnull=True) | Q(previsao_resultado__gte=TruncDate(F('inicio_inscricoes'))),
+                name="previsao_maior_igual_inicio_inscricoes"
+            ),
+            models.CheckConstraint(
+                check=Q(limite_inscricoes__isnull=True, previsao_resultado__isnull=True) | Q(previsao_resultado__gte=TruncDate(F('limite_inscricoes'))),
+                name="previsao_maior_igual_limite_inscricoes"
+            ),
+        ]
+
+    def __str__(self):
+        return self.titulo + ' - ' + self.entidade.menor_nome() + ' (' + self.nome_status() + ')'
+
     def nome_status(self):
         return StatusProcessoSeletivo.nome(self.status)
 
@@ -1731,12 +1752,44 @@ class ProcessoSeletivo(models.Model):
         return self.modo_trabalho == 0
 
     def editavel(self):
-        '''Indica se o processo ainda pode ser editado'''
+        '''Indica se o processo ainda pode ser editado por completo'''
         return self.status in (StatusProcessoSeletivo.EM_ELABORACAO, StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
 
     def em_elaboracao(self):
         '''Indica se o processo está em elaboração'''
         return self.status == StatusProcessoSeletivo.EM_ELABORACAO
+
+    def aguardando_publicacao(self):
+        '''Indica se o processo está com status aguardando publicação'''
+        return self.status == StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO
+
+    def aberto_a_inscricoes(self):
+        '''Indica se o processo está com status aberto a inscrições'''
+        return self.status == StatusProcessoSeletivo.ABERTO_A_INSCRICOES
+
+    def aguardando_selecao(self):
+        '''Indica se o processo está aguardando a seleção de candidatos'''
+        return self.status == StatusProcessoSeletivo.AGUARDANDO_SELECAO
+
+    def passivel_de_antecipar_inscricoes(self):
+        '''Indica se o processo ainda pode ter as inscrições antecipadas'''
+        return self.status == StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO
+
+    def passivel_de_estender_inscricoes(self):
+        '''Indica se o processo ainda pode ter as inscrições prorrogadas'''
+        return self.status in (StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO)
+
+    def busca_inscricao_de_voluntario(self, voluntario_id):
+        '''Retorna a inscrição de um voluntário neste processo seletivo'''
+        try:
+            return ParticipacaoEmProcessoSeletivo.objects.get(processo_seletivo=self, voluntario_id=voluntario_id)
+        except ParticipacaoEmProcessoSeletivo.DoesNotExist:
+            return None
+
+    def inscritos(self):
+        '''Retorna os voluntários que se inscreveram neste processo seletivo (mesmo que já tenham desistido)'''
+        voluntarios_inscritos = list(ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=self).values_list('voluntario_id', flat=True))
+        return Voluntario.objects.filter(pk__in=models.Subquery(voluntarios_inscritos))
 
     # Transições de estado
 
@@ -1755,16 +1808,21 @@ class ProcessoSeletivo(models.Model):
     def aprovar(self, by=None):
         pass
 
-    # Transição automática feita por cron diário
-    # (SELECT processos aguardando publicação com inico_inscricoes no passado)
+    # Transição normalmente automática feita por cron diário, mas também pode ocorrer caso a entidade antecipe
+    # as inscrições editando a data de início
+    @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
-    def publicar(self):
+    def publicar(self, by=None):
         pass
 
     # Transição automática feita por cron diário
-    # (SELECT processos abertos a inscricao com limite_inscricoes no passado)
     @transition(field=status, source=[StatusProcessoSeletivo.ABERTO_A_INSCRICOES], target=StatusProcessoSeletivo.AGUARDANDO_SELECAO, conditions=[inscricoes_encerradas])
     def encerrar_inscricoes(self):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_encerradas])
+    def reabrir_inscricoes(self, by=None):
         pass
 
     @fsm_log_by
@@ -1825,8 +1883,8 @@ class StatusParticipacaoEmProcessoSeletivo(object):
     INSCRITO         = 10
     DESISTENCIA      = 20
     CANCELAMENTO     = 30
-    REPROVADO        = 40
-    APROVADO         = 100
+    NAO_SELECIONADO  = 40
+    SELECIONADO      = 100
 
     @classmethod
     def nome(cls, code):
@@ -1843,15 +1901,29 @@ class StatusParticipacaoEmProcessoSeletivo(object):
         return '?'
 
 class ParticipacaoEmProcessoSeletivo(models.Model):
-    """Participação de voluntário em processo seletivo"""
+    """Participação de voluntário em processo seletivo. Cada voluntário só pode participar uma vez em cada processo."""
     id                = models.AutoField(primary_key=True)
     processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
     voluntario        = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     status            = FSMIntegerField(u'Status', default=StatusParticipacaoEmProcessoSeletivo.INSCRITO)
     data_inscricao    = models.DateTimeField(u'Data de inscrição', auto_now_add=True)
 
+    class Meta:
+        verbose_name = u'Participação em processo seletivo'
+        verbose_name_plural = u'Participações em processo seletivo'
+        unique_together = ('processo_seletivo', 'voluntario')
+
+    def __str__(self):
+        return self.processo_seletivo.titulo + ': ' + self.voluntario.usuario.nome + '(' + self.nome_status()  + ')'
+
     def nome_status(self):
         return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
+
+    def desistiu(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.DESISTENCIA
+
+    def passivel_de_desistencia(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.INSCRITO
 
     # Transições de estado
 
@@ -1861,17 +1933,22 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.REPROVADO)
-    def reprovar(self, by=None):
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.DESISTENCIA], target=StatusParticipacaoEmProcessoSeletivo.INSCRITO)
+    def reinscrever(self, by=None):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.APROVADO)
-    def aprovar(self, by=None):
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO)
+    def rejeitar(self, by=None):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.REPROVADO, StatusParticipacaoEmProcessoSeletivo.APROVADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.SELECIONADO)
+    def selecionar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
     def cancelar(self, by=None):
         pass
 

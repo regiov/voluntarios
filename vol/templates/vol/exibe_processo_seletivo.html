@@ -16,14 +16,24 @@
 <p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }}</p>
 {% if not processo.trabalho_remoto %}<p><label>Local: </label> {{ processo.cidade }} - {{ processo.estado }}</p>{% endif %}
 <p><label>Inscrições: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</p>
-{% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label>{{ processo.previsao_resultado }}}</p>{% endif %}
+{% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label>{{ processo.previsao_resultado }}</p>{% endif %}
 </div>
 
-<form id="inscricao-processo-seletivo" method="POST">
+{% if processo.inscricoes_abertas %}
+<form id="inscricao-processo-seletivo" method="POST" action="{% url 'inscricao_processo_seletivo' codigo_processo=processo.codigo %}">
     {% csrf_token %}
     <div class="form-group">
-        <input class="btn btn-primary" type="submit" name="inscrever"  value="Inscrever-se">
+        {% if not inscricao %}
+        <input class="btn btn-primary" type="submit" name="inscrever"  value="Quero me inscrever">
+        {% else %}
+          {% if inscricao.passivel_de_desistencia %}
+          <input class="btn btn-danger" type="submit" name="desistir"  value="Cancelar inscrição">
+          {% endif %}
+        {% endif %}
     </div>
 </form>
+{% else %}
+<p class="lead text-danger">Inscrições encerradas.</p>
+{% endif %}
 
 {% endblock content %}

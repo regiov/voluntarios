@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo
 
 from allauth.account.models import EmailAddress
 
@@ -2721,6 +2721,7 @@ def numeros(request):
 
 @login_required
 def processos_seletivos_entidade(request, id_entidade):
+    '''Página listando processos seletivos na interface da entidade'''
     try:
         entidade = Entidade.objects.get(pk=id_entidade)
     except Entidade.DoesNotExist:
@@ -2756,6 +2757,7 @@ def lista_processos_seletivos(request):
 @login_required
 @transaction.atomic
 def novo_processo_seletivo(request, id_entidade):
+    '''Cadastro de novo processo seletivo via interface da entidade'''
     try:
         entidade = Entidade.objects.get(pk=id_entidade)
     except Entidade.DoesNotExist:
@@ -2812,6 +2814,7 @@ def novo_processo_seletivo(request, id_entidade):
 @login_required
 @transaction.atomic
 def editar_processo_seletivo(request, id_entidade, codigo_processo):
+    '''Edição de processo seletivo via interface da entidade'''
     try:
         processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
     except ProcessoSeletivo.DoesNotExist:
@@ -2821,11 +2824,69 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
     if request.method == 'POST':
 
-        form = FormProcessoSeletivo(request.POST, instance=processo)
-        
-        if form.is_valid():
-            form.save()
-            return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
+        if processo.editavel():
+
+            form = FormProcessoSeletivo(request.POST, instance=processo)
+
+            if form.is_valid():
+                form.save()
+                messages.info(request, u'Alterações salvas com sucesso!')
+                
+        elif processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
+
+            # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
+            data = request.POST.dict()
+            data['titulo'] = processo.titulo
+            data['resumo_entidade'] = processo.resumo_entidade
+            data['modo_trabalho'] = str(processo.modo_trabalho)
+            data['estado'] = processo.estado
+            data['cidade'] = processo.cidade
+            data['atividades'] = processo.atividades
+            data['carga_horaria'] = processo.carga_horaria
+            data['requisitos'] = processo.requisitos
+            if not processo.passivel_de_antecipar_inscricoes():
+                data['inicio_inscricoes'] = processo.inicio_inscricoes
+
+            form = FormProcessoSeletivo(data, instance=processo)
+
+            if form.is_valid():
+
+                if processo.passivel_de_antecipar_inscricoes():
+
+                    if processo.inicio_inscricoes != form.cleaned_data['inicio_inscricoes']:
+                        processo.inicio_inscricoes = form.cleaned_data['inicio_inscricoes']
+                        processo.save(update_fields=['inicio_inscricoes'])
+                        messages.info(request, u'Início de inscrições alterado com sucesso!')
+
+                        if processo.aguardando_publicacao() and processo.inscricoes_abertas():
+                            processo.publicar(by=request.user)
+                            processo.save()
+
+                if processo.passivel_de_estender_inscricoes():
+
+                    update_fields = []
+
+                    if processo.limite_inscricoes != form.cleaned_data['limite_inscricoes']:
+                        processo.limite_inscricoes = form.cleaned_data['limite_inscricoes']
+                        update_fields.append('limite_inscricoes')
+                    if processo.previsao_resultado != form.cleaned_data['previsao_resultado']:
+                        processo.previsao_resultado = form.cleaned_data['previsao_resultado']
+                        update_fields.append('previsao_resultado')
+
+                    if update_fields: 
+                        processo.save(update_fields=update_fields)
+
+                    if 'limite_inscricoes' in update_fields:
+                        
+                        if processo.aberto_a_inscricoes() and processo.inscricoes_encerradas():
+                            processo.encerrar_inscricoes()
+                            processo.save()
+                        elif processo.aguardando_selecao() and processo.inscricoes_abertas():
+                            processo.reabrir_inscricoes()
+                            processo.save()
+                        messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:
         
         form = FormProcessoSeletivo(instance=processo)
@@ -2839,18 +2900,78 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     return HttpResponse(template.render(context, request))
 
 def exibe_processo_seletivo(request, codigo_processo):
+    '''Página pública de processo seletivo'''
     try:
         processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
     except ProcessoSeletivo.DoesNotExist:
         raise Http404
 
-    if request.method == 'POST':
+    inscricao = None
 
-        # lidar com inscrição...
-        pass
+    if request.user.is_authenticated and request.user.is_voluntario:
 
-    context = {'processo': processo}
+        try:
+            inscricao = ParticipacaoEmProcessoSeletivo.objects.get(processo_seletivo=processo, voluntario=request.user.voluntario)
+        except ParticipacaoEmProcessoSeletivo.DoesNotExist:
+            pass
+
+    context = {'processo': processo,
+               'inscricao': inscricao}
 
     template = loader.get_template('vol/exibe_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))
+
+@login_required
+@transaction.atomic
+def inscricao_processo_seletivo(request, codigo_processo):
+    '''Método próprio para lidar com inscrição / desistência de processo seletivo
+    apenas para poder usar o mecanismo de exigir login'''
+    metodos = ['POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+    if not request.user.is_voluntario:
+        messages.warning(request, u'Para se inscrever em qualquer processo seletivo é preciso ter um perfil de voluntário cadastrado no sistema. Você pode fazer isso clicando <a href="' + reverse('cadastro_voluntario') + '" target="_blank">aqui</a> para em seguida fazer novamente a inscrição.')
+    else:
+        try:
+            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+        except ProcessoSeletivo.DoesNotExist:
+            raise Http404
+
+        if not processo.inscricoes_abertas():
+
+            messages.error(request, u'As inscrições para este processo seletivo já foram encerradas.')
+
+        else:
+            
+            inscricao = processo.busca_inscricao_de_voluntario(request.user.voluntario.pk)
+
+            if 'inscrever' in request.POST:
+
+                if inscricao:
+                    if inscricao.desistiu():
+                        inscricao.reinscrever(by=request.user)
+                        inscricao.save()
+                        messages.info(request, u'Inscrição reativada com sucesso!')
+                    else:
+                        messages.warning(request, u'Você já se inscreveu neste processo seletivo. Não há necesidade de se inscrever novamente.')
+                else:
+                    inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
+                    inscricao.save()
+                    messages.info(request, u'Inscrição realizada com sucesso! Aguarde as instruções do processo seletivo.')
+
+            elif 'desistir' in request.POST:
+
+                if inscricao:
+                    if inscricao.passivel_de_desistencia():
+                        inscricao.desistir(by=request.user)
+                        inscricao.save()
+                        messages.info(request, u'Inscrição cancelada!')
+                    else:
+                        messages.error(request, u'Não há como cancelar a inscrição nas condições em que este processo seletivo se encontra. Em caso de dúvida entre em contato conosco.')
+                else:
+                    messages.error(request, u'Não faz sentido cancelar uma inscrição que sequer foi efetuada.')
+            else:
+                messages.error(request, u'Nenhuma ação especificada (?)')
+
+    return exibe_processo_seletivo(request, processo.codigo)

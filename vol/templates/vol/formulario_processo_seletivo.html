@@ -11,8 +11,6 @@
 
 {% include "vol/erros.html" %}
 
-<label class="nowrap">Entidade: </label> {{ entidade.razao_social|default:entidade.nome_fantasia }}
-<hr>
 <form id="form-processo-seletivo" method="post">
     {% csrf_token %}
     {% include "vol/campo_formulario.html" with campo=form.titulo required=True %}
@@ -27,7 +25,7 @@
     {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
 
-    {% if not processo or processo.editavel %}
+    {% if not processo or processo.editavel or processo.passivel_de_antecipar_inscricoes or processo.passivel_de_estender_inscricoes %}
     <div class="form-group">
         <input class="btn btn-primary" type="submit" name="gravar"  value="Gravar">
         {% if processo.em_elaboracao %}
