@@ -1,4 +1,5 @@
 {% extends "vol/base_nosidebar.html" %}
+{% load string_extras %}
 
 {% block content_container %}
 {% url 'cadastro_entidade' as lista_entidades %}
@@ -33,7 +34,7 @@
 		  Dados cadastrais </a>
 	      </li>
 	      {% if entidade.aprovado %}
-              <li{% if request.path == processos_seletivos_entidade %} class="active"{% endif %}>
+              <li{% if request.path|startswith:processos_seletivos_entidade %} class="active"{% endif %}>
 		<a href="{{ processos_seletivos_entidade }}">
 		  <i class="fas fa-filter"></i>
 		  Processos seletivos </a>

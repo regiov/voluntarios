@@ -1786,10 +1786,9 @@ class ProcessoSeletivo(models.Model):
         except ParticipacaoEmProcessoSeletivo.DoesNotExist:
             return None
 
-    def inscritos(self):
-        '''Retorna os voluntários que se inscreveram neste processo seletivo (mesmo que já tenham desistido)'''
-        voluntarios_inscritos = ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=self).values_list('voluntario_id', flat=True)
-        return Voluntario.objects.filter(pk__in=models.Subquery(voluntarios_inscritos))
+    def inscricoes(self):
+        '''Retorna todas as inscricoes deste processo seletivo, independente do status'''
+        return ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
 
     # Transições de estado
 

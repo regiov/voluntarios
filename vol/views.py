@@ -2730,16 +2730,16 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscritos=Count('participacaoemprocessoseletivo'))
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo'))
 
-    context = {'entidade': entidade,
+    context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
     template = loader.get_template('vol/processos_seletivos_entidade.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
 def processos_seletivos_voluntario(request):
-
+    '''Página listando processos seletivos na interface do voluntário'''
     inscricoes = ParticipacaoEmProcessoSeletivo.objects.none()
     if request.user.is_voluntario:
         inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario)
@@ -2892,10 +2892,30 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
         form = FormProcessoSeletivo(instance=processo)
 
     context = {'form': form,
-               'entidade': processo.entidade,
+               'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
                'processo': processo}
 
     template = loader.get_template('vol/formulario_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
+    '''Visualização das inscrições de um processo seletivo'''
+    try:
+        processo = ProcessoSeletivo.objects.select_related('entidade').get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+    if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    inscricoes = processo.inscricoes()
+
+    context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
+               'processo': processo,
+               'inscricoes': inscricoes}
+
+    template = loader.get_template('vol/inscricoes_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))
 

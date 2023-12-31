@@ -1,5 +1,4 @@
 {% extends "vol/base_entidade.html" %}
-{% load static %}
 
 {% block title %}Processos seletivos{% endblock title %}
 
@@ -19,7 +18,7 @@
     <td><a href="{% url 'editar_processo_seletivo' id_entidade=processo.entidade_id codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
     <td>{{ processo.nome_status }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
-    <td>{{ processo.num_inscritos }}</td>
+    <td>{% if processo.num_inscricoes > 0 %}<a href="{% url 'inscricoes_processo_seletivo' id_entidade=processo.entidade.pk codigo_processo=processo.codigo %}">{{ processo.num_inscricoes }}</a>{% else %}{{ processo.num_inscricoes }}{% endif %}</td>
   {% endfor %}
   </tbody>
   </table>
