@@ -13,7 +13,7 @@
   <tbody>
   {% for inscricao in inscricoes %}
   <tr>
-    <td>{{ inscricao.processo_seletivo.entidade.menor_nome }}</td>
+    <td><a href="{% url 'exibe_entidade' id_entidade=inscricao.processo_seletivo.entidade.pk %}">{{ inscricao.processo_seletivo.entidade.menor_nome }}</a></td>
     <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=inscricao.processo_seletivo.codigo %}">{{ inscricao.processo_seletivo.titulo }}</a></td>
     <td>{{ inscricao.processo_seletivo.nome_status }}</td>
     <td>{{ inscricao.nome_status }}</td>
