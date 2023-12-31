@@ -1821,7 +1821,7 @@ class ProcessoSeletivo(models.Model):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_encerradas])
+    @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
     def reabrir_inscricoes(self, by=None):
         pass
 

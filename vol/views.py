@@ -2830,6 +2830,10 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                 
         elif processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
 
+            # Faz uma cópia do processo, pois a chanada ao is_valid abaixo já
+            # irá alterar os dados da instância
+            processo_original = deepcopy(processo)
+
             # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
             data = request.POST.dict()
             data['titulo'] = processo.titulo
@@ -2845,12 +2849,11 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
             form = FormProcessoSeletivo(data, instance=processo)
 
-            if form.is_valid():
+            if form.is_valid(): # atenção, este método altera a instância do processo seletivo
 
-                if processo.passivel_de_antecipar_inscricoes():
+                if processo_original.passivel_de_antecipar_inscricoes():
 
-                    if processo.inicio_inscricoes != form.cleaned_data['inicio_inscricoes']:
-                        processo.inicio_inscricoes = form.cleaned_data['inicio_inscricoes']
+                    if processo_original.inicio_inscricoes != processo.inicio_inscricoes:
                         processo.save(update_fields=['inicio_inscricoes'])
                         messages.info(request, u'Início de inscrições alterado com sucesso!')
 
@@ -2858,15 +2861,13 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                             processo.publicar(by=request.user)
                             processo.save()
 
-                if processo.passivel_de_estender_inscricoes():
+                if processo_original.passivel_de_estender_inscricoes():
 
                     update_fields = []
 
-                    if processo.limite_inscricoes != form.cleaned_data['limite_inscricoes']:
-                        processo.limite_inscricoes = form.cleaned_data['limite_inscricoes']
+                    if processo_original.limite_inscricoes != processo.limite_inscricoes:
                         update_fields.append('limite_inscricoes')
-                    if processo.previsao_resultado != form.cleaned_data['previsao_resultado']:
-                        processo.previsao_resultado = form.cleaned_data['previsao_resultado']
+                    if processo_original.previsao_resultado != processo.previsao_resultado:
                         update_fields.append('previsao_resultado')
 
                     if update_fields: 
