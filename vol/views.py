@@ -2734,18 +2734,14 @@ def processos_seletivos_entidade(request, id_entidade):
 
     context = {'entidade': entidade,
                'processos': processos}
-    template = loader.get_template('vol/processos_seletivos_da_entidade.html')
+    template = loader.get_template('vol/processos_seletivos_entidade.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
-def lista_processos_voluntario(request):
-    # try:
-    #     processos = Processos.objects.get(id_voluntario=request.user.voluntario)
-    # except Voluntario.DoesNotExist:
-    #     raise PermissionDenied
-    processos = ["placehold"]
-    context = { 'processos' : processos }
-    template = loader.get_template('vol/lista_processos_voluntario.html')
+def processos_seletivos_voluntario(request):
+    inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('procesoseletivo', 'procesoseletivo_entidade').filter(voluntario=request.user.voluntario)
+    context = {'inscricoes' : inscricoes}
+    template = loader.get_template('vol/processos_seletivos_voluntario.html')
     return HttpResponse(template.render(context,request))
 
 def lista_processos_seletivos(request):
