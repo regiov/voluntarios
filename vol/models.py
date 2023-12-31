@@ -1889,7 +1889,7 @@ class StatusParticipacaoEmProcessoSeletivo(object):
     @classmethod
     def nome(cls, code):
         if code == 10:
-            return u'Inscrição efetuada'
+            return u'Inscrito'
         elif code == 20:
             return u'Desistência'
         elif code == 30:

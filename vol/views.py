@@ -2739,8 +2739,11 @@ def processos_seletivos_entidade(request, id_entidade):
 
 @login_required
 def processos_seletivos_voluntario(request):
-    inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('procesoseletivo', 'procesoseletivo_entidade').filter(voluntario=request.user.voluntario)
-    context = {'inscricoes' : inscricoes}
+
+    inscricoes = ParticipacaoEmProcessoSeletivo.objects.none()
+    if request.user.is_voluntario:
+        inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario)
+    context = {'inscricoes': inscricoes}
     template = loader.get_template('vol/processos_seletivos_voluntario.html')
     return HttpResponse(template.render(context,request))
 

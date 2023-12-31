@@ -5,7 +5,7 @@
 {% url 'cadastro_voluntario' as cadastro_voluntario %}
 {% url 'termos_de_adesao_de_voluntario' as termos_de_adesao_de_voluntario %}
 {% url 'entidades_favoritas' as entidades_favoritas %}
-{% url 'lista_processos_voluntario' as lista_processos_voluntario %}
+{% url 'processos_seletivos_voluntario' as processos_seletivos_voluntario %}
 <section id="content">
   <div class="container">
     <div class="row profile">
@@ -29,8 +29,8 @@
 		  <i class="fas fa-heart"></i>
 		  Entidades favoritas </a>
 	      </li>
-	      <li{% if request.path == lista_processos_voluntario %} class="active"{% endif %}>
-		<a href="{{ lista_processos_voluntario }}">
+	      <li{% if request.path == processos_seletivos_voluntario %} class="active"{% endif %}>
+		<a href="{{ processos_seletivos_voluntario }}">
 		  <i class="fas fa-filter"></i>
 		  Processos seletivos</a>
 	      </li>
