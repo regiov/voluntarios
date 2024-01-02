@@ -112,6 +112,7 @@ https://shapebootstrap.net/item/1524992-triangle-free-responsive-multipurpose-te
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='por-que-ser-voluntario/' %}">Por que ser voluntário</a></li>
                                 <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='bom-voluntario/' %}">Como ser um bom voluntário</a></li>
                                 <li>{% if user.is_authenticated and user.is_voluntario %}<a href="{% url 'cadastro_voluntario' %}" rel="nofollow">Gerencie seu perfil de voluntário</a>{% else %}<a href="{% url 'link_voluntario_novo' %}" rel="nofollow">Cadastre-se como voluntário</a>{% endif %}</li>
+                                <li><a href="{% url 'busca_vagas' %}">Vagas disponíveis</a></li>
                                 <li><a href="{% url 'busca_entidades' %}">Encontre uma entidade</a></li>
                                 <li><a href="{% url 'mapa_entidades' %}">Mapa de entidades</a></li>
                                 <li><a href="{% url 'busca_doacoes' %}">Pedidos de doação</a></li>

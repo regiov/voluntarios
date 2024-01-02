@@ -2747,10 +2747,10 @@ def processos_seletivos_voluntario(request):
     template = loader.get_template('vol/processos_seletivos_voluntario.html')
     return HttpResponse(template.render(context,request))
 
-def lista_processos_seletivos(request):
+def busca_vagas(request):
     processos_abertos = ["placehold"]
     context = { 'processos_abertos' : processos_abertos }
-    template = loader.get_template('vol/lista_processos_seletivos.html')
+    template = loader.get_template('vol/busca_vagas.html')
     return HttpResponse(template.render(context,request))
 
 @login_required
