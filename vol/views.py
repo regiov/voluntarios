@@ -1623,7 +1623,7 @@ def exibir_charada(request):
     s = 'Fr pubirffr cnynien, rz qvn qr fby avathrz snynevn!'
     if settings.DEBUG:
         cod = "".join([d.get(c, c) for c in s])
-        return HttpResponse(cod + '<small> (copie o texto ao lado e cole na <a href="mailto:contato' + '@' + 'voluntarios.com.br?subject=Ticket%20para%20a%20equipe%20de%20TI">seguinte mensagem</a>)</small>')
+        return HttpResponse(cod + '<small> (copie o texto ao lado e cole na <a href="mailto:tecno' + '@' + 'voluntarios.com.br?subject=Ticket%20para%20a%20equipe%20de%20TI">seguinte mensagem</a>)</small>')
     return redirect('/')
 
 @login_required
