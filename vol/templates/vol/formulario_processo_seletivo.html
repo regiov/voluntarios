@@ -44,7 +44,7 @@
 <script type="text/javascript">
 
     // Parâmetros: url que retorna cidades de um estado,
-    //             necesidade de inclusão de opção vazia no combo estado,
+    //             necessidade de inclusão de opção vazia no combo estado,
     //             cidade default
     init_combos_estado_cidade('{% url 'retorna_cidades' %}', {% if form.instance.id and not form.instance.estado %}true{% else %}false{% endif %}, '{% if form.instance.cidade.nome %}{{ form.instance.cidade.nome }}{% else %}{% if form.initial.cidade %}{{ form.initial.cidade.nome }}{% endif %}{% endif %}');
 
