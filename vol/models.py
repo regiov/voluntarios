@@ -1830,7 +1830,7 @@ class ProcessoSeletivo(models.Model):
         pass
 
 class AreaTrabalhoEmProcessoSeletivo(models.Model):
-    """Área de trabalho relacionada a processo seletivo"""
+    """Área de trabalho do voluntário"""
     id                = models.AutoField(primary_key=True)
     processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
     area_trabalho     = models.ForeignKey(AreaTrabalho, on_delete=models.PROTECT)
