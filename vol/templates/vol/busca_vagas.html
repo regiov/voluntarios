@@ -1,7 +1,152 @@
 {% extends "vol/base_nosidebar.html" %}
+{% load static %}
+
+{% block title %}Vagas{% endblock title %}
 
 {% block content %}
 
-<h1 class="margin-bottom">Vagas disponíveis</h1>
+{% if not request.GET.Envia %}
+
+<h1 class="margin-bottom">Vagas de trabalho voluntário</h1>
+
+<p>Se desejar, defina critérios específicos de busca. Ou simplesmente clique em buscar para ver todas as vagas disponíveis:</p>
+
+<form action="" method="GET" name="dados">
+
+    <div class="form-group">
+    <label for="id_fpalavras">Palavras-chave:</label>
+    <input id="id_fpalavras" type="text" class="form-control" name="fpalavras" size="30"{% if request.GET.fpalavras %} value="{{ request.GET.fpalavras }}"{% endif %}>
+    (busca feita nos campos "título", "atividades" e "requisitos")
+  </div>
+
+  <div class="form-group">
+    <label for="id_modo_trabalho">Modo de trabalho:</label>
+    <select id="id_modo_trabalho" name="modo_trabalho" class="form-control">
+      <option value=""{% if not request.GET.modo_trabalho %} selected{% endif %}>-- Qualquer tipo --</option>
+      {% for modo_trabalho in modos_de_trabalho %}<option value="{{ modo_trabalho.0 }}"{% if request.GET.modo_trabalho|add:"0" == modo_trabalho.0 %} selected{% endif %}>{{ modo_trabalho.1 }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="id_estado">Estado:</label>
+    <select id="id_estado" name="estado" class="form-control">
+      <option value=""{% if not request.GET.estado %} selected{% endif %}>-- Qualquer estado --</option>
+      {% for estado in estados %}<option value="{{ estado.sigla }}"{% if request.GET.estado == estado.sigla %} selected{% endif %}>{{ estado.nome }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="id_cidade">Cidade:</label><img id="id_cidade_loader" src="{% static 'images/ajax-loader-circle-small.gif' %}" style="display:none;">
+    <select id="id_cidade" name="cidade" class="form-control">
+      <option value=""{% if not request.GET.cidade %} selected{% endif %}>-- Qualquer cidade --</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="id_fareatrabalho">Área de trabalho:</label>
+    <select id="id_fareatrabalho" name="fareatrabalho" class="form-control">
+      <option value="0"{% if not request.GET.fareatrabalho %} selected{% endif %}>-- Todas as áreas de trabalho --</option>
+      {% for area_trabalho in profissoes %}<option value="{{ area_trabalho.id }}"{% if request.GET.fareatrabalho|add:"0" == area_trabalho.id %} selected{% endif %}>{{ area_trabalho.nome }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="id_fasocial">Causa:</label>
+    <select id="id_fasocial" name="fasocial" class="form-control">
+      <option value="0"{% if not request.GET.fasocial %} selected{% endif %}>-- Todas as causas --</option>
+      {% for area_interesse in causas %}<option value="{{ area_interesse.id }}"{% if request.GET.fasocial|add:"0" == area_interesse.id %} selected{% endif %}>{% if '.' in area_interesse.indice %}&nbsp;&nbsp;&nbsp;&#9702;{% else %}&#8226;{% endif %} {{ area_interesse.nome }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="id_ordem">Ordenado por:</label><br>
+    <input type="radio" name="ordem" value="titulo"{% if request.GET.ordem == 'titulo' %}{% else %} checked{% endif %}>
+    Título da vaga
+    <input type="radio" name="ordem" value="entidade"{% if request.GET.ordem == 'entidade' %} checked{% endif %}>
+    Entidade
+    <input type="radio" name="ordem" value="inicio_inscricoes"{% if request.GET.ordem == 'inicio_inscricoes' %} checked{% endif %}>
+    Início das inscrições
+  </div>
+
+  <div class="form-group">
+   <input class="btn btn-primary" type="submit" name="Envia" value="Buscar">
+   {% if not request.GET.Envia %}<input class="btn btn-primary" type="reset" name="Limpa" value="Limpar campos">{% endif %}
+  </div>
+</form>
+
+{% else %}
+
+  {% if vagas|length > 0 %}
+    <h1>Vagas encontradas</h1>
+    <br>
+    <div class="table-responsive">
+    <table class="table table-striped table-condensed">
+    <thead><th>Vaga</th><th>Entidade</th><th>Causa</th><th>Área de Trabalho</th><th>Modo de trabalho</th><th>Local</th><th>Inscrições</th></thead>
+    <tbody>
+    {% for vaga in vagas %}
+    {% with interesses=vaga.areainteresse_set.all %}
+    <tr>
+      <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=vaga.codigo %}">{{ vaga.titulo}}</a></td>
+      <td>{{ vaga.entidade.razao_social }}</td>
+      <td>{% if interesses.count == 0 %}-{% else %}{% for interesse in interesses %}{% if forloop.counter0 > 0 %}, {% endif %}{{ interesse.area_atuacao.nome }}{% endfor %}{% endif %}</td>
+      <td>{{ voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ voluntario.profissao }}</span></td>
+      <td>{{ vaga.nome_modo_trabalho }}</td>
+      <td>{% if vaga.trabalho_remoto %}-{% else %}{{ vaga.cidade.nome }}-{{ vaga.estado.sigla }}{% endif %}</td>
+      <td>{{ vaga.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if vaga.limite_inscricoes %}{{ vaga.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+
+    {% if vagas.paginator.num_pages > 1 %}
+    <br>
+    <div>
+      <span>
+      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}{% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;{% for p in vagas.paginator.page_range %}{% if p >= pagina_inicial and p <= pagina_final %}{% if p == vagas.number %}<b>{{p}}</b>{% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;{% endif %}{% endfor %}{% if pagina_final < vagas.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}" rel="nofollow">&gt;</a>{% endif %}{% if pagina_final < vagas.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ vagas.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>{% endif %}
+      </span>
+    </div>
+    {% endif %}
+  {% else %}
+  <h2>Nenhuma vaga encontrada com estes critérios.</h2>
+  {% endif %}
+{% endif %}
 
 {% endblock content %}
+
+{% block post_footer %}
+
+<script type="text/javascript" src="{% if debug %}{% static 'js/vol-combo-estado-cidade-1.0.debug.js' %}{% else %}{% static 'js/vol-combo-estado-cidade-1.0.min.js' %}{% endif %}"></script>
+
+<script type="text/javascript">
+
+    // Parâmetros: url que retorna cidades de um estado,
+    //             necessidade de inclusão de opção vazia no combo estado,
+    //             cidade default
+    init_combos_estado_cidade('{% url 'retorna_cidades' %}', false, '{% if request.GET.cidade %}{{ request.GET.cidade }}{% endif %}');
+
+    // Controle de exibição de estado/cidade
+    function controla_exibicao_de_local() {
+        if ($("#id_modo_trabalho").val() !== "0") {
+            $("#estado").show();
+            $("#cidade").show();
+            return false;
+        } 
+        else {
+            $("#estado").hide();
+            $("#cidade").hide();
+        }
+    }
+
+    $("#id_modo_trabalho").change(function() {
+        controla_exibicao_de_local();
+    });
+
+    $(document).ready(function() {
+        controla_exibicao_de_local();
+    });
+
+</script>
+
+{% endblock post_footer %}

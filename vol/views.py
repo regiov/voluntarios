@@ -34,7 +34,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, MODO_TRABALHO
 
 from allauth.account.models import EmailAddress
 
@@ -2665,6 +2665,7 @@ class PostagemNoBlog(generic.DetailView):
     template_name = 'vol/postagem_blog.html'
 
 def retorna_cidades(request):
+    '''Retorna lista de cidades (nomes) em JSON do estado passado como parâmetro (sigla do estado)'''
     try:
         estado = request.GET.get('estado')
         UF = Estado.objects.get(sigla=estado)
@@ -2748,10 +2749,115 @@ def processos_seletivos_voluntario(request):
     return HttpResponse(template.render(context,request))
 
 def busca_vagas(request):
-    processos_abertos = ["placehold"]
-    context = { 'processos_abertos' : processos_abertos }
+    '''Página para busca de vagas'''
+    metodos = ['GET']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    profissoes = AreaTrabalho.objects.all().order_by('nome')
+    causas = AreaAtuacao.objects.all().order_by('indice')
+    estados = Estado.objects.all().order_by('nome')
+    vagas = None
+    get_params = ''
+    pagina_inicial = pagina_final = None
+
+    if 'Envia' in request.GET:
+
+        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
+        vagas = ProcessoSeletivo.objects.select_related('entidade', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+
+        # Filtro por modo de trabalho
+        modo_trabalho = request.GET.get('modo_trabalho')
+        if modo_trabalho:
+            vagas = vagas.filter(modo_trabalho=modo_trabalho)
+
+        # Filtro por estado
+        estado = request.GET.get('estado')
+        if estado:
+            vagas = vagas.filter(estado__sigla=estado)
+            # Filtro por cidade
+            cidade = request.GET.get('cidade')
+            if cidade:
+                vagas = vagas.filter(cidade__nome=cidade, cidade__uf=estado)
+
+        # Filtro por causa
+        fasocial = request.GET.get('fasocial')
+        if fasocial.isdigit() and fasocial not in [0, '0']:
+            try:
+                causa = AreaAtuacao.objects.get(pk=fasocial)
+                if '.' in causa.indice:
+                    vagas = vagas.filter(causaemprocessoseletivo__area_atuacao=fasocial)
+                else:
+                    vagas = vagas.filter(Q(causaemprocessoseletivo__area_atuacao=fasocial) | Q(causaemprocessoseletivo__area_atuacao__indice__startswith=str(causaemprocessoseletivo.indice)+'.'))
+            except AreaAtuacao.DoesNotExist:
+                raise SuspiciousOperation(u'Causa inexistente')
+
+        # Filtro por profissão
+        fareatrabalho = request.GET.get('fareatrabalho')
+        if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
+            vagas = vagas.filter(areatrabalhoemprocessoseletivo__area_trabalho=fareatrabalho)
+
+        # Filtro por palavras-chave
+        fpalavras = request.GET.get('fpalavras')
+        if fpalavras is not None and len(fpalavras) > 0:
+            # Aqui utilizamos outro queryset para evitar duplicidade de registros devido ao uso de distinct com order_by mais pra frente 
+            ids = ProcessoSeletivo.objects.annotate(search=SearchVector('titulo', 'atividades', 'requisitos')).filter(search=fpalavras).distinct('pk')
+            vagas = vagas.filter(pk__in=ids)
+
+        # Já inclui áreas de interesse para otimizar
+        # obs: essa abordagem não funciona junto com paginação! (django 1.10.7)
+        #vagas = vagas.prefetch_related('causaemprocessoseletivo__area_atuacao')
+
+        # Ordem dos resultados
+        ordem = request.GET.get('ordem', '')
+        if ordem == 'titulo':
+            vagas = vagas.order_by('titulo')
+        elif ordem == 'entidade':
+            vagas = vagas.order_by('entidade__razao_social')
+        else: # início das inscrições
+            vagas = vagas.order_by('-inicio_inscricoes')
+
+        # Paginação
+        paginador = Paginator(vagas, 20) # 20 vagas por página
+        pagina = request.GET.get('page')
+        try:
+            vagas = paginador.page(pagina)
+        except PageNotAnInteger:
+            # Se a página não é um número inteiro, exibe a primeira
+            vagas = paginador.page(1)
+        except EmptyPage:
+            # Se a página está fora dos limites (ex 9999), exibe a última
+            vagas = paginador.page(paginador.num_pages)
+        pagina_atual = vagas.number
+        max_links_visiveis = 10
+        intervalo = 10/2
+        pagina_inicial = pagina_atual - intervalo
+        pagina_final = pagina_atual + intervalo -1
+        if pagina_inicial <= 0:
+            pagina_final = pagina_final - pagina_inicial + 1
+            pagina_inicial = 1
+        if pagina_final > paginador.num_pages:
+            pagina_final = paginador.num_pages
+            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
+        # Parâmetros GET
+        for k, v in request.GET.items():
+            if k in ('page', 'csrfmiddlewaretoken'):
+                continue
+            if len(get_params) > 0:
+                get_params += '&'
+            get_params += k + '=' + v
+
+    context = {'modos_de_trabalho': MODO_TRABALHO,
+               'profissoes': profissoes,
+               'causas': causas,
+               'estados': estados,
+               'vagas': vagas,
+               'get_params': get_params,
+               'pagina_inicial': pagina_inicial,
+               'pagina_final': pagina_final}
+    
     template = loader.get_template('vol/busca_vagas.html')
-    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))
 
 @login_required
 @transaction.atomic
