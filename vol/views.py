@@ -2769,7 +2769,7 @@ def busca_vagas(request):
     if 'Envia' in request.GET:
 
         # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
-        vagas = ProcessoSeletivo.objects.select_related('entidade', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+        vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
 
         # Filtro por modo de trabalho
         modo_trabalho = request.GET.get('modo_trabalho')
@@ -2791,9 +2791,9 @@ def busca_vagas(request):
             try:
                 causa = AreaAtuacao.objects.get(pk=fasocial)
                 if '.' in causa.indice:
-                    vagas = vagas.filter(causaemprocessoseletivo__area_atuacao=fasocial)
+                    vagas = vagas.filter(entidade__area_atuacao=fasocial)
                 else:
-                    vagas = vagas.filter(Q(causaemprocessoseletivo__area_atuacao=fasocial) | Q(causaemprocessoseletivo__area_atuacao__indice__startswith=str(causaemprocessoseletivo.indice)+'.'))
+                    vagas = vagas.filter(Q(entidade__area_atuacao=fasocial) | Q(entidade__area_atuacao__indice__startswith=str(causa.indice)+'.'))
             except AreaAtuacao.DoesNotExist:
                 raise SuspiciousOperation(u'Causa inexistente')
 
@@ -2811,7 +2811,7 @@ def busca_vagas(request):
 
         # Já inclui áreas de interesse para otimizar
         # obs: essa abordagem não funciona junto com paginação! (django 1.10.7)
-        #vagas = vagas.prefetch_related('causaemprocessoseletivo__area_atuacao')
+        #vagas = vagas.prefetch_related('entidade__area_atuacao')
 
         # Ordem dos resultados
         ordem = request.GET.get('ordem', '')

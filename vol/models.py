@@ -1841,19 +1841,6 @@ class AreaTrabalhoEmProcessoSeletivo(models.Model):
     def __str__(self):
         return self.area_trabalho.nome
 
-class CausaEmProcessoSeletivo(models.Model):
-    """Causa relacionada a processo seletivo"""
-    id                = models.AutoField(primary_key=True)
-    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
-    # a causa deve estar entre as áreas de atuação da entidade!
-    area_atuacao      = models.ForeignKey(AreaAtuacao, on_delete=models.PROTECT)
-
-    class Meta:
-        unique_together = ('processo_seletivo', 'area_atuacao')
-
-    def __str__(self):
-        return self.area_atuacao.nome
-
 TIPO_DE_ETAPA_EM_PROCESSO_SELETIVO = (
     ('E','Entrevista'),
     ('F','Formulário'),
