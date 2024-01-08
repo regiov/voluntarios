@@ -385,7 +385,8 @@ class FormAreaInteresse(forms.ModelForm):
                                           empty_label=u'-- Escolha uma opção --',
                                           queryset=AreaAtuacaoHierarquica.objects.all().order_by('indice'),
                                           widget=forms.Select(attrs={'class': 'form-control combo-area-interesse'}),
-                                          help_text="")
+                                          help_text="",
+                                          required=False)
 
     class Meta:
         model = AreaInteresse
