@@ -35,11 +35,11 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, MODO_TRABALHO
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
 
 from allauth.account.models import EmailAddress
 
-from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo
+from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
@@ -2875,11 +2875,15 @@ def novo_processo_seletivo(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, can_delete=True)
+
     if request.method == 'POST':
 
         form = FormProcessoSeletivo(request.POST)
+
+        area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
         
-        if form.is_valid():
+        if form.is_valid() and area_trabalho_formset.is_valid():
 
             status = StatusProcessoSeletivo.EM_ELABORACAO
 
@@ -2901,6 +2905,24 @@ def novo_processo_seletivo(request, id_entidade):
                                                  limite_inscricoes=form.cleaned_data['limite_inscricoes'],
                                                  previsao_resultado=form.cleaned_data['previsao_resultado'])
             processo_seletivo.save()
+
+            # áreas de trabalho
+            areas_incluidas = []
+            for area_trabalho_form in area_trabalho_formset:
+                area_trabalho = area_trabalho_form.cleaned_data.get('area_trabalho')
+                if area_trabalho:
+                    if area_trabalho.id not in areas_incluidas:
+                        areas_incluidas.append(area_trabalho.id)
+                        area = AreaTrabalhoEmProcessoSeletivo(area_trabalho=area_trabalho,
+                                                              processo_seletivo=processo_seletivo)
+                        area.save()
+                    else:
+                        # Ignora duplicidades
+                        pass
+                else:
+                    # Ignora combos vazios
+                    pass
+            
             return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
     else:
 
@@ -2915,7 +2937,10 @@ def novo_processo_seletivo(request, id_entidade):
         
         form = FormProcessoSeletivo(initial=initial)
 
+        area_trabalho_formset = FormSetAreaTrabalho()
+
     context = {'form': form,
+               'area_trabalho_formset': area_trabalho_formset,
                'entidade': entidade}
     template = loader.get_template('vol/formulario_processo_seletivo.html')
     
@@ -2932,16 +2957,49 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, can_delete=True)
+
     if request.method == 'POST':
 
         if processo.editavel():
 
             form = FormProcessoSeletivo(request.POST, instance=processo)
+            area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
 
-            if form.is_valid():
+            areas_preexistentes = list(AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).values_list('area_trabalho', flat=True))
+
+            if form.is_valid() and area_trabalho_formset.is_valid():
+
                 form.save()
+
+                areas_incluidas = []
+                areas_selecionadas = []
+                for area_trabalho_form in area_trabalho_formset:
+                    area_trabalho = area_trabalho_form.cleaned_data.get('area_trabalho')
+                    if area_trabalho:
+                        areas_selecionadas.append(area_trabalho.id)
+                        if area_trabalho.id not in areas_preexistentes and area_trabalho.id not in areas_incluidas:
+                            areas_incluidas.append(area_trabalho.id)
+                            area = AreaTrabalhoEmProcessoSeletivo(area_trabalho=area_trabalho,
+                                                                  processo_seletivo=processo)
+                            area.save()
+                        else:
+                            # Ignora duplicidades e áreas já salvas
+                            pass
+                    else:
+                        # Ignora combos vazios
+                        pass
+                # Apaga áreas removidas
+                for area_preexistente in areas_preexistentes:
+                    if area_preexistente not in areas_selecionadas:
+                        try:
+                            r_area = AreaTrabalhoEmProcessoSeletivo.objects.get(area_trabalho=area_preexistente, processo_seletivo=processo)
+                            r_area.delete()
+                        except AreaTrabalhoEmProcessoSeletivo.DoesNotExist:
+                            pass
+
                 messages.info(request, u'Alterações salvas com sucesso!')
-                
+
         elif processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
 
             # Faz uma cópia do processo, pois a chanada ao is_valid abaixo já
@@ -2999,10 +3057,12 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
                 return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:
-        
+
         form = FormProcessoSeletivo(instance=processo)
+        area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
 
     context = {'form': form,
+               'area_trabalho_formset': area_trabalho_formset,
                'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
                'processo': processo}
 

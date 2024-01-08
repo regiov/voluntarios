@@ -1,0 +1,347 @@
+/* ATENÇÃO: Não altere este arquivo. Gere uma nova versão utilizando um novo nome: vol-x.y.css */
+#pre-navbar {
+    min-height: 0px;
+}
+@media (min-width: 768px) { /* mais espaço para que o último submenu não ultrapasse o limite da tela */
+    #navbar-container {
+	padding-right: 100px;
+    }
+    #pre-navbar-container {
+	padding-right: 140px;
+    }
+}
+.logo-img {
+    padding-right: 15px;
+}
+.logo-cell {
+    padding-left: 15px;
+    padding-right: 15px;
+    vertical-align: middle;
+}
+.logo-cell h1 {
+    line-height: initial;
+    font-size: 26px;
+    color: #006600;
+}
+.logo-url {
+    font-size: 16px;
+    color: #006600;
+    text-align: center;
+    padding-top: 5px;
+}
+.banner {
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 15px;
+}
+.add-row, .add-row-distinct {
+    background: url(../images/misc/icon-addlink.svg) 0 1px no-repeat;
+    padding-left: 16px;
+    font-size: 12px;
+}
+.delete-row, .delete-row-distinct {
+    float: right;
+    text-indent: -9999px;
+    background: url(../images/misc/icon-deletelink.svg) 0 0 no-repeat;
+    width: 14px;
+    height: 14px;
+    border: 0px none;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+#content p {
+    margin-bottom: 20px; /* aumento no espaçamento entre linhas */
+}
+#content p.dica {
+    margin-bottom: 5px; /* menos para as dicas */
+}
+.dica {
+    font-size: 12px;
+    font-weight: normal;
+}
+.destaque {
+    color: #CC6600;
+    font-weight: bold;
+}
+.nowrap {
+    white-space: nowrap !important;
+}
+pre {
+    white-space: pre-line; 
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: normal;
+    word-break: normal;
+}
+
+/* Profile container */
+.profile {
+  margin: 20px 0;
+}
+
+/* Profile sidebar */
+.profile-sidebar {
+  /* padding: 20px 0 10px 0; */
+  background: #fff;
+}
+.profile-usermenu {
+  margin-top: 30px;
+}
+
+.profile-usermenu ul li {
+  border-bottom: 1px solid #f0f4f7;
+}
+
+.profile-usermenu ul li:last-child {
+  border-bottom: none;
+}
+
+.profile-usermenu ul li a {
+  color: #93a3b5;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.profile-usermenu ul li a i {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.profile-usermenu ul li a:hover {
+  background-color: #fafcfd;
+  color: #5b9bd1;
+}
+
+.profile-usermenu ul li.active {
+  border-bottom: none;
+}
+
+.profile-usermenu ul li.active a {
+  color: #5b9bd1;
+  background-color: #f6f9fb;
+  border-left: 2px solid #5b9bd1;
+  margin-left: -2px;
+}
+
+
+
+#form-voluntario #id_estado { /* não esticar combo de ufs */
+    width: auto;
+}
+#form-voluntario #id_area_trabalho { /* não esticar combo de áreas de trabalho */
+    width: auto;
+}
+.submenu-entidade {
+    font-size: 11px;
+}
+/* não esticar combos de data, deixando-os alinhados */
+/* e não extrapolando o conjunto em telas pequenas */
+.combo-data {
+    white-space: nowrap;
+}
+/* combos de data em formulário vem sempre depois de um label */
+/* 1: label */
+/* 2: dia */
+/* 3: mês */
+/* 4: ano */
+div.combo-data > label:nth-child(1) {
+    display: block;
+}
+div.combo-data > select:nth-child(2) {
+    display: inline;
+    width: auto;
+}
+div.combo-data > select:nth-child(3) {
+    display: inline;
+    width: 110px;
+}
+div.combo-data > select:nth-child(4) {
+    display: inline;
+    width: 80px;
+}
+#textslide {
+    height:200px;
+    padding: 10px;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
+/* --------------------------------------- */
+#form-voluntario .combo-area-interesse {
+    display: inline; /* não jogar remover na outra linha */
+    width: 235px; /* não esticar combo de áreas de interesse, mas tb não deixar o remover extrapolar em telas pequenas */
+}
+#form-processo-seletivo .combo-area-trabalho {
+    display: inline; /* não jogar remover na outra linha */
+    width: 235px; /* não esticar combo de áreas de trabalho, mas tb não deixar o remover extrapolar em telas pequenas */
+}
+#form-entidade .input-numero {
+    display: inline; /* não jogar remover na outra linha */
+    width: calc(100% - 20px); /* não esticar totalmente o campo, mas tb não deixar o remover extrapolar em telas pequenas */
+}
+#form-entidade ul.input-principal {
+    display: inline-block; /* não jogar remover na outra linha */
+}
+.registro {
+    margin-top: 30px;
+}
+.nome-entidade > span {
+    padding-bottom: 5px;
+    border-bottom: 1px solid lightgrey;
+}
+.registro label {
+    color: dimgrey;
+}
+#content .registro p {
+    margin-bottom: 5px;
+}
+.registro i {
+    margin-right: 10px;
+}
+.secao-entidade {
+    margin-bottom: 20px;
+}
+.secao-entidade > span {
+    padding-bottom: 5px;
+    border-bottom: 1px solid lightgrey;
+}
+/* --------------------------------------- */
+#map-canvas {
+    margin-top: 60px;
+    height: 400px;
+}
+#map-canvas img {
+    max-width: none;
+}
+#pac-input {
+    margin-top: 10px;
+    border: 1px solid transparent;
+    border-radius: 2px 0 0 2px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    height: 32px;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    background-color: #fff;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    margin-left: 12px;
+    padding: 0 11px 0 13px;
+    text-overflow: ellipsis;
+    width: 260px;
+}
+#pac-input:focus {
+    border-color: #4d90fe;
+}
+a.link-externo::after {
+    content: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg==);
+    margin: 0 3px 0 8px;
+}
+.faixa-com-textura {
+    padding: 3px;
+    margin-bottom: 20px;
+    background-image: url(/static/images/home/tour-bg.png);
+    border-radius: 5px;
+}
+.item-blog {
+    padding: 1px 10px 10px 10px;
+    margin-bottom: 20px;
+    background-color: #F8F9F9;
+    border: 1px solid #EEEEEE;
+    border-radius: 5px;
+}
+.titulo-postagem {
+    font-weight: 400;
+}
+.sublinhado {
+    display: inline-block;
+}
+.sublinhado:after {
+  content: '';
+  display: block;
+  border-top: 1px solid #EEEEEE;
+  margin-top: 0.5em;
+}
+/* --------------------------------------- */
+
+/* -- alteracoes no main.css -- */
+#home p{
+  /*position: absolute;*/
+  /*top: 150px;*/
+  /*left: 0;*/
+  /*width: 450px;*/
+  /*margin-left: 100px;*/
+  color: white;
+  font-weight: 200;
+  /*background: rgb(0, 0, 0); /* fallback color */
+  /*background: rgba(0, 0, 0, 0.6); */
+  padding: 10px;
+}
+#home h1{
+  /*margin-top: 70px;*/
+  /*margin-bottom: 25px;*/
+  color: white;
+}
+#home h1 span { 
+   background: rgb(0, 0, 0); /* fallback color */
+   background: rgba(0, 0, 0, 0.6);
+   padding: 11px;
+}
+#home .btn-common {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: white;
+  font-weight: 550;
+  background: rgb(0, 0, 0); /* fallback color */
+  background: rgba(0, 0, 0, 0.5);
+  padding: 16px 46px;
+  font-size: 18px;
+  border-color: #d29948;
+  border-radius: 6px;
+}
+#home  
+  .btn-common:hover, 
+  .btn-common:focus{
+    outline: none;
+    background: none;
+    box-shadow: none;
+    border-color: white;
+  }
+#home #main-carousel h1 {
+  margin-top: 22px;
+}
+#home #main-carousel .carousel-inner p {
+    margin: 0 auto;
+}
+#footer p {
+  margin-bottom: 1px;
+}
+#footer a {
+    color: maroon;
+}
+#footer a:hover {
+    outline: none;
+    text-decoration:none;
+    color: #ff3300;
+}
+#map-legend img {
+    margin-top: 10px;
+}
+.spaced-row {
+    margin-top: 20px;
+}
+#testimonials h1.title {
+    margin-bottom: 25px;
+}
+#icone-favorito.fa-heart {
+    font-size: 16px;
+    -webkit-text-stroke: 1px dimgray;
+    color: white;
+    cursor: pointer;
+    margin-left: 15px;
+}
+#icone-favorito.fa-heart.fill {
+     color: red
+}
+/* ------ */

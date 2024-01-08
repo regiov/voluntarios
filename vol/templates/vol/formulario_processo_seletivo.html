@@ -3,6 +3,20 @@
 
 {% block title %}{% if not processo or processo.em_elaboracao %}Novo p{% else %}P{% endif %}rocesso seletivo{% endblock title %}
 
+{% block head %}
+
+<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
+
+<script type="text/javascript">
+
+    $(function() {
+        $('.formset').formset({deleteText: 'remover', addText: 'incluir outra área'});
+    })
+
+</script>
+
+{% endblock head %}
+
 {% block content %}
 
 <h1 class="margin-bottom">{% if not processo or processo.em_elaboracao %}Novo p{% else %}P{% endif %}rocesso seletivo</h1>
@@ -18,6 +32,21 @@
     {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
     {% include "vol/campo_formulario.html" with campo=form.estado required=False div_id="estado" invisible=form.instance.trabalho_remoto %}
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto loader=True %}
+    
+    <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
+      <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">* {{ form.area_trabalho.label }}</label>
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tbody>
+        {% for form in area_trabalho_formset.forms %}
+        <tr class="formset">
+          <td>{{ form.area_trabalho }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {{ area_trabalho_formset.management_form }}
+    </div>
+
     {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
     {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
     {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}
