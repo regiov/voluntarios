@@ -7,6 +7,8 @@
 
 <script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
 
+{% if processo.editavel %}
+{% comment %}É esse código que acrescenta os ícones de edição no formset{% endcomment %}
 <script type="text/javascript">
 
     $(function() {
@@ -14,12 +16,13 @@
     })
 
 </script>
+{% endif %}
 
 {% endblock head %}
 
 {% block content %}
 
-<h1 class="margin-bottom">{% if not processo or processo.em_elaboracao %}Novo p{% else %}P{% endif %}rocesso seletivo</h1>
+<h1 class="margin-bottom">{% if not processo %}Novo p{% else %}P{% endif %}rocesso seletivo</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -34,12 +37,12 @@
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto loader=True %}
     
     <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
-      <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">* {{ form.area_trabalho.label }}</label>
+      <label for="id_area_trabalho" class="nowrap">* Área de trabalho do voluntário</label>
       <table border="0" cellpadding="0" cellspacing="0">
         <tbody>
-        {% for form in area_trabalho_formset.forms %}
+        {% for subform in area_trabalho_formset.forms %}
         <tr class="formset">
-          <td>{{ form.area_trabalho }}</td>
+          <td>{{ subform.area_trabalho }}</td>
         </tr>
         {% endfor %}
         </tbody>

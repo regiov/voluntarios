@@ -700,15 +700,20 @@ class FormAssinarTermoAdesaoVol(forms.Form):
 
 class FormAreaTrabalho(forms.ModelForm):
     "Formulário de áreas de trabalho de voluntários para processo seletivo"
-    area_trabalho = forms.ModelChoiceField(empty_label=u'-- Escolha uma opção --',
+    area_trabalho = forms.ModelChoiceField(label='Área de trabalho do voluntário',
+                                           empty_label=u'-- Escolha uma opção --',
                                            queryset=AreaTrabalho.objects.all().order_by('nome'),
                                            widget=forms.Select(attrs={'class': 'form-control combo-area-trabalho'}),
                                            help_text="",
-                                           required=False)
+                                           required=False) # deve ser falso para evitar problema com combo extra
 
     class Meta:
         model = AreaTrabalhoEmProcessoSeletivo
         fields = ("area_trabalho",)
+
+    def disable(self):
+        for field_name, field in self.fields.items():
+            field.widget.attrs['disabled'] = 'disabled'
 
 class FormProcessoSeletivo(forms.ModelForm):
 
@@ -736,13 +741,6 @@ class FormProcessoSeletivo(forms.ModelForm):
                                choices=[], # definido via init para validação. No form é carregado via ajax.
                                required=False,
                                initial='')
-    # Campo incluído apenas para definir label (?)
-    area_trabalho = forms.ModelChoiceField(label=u'Área de trabalho do voluntário',
-                                           empty_label=u'-- Escolha a área --',
-                                           queryset=AreaTrabalho.objects.all().order_by('nome'),
-                                           widget=forms.Select(attrs={'class': 'form-control'}),
-                                           help_text="",
-                                           required=False)
     atividades = forms.CharField(label='Atividades a serem realizadas',
                                  widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
     requisitos = forms.CharField(label='Pré-requisitos',
@@ -776,7 +774,7 @@ class FormProcessoSeletivo(forms.ModelForm):
         super(FormProcessoSeletivo, self).__init__(*args, **kwargs)
 
         estado = self.data.get('estado')
-        if estado is None and self.instance:
+        if estado is None and self.instance and self.instance.estado:
             estado = self.instance.estado.sigla
             self.initial['estado'] = estado
 

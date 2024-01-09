@@ -1790,7 +1790,20 @@ class ProcessoSeletivo(models.Model):
         '''Retorna todas as inscricoes deste processo seletivo, independente do status'''
         return ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
 
+    def areas_de_trabalho(self):
+        areas = ''
+        for area in self.areatrabalhoemprocessoseletivo_set.select_related('area_trabalho').all().order_by('area_trabalho__nome'):
+            if len(areas) > 0:
+                areas = areas + ', '
+            areas = areas + area.area_trabalho.nome
+        return areas
+
     # Transições de estado
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusProcessoSeletivo.EM_ELABORACAO], target=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
+    def solicitar_aprovacao(self, by=None):
+        pass
 
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.EM_ELABORACAO, StatusProcessoSeletivo.AGUARDANDO_APROVACAO, StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CANCELADO)

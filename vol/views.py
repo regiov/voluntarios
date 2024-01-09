@@ -2147,13 +2147,13 @@ def revisao_processo_seletivo(request, codigo_processo):
                             processo.save()
                             return revisao_processos_seletivos(request)
             else:
-                return revisao_processos_seletivos(request)
+                return redirect(reverse('painel'))
         else:
             processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
                 
     except ProcessoSeletivo.DoesNotExist:
         messages.error(request, u'Este processo não existe ou já foi revisado...')
-        return revisao_processos_seletivos(request)
+        return redirect(reverse('painel'))
 
     # Em princípio, vamos deixar tudo desabilitado. Se houver algum problema será preciso
     # entrar em contato com a entidade para que ela faça a alteração. Futuramente podemos pensar
@@ -2161,7 +2161,13 @@ def revisao_processo_seletivo(request, codigo_processo):
     # antes de complicar vamos tentar a solução mais simples.
     form = FormProcessoSeletivo(instance=processo, disabled=True)
 
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, min_num=1, validate_min=True, can_delete=False)
+    area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+    for subform in area_trabalho_formset:
+        subform.disable()
+        
     context = {'form': form,
+               'area_trabalho_formset': area_trabalho_formset,
                'processo': processo}
 
     template = loader.get_template('vol/revisao_processo_seletivo.html')
@@ -2875,7 +2881,7 @@ def novo_processo_seletivo(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, can_delete=True)
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, min_num=1, validate_min=True, can_delete=True)
 
     if request.method == 'POST':
 
@@ -2957,7 +2963,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, can_delete=True)
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, max_num=10, min_num=1, validate_min=True, can_delete=True)
 
     if request.method == 'POST':
 
@@ -2970,7 +2976,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
             if form.is_valid() and area_trabalho_formset.is_valid():
 
-                form.save()
+                proc = form.save()
 
                 areas_incluidas = []
                 areas_selecionadas = []
@@ -2998,68 +3004,86 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                         except AreaTrabalhoEmProcessoSeletivo.DoesNotExist:
                             pass
 
+                if 'solicitar_aprovacao' in request.POST:
+                    proc.solicitar_aprovacao(by=request.user)
+                    proc.save()
+                    return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': proc.entidade_id}))
+
                 messages.info(request, u'Alterações salvas com sucesso!')
 
-        elif processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
+        else:
 
-            # Faz uma cópia do processo, pois a chanada ao is_valid abaixo já
-            # irá alterar os dados da instância
-            processo_original = deepcopy(processo)
+            # Processo não é editável aqui
+            area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+            for subform in area_trabalho_formset:
+                subform.disable()
+            
+            if processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
 
-            # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
-            data = request.POST.dict()
-            data['titulo'] = processo.titulo
-            data['resumo_entidade'] = processo.resumo_entidade
-            data['modo_trabalho'] = str(processo.modo_trabalho)
-            data['estado'] = processo.estado
-            data['cidade'] = processo.cidade
-            data['atividades'] = processo.atividades
-            data['carga_horaria'] = processo.carga_horaria
-            data['requisitos'] = processo.requisitos
-            if not processo.passivel_de_antecipar_inscricoes():
-                data['inicio_inscricoes'] = processo.inicio_inscricoes
+                # Faz uma cópia do processo, pois a chanada ao is_valid abaixo já
+                # irá alterar os dados da instância
+                processo_original = deepcopy(processo)
 
-            form = FormProcessoSeletivo(data, instance=processo)
+                # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
+                data = request.POST.dict()
+                data['titulo'] = processo.titulo
+                data['resumo_entidade'] = processo.resumo_entidade
+                data['modo_trabalho'] = str(processo.modo_trabalho)
+                data['estado'] = processo.estado
+                data['cidade'] = processo.cidade
+                data['atividades'] = processo.atividades
+                data['carga_horaria'] = processo.carga_horaria
+                data['requisitos'] = processo.requisitos
+                if not processo.passivel_de_antecipar_inscricoes():
+                    data['inicio_inscricoes'] = processo.inicio_inscricoes
 
-            if form.is_valid(): # atenção, este método altera a instância do processo seletivo
+                form = FormProcessoSeletivo(data, instance=processo)
 
-                if processo_original.passivel_de_antecipar_inscricoes():
+                if form.is_valid(): # atenção, este método altera a instância do processo seletivo
 
-                    if processo_original.inicio_inscricoes != processo.inicio_inscricoes:
-                        processo.save(update_fields=['inicio_inscricoes'])
-                        messages.info(request, u'Início de inscrições alterado com sucesso!')
+                    if processo_original.passivel_de_antecipar_inscricoes():
 
-                        if processo.aguardando_publicacao() and processo.inscricoes_abertas():
-                            processo.publicar(by=request.user)
-                            processo.save()
+                        if processo_original.inicio_inscricoes != processo.inicio_inscricoes:
+                            processo.save(update_fields=['inicio_inscricoes'])
+                            messages.info(request, u'Início de inscrições alterado com sucesso!')
 
-                if processo_original.passivel_de_estender_inscricoes():
+                            if processo.aguardando_publicacao() and processo.inscricoes_abertas():
+                                processo.publicar(by=request.user)
+                                processo.save()
 
-                    update_fields = []
+                    if processo_original.passivel_de_estender_inscricoes():
 
-                    if processo_original.limite_inscricoes != processo.limite_inscricoes:
-                        update_fields.append('limite_inscricoes')
-                    if processo_original.previsao_resultado != processo.previsao_resultado:
-                        update_fields.append('previsao_resultado')
+                        update_fields = []
 
-                    if update_fields: 
-                        processo.save(update_fields=update_fields)
+                        if processo_original.limite_inscricoes != processo.limite_inscricoes:
+                            update_fields.append('limite_inscricoes')
+                        if processo_original.previsao_resultado != processo.previsao_resultado:
+                            update_fields.append('previsao_resultado')
 
-                    if 'limite_inscricoes' in update_fields:
-                        
-                        if processo.aberto_a_inscricoes() and processo.inscricoes_encerradas():
-                            processo.encerrar_inscricoes()
-                            processo.save()
-                        elif processo.aguardando_selecao() and processo.inscricoes_abertas():
-                            processo.reabrir_inscricoes()
-                            processo.save()
-                        messages.info(request, u'Limite de inscrições alterado com sucesso!')
+                        if update_fields: 
+                            processo.save(update_fields=update_fields)
 
-                return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
+                        if 'limite_inscricoes' in update_fields:
+
+                            if processo.aberto_a_inscricoes() and processo.inscricoes_encerradas():
+                                processo.encerrar_inscricoes()
+                                processo.save()
+                            elif processo.aguardando_selecao() and processo.inscricoes_abertas():
+                                processo.reabrir_inscricoes()
+                                processo.save()
+                            messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                    return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:
 
         form = FormProcessoSeletivo(instance=processo)
+
         area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+
+        if not processo.editavel():
+
+            for subform in area_trabalho_formset:
+                subform.disable()
 
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,

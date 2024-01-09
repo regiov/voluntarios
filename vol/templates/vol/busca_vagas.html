@@ -88,8 +88,8 @@
     <tr>
       <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=vaga.codigo %}">{{ vaga.titulo}}</a></td>
       <td>{{ vaga.entidade.razao_social }}</td>
-      <td>{% if interesses.count == 0 %}-{% else %}{% for interesse in interesses %}{% if forloop.counter0 > 0 %}, {% endif %}{{ interesse.area_atuacao.nome }}{% endfor %}{% endif %}</td>
-      <td>{{ voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ voluntario.profissao }}</span></td>
+      <td>{{ vaga.entidade.area_atuacao.nome }}</td>
+      <td>{{ vaga.areas_de_trabalho }}</td>
       <td>{{ vaga.nome_modo_trabalho }}</td>
       <td>{% if vaga.trabalho_remoto %}-{% else %}{{ vaga.cidade.nome }}-{{ vaga.estado.sigla }}{% endif %}</td>
       <td>{{ vaga.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if vaga.limite_inscricoes %}{{ vaga.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
