@@ -331,6 +331,12 @@ class Voluntario(models.Model):
             return True
         return False
 
+    def telefone_completo(self):
+        if self.ddd and self.telefone:
+            tel = '55' + self.ddd.lstrip('0') + self.telefone
+            return re.sub(r'[^0-9]', '', tel)
+        return None
+
     def areas_de_interesse(self):
         areas = ''
         cnt = 0
