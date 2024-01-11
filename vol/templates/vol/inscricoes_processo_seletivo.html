@@ -1,4 +1,5 @@
 {% extends "vol/base_entidade.html" %}
+{% load static %}
 
 {% block title %}Inscrições{% endblock title %}
 
@@ -21,14 +22,21 @@
     </thead>
   <tbody>
   {% for inscricao in inscricoes %}
-  {% with telefone_competo=inscricao.voluntario.telefone_completo %}
+  {% with telefone_competo=inscricao.voluntario.telefone_completo processo=inscricao.processo_seletivo %}
   <tr>
     <td><a href="mailto:{{ inscricao.voluntario.usuario.email }}"><i class="fas fa-envelope" title="contatar por e-mail"></i></a>{% if telefone_completo %} <a href="https://api.whatsapp.com/send?phone={{ telefone_completo }}" style="margin-left:5px;"><i class="fab fa-whatsapp" title="contatar por zap"></i></a>{% endif %}</td>
     <td><a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}</td></a>
     <td>{{ inscricao.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ inscricao.voluntario.profissao }}</span></td>
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade }} anos</td>
-    <td>{{ inscricao.nome_status }}</td>
+    <td>{% if processo.aberto_a_inscricoes or processo.aguardando_selecao and inscricao.passivel_de_selecao %}
+      <select class="inscricao" name="{{ inscricao.id }}" prevIndex="{% if inscricao.selecionado %}1{% else %}{% if inscricao.nao_selecionado %}2{% else %}0{% endif %}{% endif %}">
+	<option value="aguardando_selecao"{% if inscricao.agurdando_selecao %} selected{% endif %}>-- aguardando seleção --</option>
+	<option value="selecionado"{% if inscricao.selecionado %}  selected{% endif %}>selecionado</option>
+	<option value="nao_selecionado"{% if inscricao.nao_selecionado %}  selected{% endif %}>não selecionado</option>
+      </select>
+      <img id="{{ inscricao.id }}_icon" src="">
+      {% else %}{{ inscricao.nome_status }}{% endif %}</td>
   {% endwith %}
   {% endfor %}
   </tbody>
@@ -39,3 +47,52 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block post_footer %}
+
+<script type="text/javascript">
+
+  {% if processo.aberto_a_inscricoes or processo.aguardando_selecao %}
+  
+    $(document).ready(function () {
+    
+      // Combos de seleção
+      $(".inscricao").change(function() {
+
+        var id = this.name;
+        var icon_id = "#" + id + "_icon";
+        var prev_index = this.getAttribute("prevIndex");
+        var combo = this;
+        var token = '{{ csrf_token }}';
+  
+        $(icon_id).attr("src", "{% static 'images/ajax-loader-circle-small.gif' %}");
+  
+        $.ajax({
+            url: "{% url 'classificar_inscricao' %}",
+            method: "POST",
+            headers: {"X-CSRFToken": token},
+            data: {
+              id: id,
+              value: this.value,
+            },
+            success: function(response) {
+              combo.setAttribute("prevIndex", this.selectedIndex);
+              $(icon_id).attr("src", "{% static 'images/misc/icon-yes.svg' %}");
+              $(icon_id).fadeOut(1000);
+            },
+            error: function(xhr, errmsg, err) {
+              combo.selectedIndex = prev_index;
+              $(icon_id).attr("src", "{% static 'images/misc/icon-deletelink.svg' %}");
+              //$(icon_id).fadeOut(1000);
+ 
+              console.log('Erro ao classificar inscrição: ', errmsg);
+            }
+        });
+      });
+    });
+
+  {% endif %}
+  
+</script>
+
+{% endblock post_footer %}

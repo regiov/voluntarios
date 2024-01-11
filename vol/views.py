@@ -3190,3 +3190,47 @@ def inscricao_processo_seletivo(request, codigo_processo):
                 messages.error(request, u'Nenhuma ação especificada (?)')
 
     return exibe_processo_seletivo(request, processo.codigo)
+
+@login_required
+@transaction.atomic
+def classificar_inscricao(request):
+    '''Classifica uma inscrição de processo seletivo.
+    Parâmetros POST:
+    id (id da inscrição),
+    value (status da inscrição: aguardando_selecao, selecionado, nao_selecionado)
+    OBS: também requer o header X-CSRFToken'''
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    inscricao_id = request.POST.get('id')
+    value = request.POST.get('value')
+
+    if inscricao_id is None or value is None or value not in ('aguardando_selecao', 'selecionado', 'nao_selecionado') or not inscricao_id.isdigit():
+        return HttpResponseBadRequest('Parâmetros incorretos')
+
+    try:
+        inscricao = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').get(pk=inscricao_id)
+    except ParticipacaoEmProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    if int(inscricao.processo_seletivo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if not inscricao.passivel_de_selecao():
+        raise PermissionDenied
+
+    if value == 'aguardando_selecao':
+        if inscricao.selecionado() or inscricao.nao_selecionado():
+            inscricao.desfazer_selecao(by=request.user)
+            inscricao.save()
+    elif value == 'selecionado':
+        if inscricao.aguardando_selecao() or inscricao.nao_selecionado():
+            inscricao.selecionar(by=request.user)
+            inscricao.save()
+    elif value == 'nao_selecionado':
+        if inscricao.aguardando_selecao() or inscricao.selecionado():
+            inscricao.rejeitar(by=request.user)
+            inscricao.save()
+
+    return HttpResponse(status=200)

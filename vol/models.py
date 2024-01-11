@@ -1894,7 +1894,7 @@ class StatusParticipacaoEmProcessoSeletivo(object):
     @classmethod
     def nome(cls, code):
         if code == 10:
-            return u'Inscrito'
+            return u'Aguardando seleção'
         elif code == 20:
             return u'Desistência'
         elif code == 30:
@@ -1924,11 +1924,28 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     def nome_status(self):
         return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
 
+    def aguardando_selecao(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.INSCRITO
+
+    def inscrito(self):
+        return self.aguardando_selecao()
+
     def desistiu(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.DESISTENCIA
 
     def passivel_de_desistencia(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.INSCRITO
+
+    def passivel_de_selecao(self):
+        return self.status in (StatusParticipacaoEmProcessoSeletivo.INSCRITO,
+                               StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO,
+                               StatusParticipacaoEmProcessoSeletivo.SELECIONADO)
+
+    def selecionado(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.SELECIONADO
+
+    def nao_selecionado(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO
 
     # Transições de estado
 
@@ -1943,13 +1960,18 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO)
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO)
     def rejeitar(self, by=None):
         pass
 
     @fsm_log_by
-    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO], target=StatusParticipacaoEmProcessoSeletivo.SELECIONADO)
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.INSCRITO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.SELECIONADO)
     def selecionar(self, by=None):
+        pass
+
+    @fsm_log_by
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.SELECIONADO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.INSCRITO)
+    def desfazer_selecao(self, by=None):
         pass
 
     @fsm_log_by
