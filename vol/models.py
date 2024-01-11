@@ -1921,7 +1921,15 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     def __str__(self):
         return self.processo_seletivo.titulo + ': ' + self.voluntario.usuario.nome + '(' + self.nome_status()  + ')'
 
-    def nome_status(self):
+    def nome_status(self, status=None):
+        if status is not None:
+            return StatusParticipacaoEmProcessoSeletivo.nome(status)
+        return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
+
+    def nome_status_para_voluntario(self):
+        # Não exibe o resultado da seleção até que o processo seletivo tenha sido encerrado
+        if (self.processo_seletivo.aguardando_selecao() or self.processo_seletivo.aberto_a_inscricoes()) and self.status in (StatusParticipacaoEmProcessoSeletivo.SELECIONADO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO):
+            return self.nome_status(StatusParticipacaoEmProcessoSeletivo.INSCRITO)
         return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
 
     def aguardando_selecao(self):

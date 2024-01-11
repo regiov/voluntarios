@@ -9,14 +9,23 @@
 {% if inscricoes|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th>Entidade</th><th>Vaga</th><th>Status do processo</th><th>Status da inscrição</th></thead>
+    <thead>
+      <th>Entidade</th>
+      <th>Vaga</th>
+      <th>Status do processo</th>
+      <th>Status da inscrição</th>
+    </thead>
   <tbody>
   {% for inscricao in inscricoes %}
   <tr>
     <td><a href="{% url 'exibe_entidade' id_entidade=inscricao.processo_seletivo.entidade.pk %}">{{ inscricao.processo_seletivo.entidade.menor_nome }}</a></td>
     <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=inscricao.processo_seletivo.codigo %}">{{ inscricao.processo_seletivo.titulo }}</a></td>
-    <td>{{ inscricao.processo_seletivo.nome_status }}</td>
-    <td>{{ inscricao.nome_status }}</td>
+    <td>{{ inscricao.processo_seletivo.nome_status }}
+      {% if inscricao.processo_seletivo.aberto_a_inscricoes or inscricao.processo_seletivo.aguardando_selecao %}
+        {% if inscricao.processo_seletivo.limite_inscricoes %}<br/><span class="dica">limite das inscrições: {{ inscricao.processo_seletivo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
+        {% if inscricao.processo_seletivo.previsao_resultado %}<br/><span class="dica">previsão de resultado: {{ inscricao.processo_seletivo.previsao_resultado|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
+      {% endif %}</td>
+    <td>{{ inscricao.nome_status_para_voluntario }}</td>
   {% endfor %}
   </tbody>
   </table>
