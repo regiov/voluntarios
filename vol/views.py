@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
 
 from allauth.account.models import EmailAddress
 
@@ -2963,6 +2963,8 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
+    num_inscricoes = processo.inscricoes().count()
+
     FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, max_num=10, min_num=1, validate_min=True, can_delete=True)
 
     if request.method == 'POST':
@@ -3088,15 +3090,17 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,
                'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
-               'processo': processo}
+               'processo': processo,
+               'num_inscricoes': num_inscricoes}
 
     template = loader.get_template('vol/formulario_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))
 
 @login_required
+@transaction.atomic
 def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
-    '''Visualização das inscrições de um processo seletivo'''
+    '''Visualização e gerenciamento das inscrições de um processo seletivo'''
     try:
         processo = ProcessoSeletivo.objects.select_related('entidade').get(codigo=codigo_processo)
     except ProcessoSeletivo.DoesNotExist:
@@ -3104,6 +3108,23 @@ def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
     if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
+    if request.method == 'POST' and 'encerrar' in request.POST:
+        if processo.aguardando_selecao():
+            if (processo.inscricoes_encerradas() or processo.limite_inscricoes is None):
+                num_inscricoes_aguardando_selecao = processo.inscricoes(status=StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO).count()
+                if num_inscricoes_aguardando_selecao == 0:
+                    processo.concluir(by=request.user)
+                    processo.save()
+                    messages.info(request, u'Processo seletivo encerrado!')
+                    return redirect(reverse('processos_seletivos_entidade',
+                                            kwargs={'id_entidade': processo.entidade_id}))
+                else:
+                    messages.error(request, u'Ainda existem candidatos aguardando seleção.')
+            else:
+                messages.error(request, u'Só é possível encerrar um processo seletivo quando as inscrições estiverem encerradas ou quando não houver data limite para as inscrições.')
+        else:
+            messages.error(request, u'Só é possível encerrar um processo seletivo quando o mesmo estiver na situação "aguardando seleção".')
+            
     inscricoes = processo.inscricoes()
 
     context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai

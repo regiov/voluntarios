@@ -181,7 +181,7 @@ urlpatterns = [
     # Processos seletivos
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/?$', views.processos_seletivos_entidade, name='processos_seletivos_entidade'),
 
-    re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/novo/?$', views.novo_processo_seletivo, name='novo_processo_seletivo'),
+    re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/nova/?$', views.novo_processo_seletivo, name='novo_processo_seletivo'),
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/(?P<codigo_processo>[\d-]+)/inscricoes$', views.inscricoes_processo_seletivo, name='inscricoes_processo_seletivo'),
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/(?P<codigo_processo>[\d-]+)/?$', views.editar_processo_seletivo, name='editar_processo_seletivo'),
 

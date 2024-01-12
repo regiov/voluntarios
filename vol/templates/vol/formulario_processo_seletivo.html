@@ -24,6 +24,10 @@
 
 <h1 class="margin-bottom">{% if not processo %}Novo p{% else %}P{% endif %}rocesso seletivo</h1>
 
+{% if num_inscricoes > 1 %}
+<p>Atenção: existem <a href="{% url 'inscricoes_processo_seletivo' id_entidade=processo.entidade_id codigo_processo=processo.codigo %}">{{ num_inscricoes }} inscrições</a> que já podem ser consultadas.</p>
+{% endif %}
+
 {% include "vol/mensagens.html" %}
 
 {% include "vol/erros.html" %}

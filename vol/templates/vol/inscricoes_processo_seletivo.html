@@ -9,7 +9,13 @@
 
 {% include "vol/mensagens.html" %}
 
-{% if inscricoes|length > 0 %}
+{% with num_inscricoes=inscricoes|length %}
+
+{% if num_inscricoes > 0 and processo.aberto_a_inscricoes or processo.aguardando_selecao %}
+<p>Para concluir o processo seletivo, será preciso classificar cada candidato inscrito. Você pode mudar a classificação quantas vezes desejar que o resultado só aparecerá para os voluntários após conclusão do processo seletivo.</p>
+{% endif %}
+
+{% if num_inscricoes > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
     <thead>
@@ -45,7 +51,17 @@
 {% else %}
   <h4>Nenhuma inscrição até o momento.</h4>
 {% endif %}
+{% endwith %}
 
+{% if processo.aguardando_selecao and processo.inscricoes_encerradas or processo.limite_inscricoes is None %}
+<form id="encerrar-selecao" method="POST">
+{% csrf_token %}
+<div class="form-group">
+   <input id="btn-encerrar" class="btn btn-primary" type="submit" name="encerrar" value="Encerrar Seleção" style="display: none;">
+</div>
+</form>
+{% endif %}
+  
 {% endblock content %}
 
 {% block post_footer %}
@@ -56,6 +72,39 @@
   
     $(document).ready(function () {
     
+      {% if processo.aguardando_selecao %}
+      var $ja_avisou_usuario_sobre_encerramento = false;
+      
+      // Controle da exibição do botão de encerramento
+      function controla_exibicao_do_botao_de_encerramento(primeiro_loop) {
+          var $tem_pendencias = false;
+          if ($("#btn-encerrar").length > 0) {
+              $(".inscricao").each(function(index) {
+                 if ($(this).val() === 'aguardando_selecao') {
+                     $tem_pendencias = true;
+                     return false; // interrompe loop
+                 }
+              });
+              if ($tem_pendencias) {
+                  $("#btn-encerrar").hide();
+              } else {
+                  $("#btn-encerrar").show();
+                  if ($primeiro_loop) {
+                      $ja_avisou_usuario_sobre_encerramento = true;
+                  } else {
+                      if (not $ja_avisou_usuario_sobre_encerramento) {
+                          // Devemos melhorar a mensagem considerando os seguintes casos:
+                          // houve pelo menos uma pessoa selecionada, ninguém foi selecionado,
+                          // não houve inscrições
+                          window.alert('Já é possível encerrar o processo seletivo utilizando o botão no final da página.');
+                          $ja_avisou_usuario_sobre_encerramento = true;
+                      }
+                  }
+              }
+          }
+      }
+      {% endif %}
+      
       // Combos de seleção
       $(".inscricao").change(function() {
 
@@ -79,6 +128,9 @@
               combo.setAttribute("prevIndex", this.selectedIndex);
               $(icon_id).attr("src", "{% static 'images/misc/icon-yes.svg' %}");
               $(icon_id).fadeOut(1000);
+              {% if processo.aguardando_selecao %}
+              controla_exibicao_do_botao_de_encerramento(false);
+              {% endif %}
             },
             error: function(xhr, errmsg, err) {
               combo.selectedIndex = prev_index;
@@ -89,6 +141,8 @@
             }
         });
       });
+
+      controla_exibicao_do_botao_de_encerramento(true);
     });
 
   {% endif %}
