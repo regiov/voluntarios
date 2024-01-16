@@ -86,9 +86,9 @@ def notifica_aprovacao_voluntario(usuario):
     '''Envia e-mail comunicando ao usuário a aprovação do seu perfil'''
     # Se o usuário nunca recebeu o aviso de aprovação
     msg = Message.objects.get(code='AVISO_APROVACAO_VOLUNTARIO_V4')
-    if Event.objects.filter(user=usuario, message=msg, context={'usuario': usuario}).count() == 0:
+    if Event.objects.filter(user=usuario, message=msg).count() == 0:
         # Envia notificação
-        notify_user_msg(usuario, msg)
+        notify_user_msg(usuario, msg, context={'usuario': usuario})
 
 def notifica_aprovacao_entidade(entidade):
     '''Envia e-mail comunicando à entidade a aprovação do seu cadastro'''
