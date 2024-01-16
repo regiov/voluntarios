@@ -194,6 +194,13 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def entidades(self):
         return Entidade.objects.filter(vinculoentidade__usuario=self, vinculoentidade__data_fim__isnull=True, vinculoentidade__confirmado=True)
 
+    def codigo_de_processo_seletivo_de_entrada(self):
+        '''Quando o usuário se cadastra tendo clicado para se inscrever num processo seletivo,
+        este método retorna o código do processo.'''
+        if self.link and 'vaga_' in self.link:
+            return self.link.split('_')[-1]
+        return None
+
 class RemocaoUsuario(models.Model):
     """Registro de remoção de usuário"""
     id      = models.AutoField(primary_key=True)

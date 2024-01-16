@@ -317,12 +317,15 @@ def cadastro_voluntario(request, msg=None):
                             messages.warning(request, u'Ops, salvamos seu perfil de voluntária(o), mas não conseguimos identificar o termo de adesão. Por favor, clique novamente no link fornecido por e-mail e caso o problema persista entre em contato conosco.')
                             return mensagem(request, u'Cadastro de Voluntário')
                     # Redireciona para página de exibição de mensagem
-                    msg = u'Obrigado! '
-                    if voluntario.invisivel:
-                        msg = msg + u'Seu cadastro passará por uma validação, mas você já pode usufruir de várias funcionalidades no site, como por exemplo'
+                    msg = u'Gravação feita com sucesso! '
+                    if request.user.link and 'vaga_' in request.user.link:
+                        msg = msg + u'Seus dados passarão por uma validação que normalmente leva 1 dia útil. Enviaremos uma notificação por e-mail assim que houver a aprovação, e logo em seguida você poderá se inscrever nas vagas disponíveis.'
                     else:
-                        msg = msg + u'Assim que o seu cadastro for validado ele estará disponível para as entidades. Enquanto isso, você já pode'
-                    msg = msg + u' procurar por entidades <a href="' + reverse('mapa_entidades') + '">próximas a você</a> ou que atendam a <a href="' + reverse('busca_entidades') + '">outros critérios de busca</a>.'
+                        if voluntario.invisivel:
+                            msg = msg + u'Seu cadastro passará por uma validação, mas você já pode usufruir de várias funcionalidades no site, como por exemplo'
+                        else:
+                            msg = msg + u'Assim que seu cadastro for validado, ele estará disponível para as entidades e você também poderá se inscrever em vagas de trabalho voluntário disponíveis. Enquanto isso, você já pode'
+                        msg = msg + u' procurar por entidades <a href="' + reverse('mapa_entidades') + '">próximas a você</a> ou que atendam a <a href="' + reverse('busca_entidades') + '">outros critérios de busca</a>.'
                     messages.info(request, msg)
                     return mensagem(request, u'Cadastro de Voluntário')
                 messages.info(request, u'Alterações gravadas com sucesso!')
@@ -1642,15 +1645,33 @@ def redirect_login(request):
             # Se já é voluntário, busca entidades
             return redirect(reverse('busca_entidades'))
         # Caso contrário exibe página de cadastro
-        return cadastro_voluntario(request, msg=u'Para finalizar o cadatro de voluntário, complete o formulário abaixo:')
+        return cadastro_voluntario(request, msg=u'Para finalizar o cadastro de voluntário, complete o formulário abaixo:')
     elif request.user.link == 'entidade_nova':
         if request.user.is_voluntario:
             # Existem casos de voluntários que se cadastram pelo caminho de entidades.
             # Nestes casos, ao cadastrar um perfil de voluntário, melhor parar de redirecionar
             # para a página de gerenciamento de entidades, redirecionando para busca de entidades
             return redirect(reverse('busca_entidades'))
-        # Exibe página de cadastro de entidade
-        return cadastro_entidade(request)
+        else:
+            # Independente do usuário possuir entidade cadastrada, redireciona para página
+            # de gerenciamento de entidades, onde pode-se atualizar ou cadastrar entidades
+            return cadastro_entidade(request)
+    elif request.user.link and 'vaga_' in request.user.link:
+        if not request.user.is_voluntario:
+            # Se ainda não for voluntário, exibe página de cadastro
+            # obs: precisamos verificar isso aqui, pois a query mais abaixo só funciona para voluntários
+            return cadastro_voluntario(request, msg=u'Para finalizar o cadastro de voluntário e poder se inscrever em vagas disponíveis após aprovação do cadastro (normalmente leva 1 dia útil), complete o formulário abaixo:')
+        codigo_processo = request.user.codigo_de_processo_seletivo_de_entrada()
+        try:
+            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+            if processo.inscricoes_abertas() and ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=processo, voluntario=request.user.voluntario).count() == 0:
+                # Se a seleção ainda está aberta e o voluntário não se inscreveu,
+                # vai para a página do processo seletivo, com todas as verificações que são feitas lá
+                return exibe_processo_seletivo(request, codigo_processo)
+        except ProcessoSeletivo.DoesNotExist:
+            pass
+        # Utiliza busca de vagas como página default
+        return redirect(reverse('busca_vagas'))
 
     if 'link' in request.session:
         if request.session['link'] == 'entidade_nova':
@@ -3158,57 +3179,76 @@ def exibe_processo_seletivo(request, codigo_processo):
     
     return HttpResponse(template.render(context, request))
 
-@login_required
 @transaction.atomic
 def inscricao_processo_seletivo(request, codigo_processo):
-    '''Método próprio para lidar com inscrição / desistência de processo seletivo
-    apenas para poder usar o mecanismo de exigir login'''
-    metodos = ['POST']
-    if request.method not in (metodos):
-        return HttpResponseNotAllowed(metodos)
+    '''Método para lidar com inscrição / desistência de processo seletivo'''
+
+    try:
+        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        messages.warning(request, u'Não encontramos a vaga especificada. Será que o código está correto? Em caso de dúvida, entre em <a href="mailto:' + settings.CONTACT_EMAIL + '">contato</a> conosco para verificarmos o que houve.')
+        # Redireciona para página de exibição de mensagem
+        return mensagem(request, u'Inscrição em vaga')
+
+    # Condições para inscrição:
+    if not request.user.is_authenticated:
+        # Indica que usuário quer se inscrever numa vaga e redireciona para o cadastro básico de usuário
+        request.session['link'] = 'vaga_' + codigo_processo
+        messages.info(request, u'<strong>Para se inscrever numa vaga, faça antes um cadastro de voluntário com a gente. Comece pelo cadastro de usuário preenchendo o formulário abaixo. Se já possuir cadastro, clique no link para fazer login.</strong>')
+        return redirect(reverse('account_signup'))
     if not request.user.is_voluntario:
-        messages.warning(request, u'Para se inscrever em qualquer processo seletivo é preciso ter um perfil de voluntário cadastrado no sistema. Você pode fazer isso clicando <a href="' + reverse('cadastro_voluntario') + '" target="_blank">aqui</a> para em seguida fazer novamente a inscrição.')
-    else:
-        try:
-            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
-        except ProcessoSeletivo.DoesNotExist:
-            raise Http404
-
-        if not processo.inscricoes_abertas():
-
-            messages.error(request, u'As inscrições para este processo seletivo já foram encerradas.')
-
+        # Avisa que é preciso ter perfil cadastrado de voluntário para se inscrever
+        if request.user.link and 'vaga_' in request.user.link:
+            messages.info(request, u'<strong>Agora só falta preencher seu perfil de voluntário. Utilize o formulário abaixo e depois só aguarde a aprovação do cadastro. Assim que seu cadastro for aprovado, você vai receber uma notificação por e-mail.</strong>')
         else:
-            
-            inscricao = processo.busca_inscricao_de_voluntario(request.user.voluntario.pk)
+            messages.info(request, u'<strong>Para poder se inscrever numa vaga só falta preencher seu perfil de voluntário. Utilize o formulário abaixo e depois aguarde a aprovação do cadastro. Assim que seu cadastro for aprovado, você vai receber uma notificação por e-mail.</strong>')
+        # Redireciona para página de cadastro de perfil de voluntário
+        return redirect(reverse('cadastro_voluntario'))
+    if request.user.voluntario.aprovado is None:
+        # Avisa que é preciso aguardar a aprovação do cadastro
+        messages.info(request, u'<strong>Aguarde a aprovação do seu cadastro para fazer a inscrição. Normalmente isso leva 1 dia útil. Você receberá uma notificação por e-mail assim que seu cadastro for aprovado.</strong>')
+        return exibe_processo_seletivo(request, processo.codigo)
+    if request.user.voluntario.aprovado == False:
+        # Avisa que o cadastro não foi aprovado
+        messages.error(request, u'<strong>Seu cadastro de voluntário não foi aprovado. Entre em <a href="mailto:' + settings.CONTACT_EMAIL + '">contato</a></strong> conosco em caso de dúvidas.')
+        return exibe_processo_seletivo(request, processo.codigo)
 
-            if 'inscrever' in request.POST:
+    if not processo.inscricoes_abertas():
+        messages.error(request, u'As inscrições para este processo seletivo já foram encerradas.')
+        return exibe_processo_seletivo(request, processo.codigo)
 
-                if inscricao:
-                    if inscricao.desistiu():
-                        inscricao.reinscrever(by=request.user)
-                        inscricao.save()
-                        messages.info(request, u'Inscrição reativada com sucesso!')
-                    else:
-                        messages.warning(request, u'Você já se inscreveu neste processo seletivo. Não há necesidade de se inscrever novamente.')
-                else:
-                    inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
+    # Gerenciamento da inscrição
+    if request.method == 'POST':
+
+        inscricao = processo.busca_inscricao_de_voluntario(request.user.voluntario.pk)
+
+        if 'inscrever' in request.POST:
+
+            if inscricao:
+                if inscricao.desistiu():
+                    inscricao.reinscrever(by=request.user)
                     inscricao.save()
-                    messages.info(request, u'Inscrição realizada com sucesso! Aguarde as instruções do processo seletivo.')
-
-            elif 'desistir' in request.POST:
-
-                if inscricao:
-                    if inscricao.passivel_de_desistencia():
-                        inscricao.desistir(by=request.user)
-                        inscricao.save()
-                        messages.info(request, u'Inscrição cancelada!')
-                    else:
-                        messages.error(request, u'Não há como cancelar a inscrição nas condições em que este processo seletivo se encontra. Em caso de dúvida entre em contato conosco.')
+                    messages.info(request, u'Inscrição reativada com sucesso!')
                 else:
-                    messages.error(request, u'Não faz sentido cancelar uma inscrição que sequer foi efetuada.')
+                    messages.warning(request, u'Você já se inscreveu neste processo seletivo. Não há necesidade de se inscrever novamente.')
             else:
-                messages.error(request, u'Nenhuma ação especificada (?)')
+                inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
+                inscricao.save()
+                messages.info(request, u'Inscrição realizada com sucesso! Aguarde as instruções do processo seletivo.')
+
+        elif 'desistir' in request.POST:
+
+            if inscricao:
+                if inscricao.passivel_de_desistencia():
+                    inscricao.desistir(by=request.user)
+                    inscricao.save()
+                    messages.info(request, u'Inscrição cancelada!')
+                else:
+                    messages.error(request, u'Não há como cancelar a inscrição nas condições em que este processo seletivo se encontra. Em caso de dúvida entre em contato conosco.')
+            else:
+                messages.error(request, u'Não faz sentido cancelar uma inscrição que sequer foi efetuada.')
+        else:
+            pass
 
     return exibe_processo_seletivo(request, processo.codigo)
 
