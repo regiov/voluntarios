@@ -34,7 +34,7 @@ from allauth.account.models import EmailAddress
 from mptt.models import MPTTModel, TreeForeignKey
 
 from django_fsm import FSMIntegerField, transition
-from django_fsm_log.decorators import fsm_log_by
+from django_fsm_log.decorators import fsm_log_by, fsm_log_description
 
 from notification.utils import notify_support, notify_email_msg
 from notification.models import Message
@@ -1849,9 +1849,10 @@ class ProcessoSeletivo(models.Model):
     def encerrar_inscricoes(self):
         pass
 
+    @fsm_log_description
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
-    def reabrir_inscricoes(self, by=None):
+    def reabrir_inscricoes(self, by=None, description=None):
         pass
 
     @fsm_log_by

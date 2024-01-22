@@ -3088,11 +3088,12 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
                         if 'limite_inscricoes' in update_fields:
 
-                            if processo.aberto_a_inscricoes() and processo.inscricoes_encerradas():
-                                processo.encerrar_inscricoes()
-                                processo.save()
-                            elif processo.aguardando_selecao() and processo.inscricoes_abertas():
-                                processo.reabrir_inscricoes()
+                            if processo.aguardando_selecao() and processo.inscricoes_abertas():
+                                obs = None
+                                if processo_original.limite_inscricoes:
+                                    limite_anterior = processo_original.limite_inscricoes.strftime('%d/%m/%Y %H:%M:%S')
+                                    obs = u'Limite anterior para inscrições: ' + limite_anterior
+                                processo.reabrir_inscricoes(by=request.user, description=obs)
                                 processo.save()
                             messages.info(request, u'Limite de inscrições alterado com sucesso!')
 
