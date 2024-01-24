@@ -6,67 +6,81 @@
 
 {% if not request.GET.Envia %}
 
-<h1 class="margin-bottom">Encontre Voluntários</h1>
+  <h1 class="margin-bottom">Encontre Voluntários</h1>
 
-<p>Escolha o tipo do voluntário desejado e entre em contato com ele:</p>
+  <p>Escolha o tipo do voluntário desejado e entre em contato com ele:</p>
 
-<form action="" method="GET" name="dados">
+  <form action="" method="GET" name="dados">
 
-  <div class="form-group">
-    <label for="id_fcidade">Cidade:</label>
-    <input id="id_fcidade" type="text" class="form-control" name="fcidade" size="30"{% if request.GET.fcidade %} value="{{ request.GET.fcidade }}"{% endif %}>
-    <input type="checkbox" name="boxexato" value="boxexato"{% if request.GET.boxexato %} checked{% endif %}>
-    Palavra exata
-  </div>
+    <div class="form-group">
+      <label for="id_fcidade">Cidade:</label>
+      <input id="id_fcidade" type="text" class="form-control" name="fcidade" size="30"{% if request.GET.fcidade %} value="{{ request.GET.fcidade }}"{% endif %}>
+      <input type="checkbox" name="boxexato" value="boxexato"{% if request.GET.boxexato %} checked{% endif %}>
+      Palavra exata
+    </div>
 
-  <div class="form-group">
-    <label for="id_fareatrabalho">Área de trabalho:</label>
-    <select id="id_fareatrabalho" name="fareatrabalho" class="form-control">
-      <option value="0"{% if not request.GET.fareatrabalho %} selected{% endif %}>-- Todas as áreas de trabalho --</option>
-      {% for area_trabalho in areas_de_trabalho %}<option value="{{ area_trabalho.id }}"{% if request.GET.fareatrabalho|add:"0" == area_trabalho.id %} selected{% endif %}>{{ area_trabalho.nome }}</option>{% endfor %}
-    </select>
-  </div>
+    <div class="form-group">
+      <label for="id_fareatrabalho">Área de trabalho:</label>
+      <select id="id_fareatrabalho" name="fareatrabalho" class="form-control">
+        <option value="0"{% if not request.GET.fareatrabalho %} selected{% endif %}>-- Todas as áreas de trabalho --</option>
+        {% for area_trabalho in areas_de_trabalho %}
+          <option value="{{ area_trabalho.id }}"{% if request.GET.fareatrabalho|add:"0" == area_trabalho.id %} selected{% endif %}>
+            {{ area_trabalho.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
 
-  <div class="form-group">
-    <label for="id_fasocial">Área de interesse:</label>
-    <select id="id_fasocial" name="fasocial" class="form-control">
-      <option value="0"{% if not request.GET.fasocial %} selected{% endif %}>-- Todas as áreas de interesse --</option>
-      {% for area_interesse in areas_de_interesse %}<option value="{{ area_interesse.id }}"{% if request.GET.fasocial|add:"0" == area_interesse.id %} selected{% endif %}>{% if '.' in area_interesse.indice %}&nbsp;&nbsp;&nbsp;&#9702;{% else %}&#8226;{% endif %} {{ area_interesse.nome }}</option>{% endfor %}
-    </select>
-  </div>
+    <div class="form-group">
+      <label for="id_fasocial">Área de interesse:</label>
+      <select id="id_fasocial" name="fasocial" class="form-control">
+        <option value="0"{% if not request.GET.fasocial %} selected{% endif %}>-- Todas as áreas de interesse --</option>
+        {% for area_interesse in areas_de_interesse %}
+          <option value="{{ area_interesse.id }}"{% if request.GET.fasocial|add:"0" == area_interesse.id %} selected{% endif %}>
+            {% if '.' in area_interesse.indice %}
+              &nbsp;&nbsp;&nbsp;&#9702;
+            {% else %}
+              &#8226;
+            {% endif %}
 
-  <div class="form-group">
-    <label for="id_fpalavras">Palavras-chave:</label>
-    <input id="id_fpalavras" type="text" class="form-control" name="fpalavras" size="30"{% if request.GET.fpalavras %} value="{{ request.GET.fpalavras }}"{% endif %}>
-    (busca feita nos campos "descrição" e "profissão")
-  </div>
+            {{ area_interesse.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
 
-  <div class="form-group">
-    <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
-    <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
-      <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Em qualquer época --</option>
-      <option value="5"{% if request.GET.atualiza and request.GET.atualiza == 5 %} selected{% endif %}>há menos de 5 anos</option>
-      <option value="3"{% if request.GET.atualiza and request.GET.atualiza == 3 %} selected{% endif %}>há menos de 3 anos</option>
-      <option value="2"{% if request.GET.atualiza and request.GET.atualiza == 2 %} selected{% endif %}>há menos de 2 anos</option>
-      <option value="1"{% if request.GET.atualiza and request.GET.atualiza == 1 %} selected{% endif %}>há menos de 1 ano</option>
-    </select>
-  </div>
+    <div class="form-group">
+      <label for="id_fpalavras">Palavras-chave:</label>
+      <input id="id_fpalavras" type="text" class="form-control" name="fpalavras" size="30"{% if request.GET.fpalavras %} value="{{ request.GET.fpalavras }}"{% endif %}>
+      (busca feita nos campos "descrição" e "profissão")
+    </div>
 
-  <div class="form-group">
-    <label for="id_ordem">Ordenado por:</label><br>
-    {% comment %}<input type="radio" name="ordem" value="interesse"{% if request.GET.ordem == 'trabalho' or request.GET.ordem == 'nome' %}{% else %} checked{% endif %}>
-    Área de Interesse{% endcomment %}
-    <input type="radio" name="ordem" value="nome"{% if request.GET.ordem == 'trabalho' %}{% else %} checked{% endif %}>
-    Nome
-    <input type="radio" name="ordem" value="trabalho"{% if request.GET.ordem == 'trabalho' %} checked{% endif %}>
-    Área de Trabalho
-  </div>
+    <div class="form-group">
+      <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
+      <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
+        <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Em qualquer época --</option>
+        <option value="5"{% if request.GET.atualiza and request.GET.atualiza == 5 %} selected{% endif %}>há menos de 5 anos</option>
+        <option value="3"{% if request.GET.atualiza and request.GET.atualiza == 3 %} selected{% endif %}>há menos de 3 anos</option>
+        <option value="2"{% if request.GET.atualiza and request.GET.atualiza == 2 %} selected{% endif %}>há menos de 2 anos</option>
+        <option value="1"{% if request.GET.atualiza and request.GET.atualiza == 1 %} selected{% endif %}>há menos de 1 ano</option>
+      </select>
+    </div>
 
-  <div class="form-group">
-   <input class="btn btn-primary" type="submit" name="Envia" value="Buscar">
-   {% if not request.GET.Envia %}<input class="btn btn-primary" type="reset" name="Limpa" value="Limpar campos">{% endif %}
-  </div>
-</form>
+    <div class="form-group">
+      <label for="id_ordem">Ordenado por:</label><br>
+      {% comment %}<input type="radio" name="ordem" value="interesse"{% if request.GET.ordem == 'trabalho' or request.GET.ordem == 'nome' %}{% else %} checked{% endif %}>
+      Área de Interesse{% endcomment %}
+      <input type="radio" name="ordem" value="nome"{% if request.GET.ordem == 'trabalho' %}{% else %} checked{% endif %}>
+      Nome
+      <input type="radio" name="ordem" value="trabalho"{% if request.GET.ordem == 'trabalho' %} checked{% endif %}>
+      Área de Trabalho
+    </div>
+
+    <div class="form-group">
+    <input class="btn btn-primary" type="submit" name="Envia" value="Buscar">
+    {% if not request.GET.Envia %}<input class="btn btn-primary" type="reset" name="Limpa" value="Limpar campos">{% endif %}
+    </div>
+  </form>
 
 {% else %}
 
@@ -74,26 +88,100 @@
     <h1>Voluntários encontrados</h1>
     <br>
     <div class="table-responsive">
-    <table class="table table-striped table-condensed">
-    <thead><th>Nome</th><th>Área de Interesse</th><th>Área de Trabalho/Profissão</th><th>Cidade</th><th>Telefone/E-mail</th></thead>
-    <tbody>
-    {% for voluntario in voluntarios %}{% with interesses=voluntario.areainteresse_set.all %}
-      <tr><td><a href="{% url 'exibe_voluntario' voluntario.id %}" rel="nofollow">{{ voluntario.usuario.nome}}</a></td><td>{% if interesses.count == 0 %}-{% else %}{% for interesse in interesses %}{% if forloop.counter0 > 0 %}, {% endif %}{{ interesse.area_atuacao.nome }}{% endfor %}{% endif %}</td><td>{{ voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ voluntario.profissao }}</span></td><td>{{ voluntario.cidade }}-{{ voluntario.estado }}</td><td>{% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}<br>{% endif %}<span class="dica"><a href="mailto:{{ voluntario.usuario.email }}">{{ voluntario.usuario.email }}</a></span></td></tr>
-    {% endwith %}{% endfor %}
-    </tbody>
-    </table>
+      <table class="table table-striped table-condensed">
+        <thead>
+          <th>Nome</th>
+          <th>Área de Interesse</th>
+          <th>Área de Trabalho/Profissão</th>
+          <th>Cidade</th>
+          <th>Telefone/E-mail</th>
+        </thead>
+        <tbody>
+          {% for voluntario in voluntarios %}{% with interesses=voluntario.areainteresse_set.all %}
+            <tr>
+              <td>
+                <a href="{% url 'exibe_voluntario' voluntario.id %}" rel="nofollow">
+                  {{ voluntario.usuario.nome}}
+                </a>
+              </td>
+              <td>
+                {% spaceless %}
+                {% if interesses.count == 0 %}
+                  -
+                {% else %}
+                  {% for interesse in interesses %}
+                    {% if forloop.counter0 > 0 %}
+                      ,
+                    {% endif %}
+                    {{ interesse.area_atuacao.nome }}
+                  {% endfor %}
+                {% endif %}
+                {% endspaceless %}
+              </td>
+              <td>
+                {{ voluntario.area_trabalho.nome|default:"-" }}
+                <br>
+                <span class="dica">
+                  {{ voluntario.profissao|default_if_none:"" }}
+                </span>
+              </td>
+              <td>{{ voluntario.cidade }}-{{ voluntario.estado }}</td>
+              <td>
+                {% if voluntario.telefone %}
+                  ({{ voluntario.ddd }}){{ voluntario.telefone }}
+                  <br>
+                {% endif %}
+                <span class="dica">
+                  <a href="mailto:{{ voluntario.usuario.email }}">
+                    {{ voluntario.usuario.email }}
+                  </a>
+                </span>
+              </td>
+            </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
     </div>
 
     {% if voluntarios.paginator.num_pages > 1 %}
-    <br>
-    <div>
-      <span>
-      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}{% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;{% for p in voluntarios.paginator.page_range %}{% if p >= pagina_inicial and p <= pagina_final %}{% if p == voluntarios.number %}<b>{{p}}</b>{% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;{% endif %}{% endfor %}{% if pagina_final < voluntarios.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}" rel="nofollow">&gt;</a>{% endif %}{% if pagina_final < voluntarios.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ voluntarios.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>{% endif %}
-      </span>
-    </div>
+      <br>
+      <div>
+        <span>
+          {% spaceless %}
+          {% if pagina_inicial > 2 %}
+            <a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;
+          {% endif %}
+
+          {% if pagina_inicial > 1 %}
+            <a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}" rel="nofollow">&lt;</a>&nbsp;
+          {% endif %}
+          &nbsp;
+          {% for p in voluntarios.paginator.page_range %}
+            {% if p >= pagina_inicial and p <= pagina_final %}
+              {% if p == voluntarios.number %}
+                <b>{{p}}</b>
+              {% else %}
+                <a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>
+              {% endif %}
+              &nbsp;
+            {% endif %}
+          {% endfor %}
+
+          {% if pagina_final < voluntarios.paginator.num_pages %}
+            &nbsp;
+            <a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}" rel="nofollow">&gt;</a>
+          {% endif %}
+
+          {% if pagina_final < voluntarios.paginator.num_pages|add:-1 %}
+            &nbsp;&nbsp;
+            <a href="?page={{ voluntarios.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>
+          {% endif %}
+          {% endspaceless %}
+        </span>
+      </div>
     {% endif %}
   {% else %}
-  <h2>Nenhum voluntário encontrado com estes critérios.</h2>
+    <h2>Nenhum voluntário encontrado com estes critérios.</h2>
   {% endif %}
 {% endif %}
 
