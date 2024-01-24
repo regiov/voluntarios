@@ -105,16 +105,18 @@
                 </a>
               </td>
               <td>
+                {% spaceless %}
                 {% if interesses.count == 0 %}
                   -
                 {% else %}
                   {% for interesse in interesses %}
-                    {% if forloop.counter > 0 %}
+                    {% if forloop.counter0 > 0 %}
                       ,
                     {% endif %}
                     {{ interesse.area_atuacao.nome }}
                   {% endfor %}
                 {% endif %}
+                {% endspaceless %}
               </td>
               <td>
                 {{ voluntario.area_trabalho.nome|default:"-" }}
@@ -145,6 +147,7 @@
       <br>
       <div>
         <span>
+          {% spaceless %}
           {% if pagina_inicial > 2 %}
             <a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;
           {% endif %}
@@ -173,6 +176,7 @@
             &nbsp;&nbsp;
             <a href="?page={{ voluntarios.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>
           {% endif %}
+          {% endspaceless %}
         </span>
       </div>
     {% endif %}
