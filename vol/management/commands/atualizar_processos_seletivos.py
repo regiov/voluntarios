@@ -6,6 +6,9 @@ from django.utils import timezone
 
 from vol.models import ProcessoSeletivo, StatusProcessoSeletivo
 
+from notification.models import Message
+from notification.utils import notify_user_msg
+
 class Command(BaseCommand):
     '''Linha de comando para ser colocado para rodar no cron todos os dias logo após a meia-noite.'''
     help = u"Encerra processos seletivos cujo limite de inscrições já passou mas que ainda se encontram ABERTO_A_INSCRICOES, bem como abre para inscrições processos seletivos cujo início de inscrições já começõu mas que ainda se encontram AGUARDANDO_PUBLICACAO."
@@ -18,9 +21,11 @@ class Command(BaseCommand):
 
         i = 0
 
+        msg = Message.objects.get(code='AVISO_ENCERRAMENTO_INSCRICOES_SELECAO_V1')
         for processo in processos_em_aberto:
             processo.encerrar_inscricoes()
             processo.save()
+            notify_user_msg(processo.cadastrado_por, msg, context={'processo': processo})
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
@@ -29,9 +34,11 @@ class Command(BaseCommand):
 
         i = 0
 
+        msg = Message.objects.get(code='AVISO_INSCRICOES_INICIADAS_SELECAO_V1')
         for processo in processos_nao_iniciados:
             processo.publicar()
             processo.save()
+            notify_user_msg(processo.cadastrado_por, msg, context={'processo': processo})
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) iniciado(s).'))
