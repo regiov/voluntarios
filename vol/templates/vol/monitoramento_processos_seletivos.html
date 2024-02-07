@@ -1,0 +1,34 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block title %}Processos seletivos{% endblock title %}
+
+{% block content %}
+
+<h2 class="margin-bottom">Processos seletivos cadastrados</h2>
+
+{% include "vol/mensagens.html" %}
+
+{% if processos|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Título</th><th>Entidade</th><th>Status</th><th>Inscrições</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
+  <tbody>
+  {% for processo in processos %}
+  <tr>
+    <td>{{ processo.titulo }}</td>
+    <td>{{ processo.entidade.menor_nome }}</td>
+    <td>{{ processo.nome_status }}</td>
+    <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+    <td>{{ processo.inscricoes.count }}</td>
+    <td>{{ processo.selecionados.count }}</td>
+    <td>{{ processo.nao_selecionados.count }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+{% else %}
+  <h4>Nenhum processo seletivo cadastrado.</h4>
+{% endif %}
+
+{% endblock content %}

@@ -1807,6 +1807,12 @@ class ProcessoSeletivo(models.Model):
             qs = qs.filter(status__in=status)
         return qs
 
+    def selecionados(self):
+        return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.SELECIONADO])
+
+    def nao_selecionados(self):
+        return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO])
+
     def areas_de_trabalho(self):
         areas = ''
         for area in self.areatrabalhoemprocessoseletivo_set.select_related('area_trabalho').all().order_by('area_trabalho__nome'):

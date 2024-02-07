@@ -2042,7 +2042,10 @@ def painel(request):
     total_emails_descobertos = Email.objects.filter(entidade__isnull=False, entidade__aprovado=True, resp_cadastro=request.user).count()
 
     # Total de processos seletivos aguardando revisão
-    total_procs = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).count()
+    total_procs_revisao = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).count()
+
+    # Total de processos seletivos
+    total_procs = ProcessoSeletivo.objects.filter().count()
 
     # Forças tarefas
     tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')
@@ -2120,6 +2123,7 @@ def painel(request):
                'total_problemas_cnpj': total_problemas_cnpj,
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
+               'total_procs_revisao': total_procs_revisao,
                'total_procs': total_procs,
                'tarefas': tarefas,
                'num_tickets': num_tickets,
@@ -2192,6 +2196,19 @@ def revisao_processo_seletivo(request, codigo_processo):
                'processo': processo}
 
     template = loader.get_template('vol/revisao_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def monitoramento_processos_seletivos(request):
+    '''Página para monitorar todos os processos seletivos cadastrados'''
+
+    processos = ProcessoSeletivo.objects.filter().order_by('-cadastrado_em')
+
+    context = {'processos': processos}
+
+    template = loader.get_template('vol/monitoramento_processos_seletivos.html')
     
     return HttpResponse(template.render(context, request))
 
