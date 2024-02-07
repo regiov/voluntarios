@@ -1,0 +1,31 @@
+{% extends "vol/base_entidade.html" %}
+
+{% block title %}{{ entidade.menor_nome }}{% endblock title %}
+
+{% block content %}
+
+{% include "vol/mensagens.html" %}
+
+{% if entidade.aprovado == None %}
+
+  <h3>O cadastro desta entidade ainda não foi aprovado. Assim que houver aprovação você receberá por e-mail uma notificação automática e poderá voltar aqui para usufruir todas as funcionalidades do sistema.</h3>
+
+{% elif entidade.aprovado == False %}
+
+  <h3>O cadastro desta entidade não foi aprovado. Certifique-se de estar em conformidade com os termos de uso do sistema e qualquer dúvida entre em <a href="mailto:{{ EMAIL_CONTATO }}">contato</a> conosco.</h3>
+
+{% else %}
+
+  {% if processos.count == 0 %}
+
+    <h3>Precisando de voluntários? Inicie um processo seletivo clicando <a href="{% url 'novo_processo_seletivo' entidade.id %}">aqui</a>.</h3>
+  
+  {% else %}
+
+    <h3>Utilize as opções do menu para acessar as funcionalidades disponíveis. Divulgue vagas de trabalho voluntário e gerencie a seleção dos candidatos em "Processos seletivos", depois lembre de emitir termos de adesão de trabalho voluntário para todos os voluntários da sua organização.</h3>
+    
+  {% endif %}
+
+{% endif %}
+
+{% endblock content %}

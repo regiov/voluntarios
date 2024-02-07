@@ -532,6 +532,30 @@ def lista_entidades_vinculadas(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
+def index_entidade(request, id_entidade):
+    '''Página principal de gerenciamento de uma entidade '''
+    try:
+        entidade = Entidade.objects.get(pk=id_entidade)
+    except Entidade.DoesNotExist:
+        raise Http404
+
+    # Garante que apenas usuários vinculados à entidade vejam e emitam termos de adesão
+    if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    processos = []
+
+    if entidade.aprovado:
+
+        processos = ProcessoSeletivo.objects.filter(entidade=entidade)
+
+    context = {'entidade': entidade,
+               'processos': processos}
+    
+    template = loader.get_template('vol/index_entidade.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
 def reenvia_confirmacao_email_entidade(request, id_entidade):
     '''Reenvia mensagem de confirmação de e-mail da entidade'''
     try:

@@ -17,7 +17,7 @@
   {% for entidade in entidades %}
   <tr>
     <td>
-      <a href="{% url 'cadastro_entidade_id' entidade.id %}">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a>
+      <a href="{% url 'index_entidade' entidade.id %}">{{ entidade.nome_fantasia|default:entidade.razao_social }}</a>
     </td>
     <td>{{ entidade.cnpj|default:"-" }}</td>
     <td>{{ entidade.email_principal|default:"-" }}</td>
