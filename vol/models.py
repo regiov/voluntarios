@@ -1701,6 +1701,7 @@ class ProcessoSeletivo(models.Model):
     inicio_inscricoes  = models.DateTimeField(u'Início das inscrições', default=timezone.now)
     limite_inscricoes  = models.DateTimeField(u'Limite para inscrições', null=True, blank=True) # Deve ser maior que o início!
     previsao_resultado = models.DateField(u'Data prevista para os resultados', null=True, blank=True) # Deve ser maior que o início e maior que o limite (se houver limite)
+    qtde_visualiza     = models.IntegerField(u'Quantidade de visualizações', default=0)
 
     class Meta:
         constraints = [
@@ -1820,6 +1821,11 @@ class ProcessoSeletivo(models.Model):
                 areas = areas + ', '
             areas = areas + area.area_trabalho.nome
         return areas
+
+    def hit(self):
+        '''Contabiliza mais uma visualização do registro'''
+        self.qtde_visualiza = self.qtde_visualiza + 1
+        self.save(update_fields=['qtde_visualiza'])
 
     # Transições de estado
 

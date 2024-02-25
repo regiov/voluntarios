@@ -3205,6 +3205,8 @@ def exibe_processo_seletivo(request, codigo_processo):
     except ProcessoSeletivo.DoesNotExist:
         raise Http404
 
+    processo.hit()
+
     inscricao = None
 
     if request.user.is_authenticated and request.user.is_voluntario:
