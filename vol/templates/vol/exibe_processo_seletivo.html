@@ -15,18 +15,19 @@
   {% endwith %}
   <p><label>Carga horária: </label> {{ processo.carga_horaria }}</p>
   <p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }} {% if not processo.trabalho_remoto %}<label style="margin-left: 10px;">Local: </label> {{ processo.cidade }} - {{ processo.estado }}{% endif %}</p>
-  <p><label>Atividades: </label></p>
-  <pre>{{ processo.atividades }}</pre>
+  <h3 class="secao"><span>Atividades</span></h3>
+  <p>{{ processo.atividades }}</p>
 
   {% if processo.requisitos %}
-  <p><label>Requisitos: </label></p>
-  <pre>{{ processo.requisitos }}</pre>
+  <h3 class="secao"><span>Requisitos</span></h3>
+  <p>{{ processo.requisitos }}</p>
   {% endif %}
 
-  <p><label class="nowrap">Entidade: </label> <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}" target="_blank">{{ processo.entidade.menor_nome }}</a></p>
-  <pre>{{ processo.resumo_entidade }}</pre>
-  
-  <p><label>Inscrições: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</p>
+  <h3 class="secao"><span>Entidade: <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}" target="_blank">{{ processo.entidade.menor_nome }}</a></span></h3>
+  <p>{{ processo.resumo_entidade }}</p>
+
+  <h3 class="secao"><span>Inscrições</span></h3>
+  <p><label>Prazo: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</p>
   {% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label> {{ processo.previsao_resultado }}</p>{% endif %}
 </div>
 

@@ -198,10 +198,10 @@ div.combo-data > select:nth-child(4) {
 .registro i {
     margin-right: 10px;
 }
-.secao-entidade {
+.secao {
     margin-bottom: 20px;
 }
-.secao-entidade > span {
+.secao > span {
     padding-bottom: 5px;
     border-bottom: 1px solid lightgrey;
 }
