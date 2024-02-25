@@ -78,7 +78,7 @@ urlpatterns = [
     re_path(r'^entidade/(?P<id_entidade>\d+)/termos/novo/?$', views.novo_termo_de_adesao, name='novo_termo_de_adesao'),
     re_path(r'^entidade/(?P<id_entidade>\d+)/termos/?$', views.termos_de_adesao_de_entidade, name='termos_de_adesao_de_entidade'),
     re_path(r'^entidades$', views.lista_entidades_vinculadas, name='lista_entidades_vinculadas'),
-    re_path(r'^entidade/(?P<id_entidade>\d+)$', views.index_entidade, name='index_entidade'),
+    re_path(r'^entidade/adm/(?P<id_entidade>\d+)$', views.index_entidade, name='index_entidade'),
 
     re_path(r'^termo/(?P<slug_termo>[\w-]+)/enviar$', views.enviar_termo_de_adesao, name='enviar_termo_de_adesao'),
     re_path(r'^termo/(?P<slug_termo>[\w-]+)/cancelar$', views.cancelar_termo_de_adesao, name='cancelar_termo_de_adesao'),
