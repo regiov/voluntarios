@@ -25,9 +25,19 @@ def my_user_signed_up(request, user, **kwargs):
 
 def voluntario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
     '''Post save de voluntários. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
-    # Se o atributo "aprovado" passou de nulo a verdadeiro
     if instance.old_value('aprovado') is None and instance.aprovado:
+        # Voluntário aprovado pela primeira vez
         notifica_aprovacao_voluntario(instance.usuario)
+
+    if instance.old_value('aprovado') in (None, True) and not instance.aprovado:
+        # Cadastro rejeitado de voluntário, cancela inscrições em processos seletivos em aberto
+        for inscricao in instance.inscricoes():
+            if inscricao.aguardando_selecao():
+                inscricao.cancelar()
+                inscricao.save()
+            else:
+                # devemos notificar a área administrativa?
+                pass
 
 def entidade_pre_save(sender, instance, raw, using, update_fields, **kwargs):
     '''Pre save de entidades.'''

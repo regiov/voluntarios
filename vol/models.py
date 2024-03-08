@@ -404,6 +404,13 @@ class Voluntario(models.Model):
             elif self.profissao.lower() == 'dona de casa':
                 self.profissao = 'Do Lar'
 
+    def inscricoes(self, status=[]):
+        '''Retorna inscricoes em processos seletivos nos status indicados, ou todas'''
+        qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').all()
+        if len(status) > 0:
+            qs = qs.filter(status__in=status)
+        return qs
+
 class AreaInteresse(models.Model):
     """Area de interesse de voluntário"""
     id           = models.AutoField(primary_key=True)
@@ -1801,9 +1808,8 @@ class ProcessoSeletivo(models.Model):
             return None
 
     def inscricoes(self, status=[]):
-        '''Retorna as inscricoes deste processo seletivo nos status indicados, ou todas,
-        porém sempre considerando apenas voluntários com cadastros aprovados'''
-        qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self, voluntario__aprovado=True)
+        '''Retorna as inscricoes deste processo seletivo nos status indicados, ou todas'''
+        qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
         if len(status) > 0:
             qs = qs.filter(status__in=status)
         return qs
@@ -1922,7 +1928,8 @@ class StatusParticipacaoEmProcessoSeletivo(object):
         elif code == 20:
             return u'Desistência'
         elif code == 30:
-            return u'Processo cancelado'
+            # rejeição de cadastro de voluntário
+            return u'Cancelada'
         elif code == 40:
             return u'Não selecionado'
         elif code == 100:
@@ -1964,6 +1971,9 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
 
     def desistiu(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.DESISTENCIA
+
+    def cancelada(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO
 
     def passivel_de_desistencia(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO

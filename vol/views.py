@@ -37,6 +37,8 @@ from django.apps import apps
 
 from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
 
+from .signals import voluntario_post_save
+
 from allauth.account.models import EmailAddress
 
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
@@ -319,7 +321,20 @@ def cadastro_voluntario(request, msg=None):
                     # Redireciona para página de exibição de mensagem
                     msg = u'Gravação feita com sucesso! '
                     if request.user.link and 'vaga_' in request.user.link:
-                        msg = msg + u'Seus dados passarão por uma validação que normalmente leva 1 dia útil. Enviaremos uma notificação por e-mail assim que houver a aprovação, e logo em seguida você poderá se inscrever nas vagas disponíveis.'
+                        msg = msg + u'Seus dados passarão por uma validação que normalmente leva 1 dia útil. Enviaremos uma notificação por e-mail assim que houver a aprovação, mas você já pode se inscrever nas vagas disponíveis.'
+                        messages.info(request, msg)
+                        codigo_processo = request.user.codigo_de_processo_seletivo_de_entrada()
+                        try:
+                            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+                            if processo.inscricoes_abertas() and ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=processo, voluntario=request.user.voluntario).count() == 0:
+                                msg = msg + u' Guardamos pra você a vaga que te interessou:'
+                                # Se a seleção ainda está aberta e o voluntário não se inscreveu,
+                                # vai para a página do processo seletivo, com todas as verificações que
+                                # são feitas lá
+                                return exibe_processo_seletivo(request, codigo_processo)
+                        except ProcessoSeletivo.DoesNotExist:
+                            # Utiliza busca de vagas como página default
+                            return redirect(reverse('busca_vagas'))
                     else:
                         if voluntario.invisivel:
                             msg = msg + u'Seu cadastro passará por uma validação, mas você já pode usufruir de várias funcionalidades no site, como por exemplo'
@@ -1684,7 +1699,7 @@ def redirect_login(request):
         if not request.user.is_voluntario:
             # Se ainda não for voluntário, exibe página de cadastro
             # obs: precisamos verificar isso aqui, pois a query mais abaixo só funciona para voluntários
-            return cadastro_voluntario(request, msg=u'Para finalizar o cadastro de voluntário e poder se inscrever em vagas disponíveis após aprovação do cadastro (normalmente leva 1 dia útil), complete o formulário abaixo:')
+            return cadastro_voluntario(request, msg=u'Para finalizar o cadastro de voluntário e poder se inscrever em vagas disponíveis, complete o formulário abaixo:')
         codigo_processo = request.user.codigo_de_processo_seletivo_de_entrada()
         try:
             processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
@@ -1909,6 +1924,14 @@ def aprovacao_voluntarios(request):
 
             if updated == 0:
                 error = concurrency_error_msg
+            else:
+                sender = Voluntario
+                instance = myvol
+                created = False
+                raw = None
+                using = None
+                update_fields = None
+                voluntario_post_save(sender, instance, created, raw, using, update_fields)
             
             proximo = True
 
@@ -3248,13 +3271,9 @@ def inscricao_processo_seletivo(request, codigo_processo):
             messages.info(request, u'<strong>Para poder se inscrever numa vaga só falta preencher seu perfil de voluntário. Utilize o formulário abaixo e depois aguarde a aprovação do cadastro. Assim que seu cadastro for aprovado, você vai receber uma notificação por e-mail.</strong>')
         # Redireciona para página de cadastro de perfil de voluntário
         return redirect(reverse('cadastro_voluntario'))
-    if request.user.voluntario.aprovado is None:
-        # Avisa que é preciso aguardar a aprovação do cadastro
-        messages.info(request, u'<strong>Aguarde a aprovação do seu cadastro para fazer a inscrição. Normalmente isso leva 1 dia útil. Você receberá uma notificação por e-mail assim que seu cadastro for aprovado.</strong>')
-        return exibe_processo_seletivo(request, processo.codigo)
     if request.user.voluntario.aprovado == False:
         # Avisa que o cadastro não foi aprovado
-        messages.error(request, u'<strong>Seu cadastro de voluntário não foi aprovado. Entre em <a href="mailto:' + settings.CONTACT_EMAIL + '">contato</a></strong> conosco em caso de dúvidas.')
+        messages.error(request, u'<strong>Seu cadastro de voluntário não foi aprovado. Entre em <a href="mailto:' + settings.CONTACT_EMAIL + '">contato</a> conosco em caso de dúvidas.</strong>')
         return exibe_processo_seletivo(request, processo.codigo)
 
     if not processo.inscricoes_abertas():
