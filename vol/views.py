@@ -2942,6 +2942,10 @@ def busca_vagas(request):
             if len(get_params) > 0:
                 get_params += '&'
             get_params += k + '=' + v
+    else:
+        # Avisa caso não exista nenhum processo em aberto
+        if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
+            messages.info(request, u'Ops! No momento estamos sem nenhum processo seletivo em aberto. Tente novamente dentro de alguns dias ou aguarde ser convidado por uma entidade.')
 
     context = {'modos_de_trabalho': MODO_TRABALHO,
                'profissoes': profissoes,
