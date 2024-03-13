@@ -70,8 +70,11 @@ class MyAccountAdapter(DefaultAccountAdapter):
         user = None
         if self.request and self.request.user:
             user = self.request.user
-        if email_address_exists(email, exclude_user=user):
-            raise forms.ValidationError(self.error_messages['email_taken'])
+
+        from .models import EmailAddress
+
+        if EmailAddress.objects.filter(email=email, verified=True).exclude(user=user).count() > 0:
+            raise forms.ValidationError(self.error_messages["email_taken"])
         return email
 
 class ChangeUserProfileForm(SignupForm):
