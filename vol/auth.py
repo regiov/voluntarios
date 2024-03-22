@@ -3,7 +3,6 @@
 from django import forms
 
 from allauth.account.adapter import DefaultAccountAdapter, get_adapter
-from allauth.utils import email_address_exists
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.models import EmailAddress
