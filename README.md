@@ -4,7 +4,7 @@
 
 * PostgreSQL >= 9.6
 * Postgis >= 2.4.3
-* Python >= 3.6
+* Python >= 3.8
 * Django >= 4.0.4
 * [django-crispy-forms](https://django-crispy-forms.readthedocs.io/en/latest/index.html) >= 1.14
 * [django-tinymce](https://github.com/jazzband/django-tinymce/releases) >= 3.4.0
@@ -12,6 +12,20 @@
 * [django-mptt](https://github.com/django-mptt/django-mptt/tags) >= 0.13.4
 * [django-fsm](https://github.com/viewflow/django-fsm) >= 2.7.1
 * [django-fsm-log](https://github.com/gizmag/django-fsm-log) >= 2.0.1
+
+## Instalação
+
+Primeiro certifique-se de ter Python e PostgreSQL instalados, incluindo o gerenciador de pacotes do Python (pip) e o pacote de desenvolvimento do Python (normalmente chamado python-dev) para poder compilar o psycopg2. Em seguida rode os comandos:
+
+```
+git clone git@github.com:regiov/voluntarios.git $HOME/tmp/voluntarios
+cd $HOME/tmp/voluntarios
+virtualenv -p python3 $HOME/tmp/voluntarios/.venv/
+source $HOME/tmp/voluntarios/.venv/bin/activate
+pip install -r requirements.txt
+```
+
+Se preferir, pode também baixar e instalar todos os pacotes individualmente escolhendo as versões desejadas. No caso de libs do Python que não possuam pacotes use: python3 setup.py install.
 
 ## Configuração
 
@@ -32,14 +46,7 @@ create extension postgis;
 \q
 ```
 
-Em seguida faça uma cópia local do website Voluntários num diretório de sua preferência:
-
-```
-cd /MEU/DIRETORIO/DE/INSTALACAO
-git clone https://github.com/regiov/voluntarios.git website
-```
-
-Dentro do diretório *website/website*, faça uma cópia do arquivo *settings.py* chamada *local_settings.py*:
+Em seguida, na pasta onde foi instalado o código do Voluntários, dentro do diretório *website/website*, faça uma cópia do arquivo *settings.py* chamada *local_settings.py*:
 
 ```
 cd website/website
