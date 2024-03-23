@@ -1,7 +1,7 @@
 # coding=UTF-8
 
 from django.contrib import admin, messages
-from django.contrib.gis.admin import GeoModelAdmin
+from django.contrib.gis.admin import GISModelAdmin
 from django.templatetags.static import static
 from django.db import transaction, DatabaseError
 from django.utils.translation import gettext, gettext_lazy as _
@@ -463,7 +463,7 @@ class BaseEntidadeAdmin(admin.ModelAdmin):
     email_confirmado.short_description = u'E-mail confirmado'
 
 @admin.register(Entidade)
-class EntidadeAdmin(GeoModelAdmin, BaseEntidadeAdmin):
+class EntidadeAdmin(GISModelAdmin, BaseEntidadeAdmin):
     list_display = ('razao_social', 'cnpj', 'email_principal', 'data_cadastro', 'email_confirmado', 'aprovado',)
     ordering = ('-aprovado', '-data_cadastro',)
     search_fields = ('nome_fantasia', 'razao_social', 'cnpj', 'email_set__endereco',)

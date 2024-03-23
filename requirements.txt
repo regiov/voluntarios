@@ -1,0 +1,6 @@
+django >= 4.0.4
+django-crispy-forms == 1.14
+django-tinymce >= 3.4.0
+django-allauth >= 0.50.0
+django-mptt >= 0.13.4
+psycopg2 >= 2.9.9
