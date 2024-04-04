@@ -2827,7 +2827,7 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo'))
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-inicio_inscricoes')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
