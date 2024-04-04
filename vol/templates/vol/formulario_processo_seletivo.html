@@ -7,13 +7,13 @@
 
 <script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
 
-{% if processo.editavel %}
+{% if processo.editavel or not processo %}
 {% comment %}É esse código que acrescenta os ícones de edição no formset{% endcomment %}
 <script type="text/javascript">
 
     $(function() {
         $('.formset').formset({deleteText: 'remover', addText: 'incluir outra área'});
-    })
+    });
 
 </script>
 {% endif %}
