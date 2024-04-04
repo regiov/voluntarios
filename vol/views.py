@@ -3100,8 +3100,12 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                     proc.save()
                     return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': proc.entidade_id}))
 
-                messages.info(request, u'Alterações salvas com sucesso!')
-
+                msg = u'Alterações salvas com sucesso!'
+                if proc.em_elaboracao():
+                    msg += u' Depois lembre-se de editar novamente o processo e solicitar aprovação para dar continuidade.'
+                messages.info(request, msg)
+                
+                return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': proc.entidade_id}))
         else:
 
             # Processo não é editável aqui
