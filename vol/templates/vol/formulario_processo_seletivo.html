@@ -61,11 +61,13 @@
     {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
 
-    {% if not processo or processo.editavel or processo.passivel_de_antecipar_inscricoes or processo.passivel_de_estender_inscricoes %}
+    {% if processo.editavel or processo.passivel_de_antecipar_inscricoes or processo.passivel_de_estender_inscricoes or not processo%}
     <div class="form-group">
-        <input class="btn btn-primary" type="submit" name="gravar"  value="Gravar">
-        {% if processo.em_elaboracao %}
+        {% if processo.em_elaboracao or not processo %}
+        <input class="btn btn-primary" type="submit" name="gravar"  value="Gravar e continuar depois">
         <input class="btn btn-primary" type="submit" name="solicitar_aprovacao"  value="Solicitar aprovação">
+	{% else %}
+        <input class="btn btn-primary" type="submit" name="gravar"  value="Gravar alterações">
 	{% endif %}
     </div>
     {% endif %}
