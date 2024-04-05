@@ -5,14 +5,14 @@
 
 {% block content %}
 
-<h2 class="margin-bottom">Inscrições para {{ processo.titulo }}</h2>
+<h2 class="margin-bottom">Inscrições para: {{ processo.titulo }}</h2>
 
 {% include "vol/mensagens.html" %}
 
 {% with num_inscricoes=inscricoes|length %}
 
 {% if num_inscricoes > 0 and processo.aberto_a_inscricoes or processo.aguardando_selecao %}
-<p>Para concluir o processo seletivo, será preciso classificar cada candidato inscrito. Você pode mudar a classificação quantas vezes desejar que o resultado só aparecerá para os voluntários após conclusão do processo seletivo.</p>
+<p>Para concluir o processo seletivo, será preciso classificar cada candidato inscrito. <i>Você pode mudar a classificação quantas vezes desejar que o resultado só aparecerá para os voluntários após a conclusão do processo seletivo</i>.</p>
 {% endif %}
 
 {% if num_inscricoes > 0 %}
@@ -31,12 +31,12 @@
   {% for inscricao in inscricoes %}
   {% with telefone_competo=inscricao.voluntario.telefone_completo processo=inscricao.processo_seletivo %}
   <tr>
-    <td><a href="mailto:{{ inscricao.voluntario.usuario.email }}"><i class="fas fa-envelope" title="contatar por e-mail"></i></a>{% if telefone_completo %} <a href="https://api.whatsapp.com/send?phone={{ telefone_completo }}" style="margin-left:5px;"><i class="fab fa-whatsapp" title="contatar por zap"></i></a>{% endif %}</td>
-    <td>{% if inscricao.cancelada %}<s>{% endif %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}{% if inscricao.cancelada %}<s>{% endif %}</td></a>
+    <td>{% if not inscricao.cancelada %}<a href="mailto:{{ inscricao.voluntario.usuario.email }}"><i class="fas fa-envelope" title="contatar por e-mail"></i></a>{% if telefone_completo %} <a href="https://api.whatsapp.com/send?phone={{ telefone_completo }}" style="margin-left:5px;"><i class="fab fa-whatsapp" title="contatar por zap"></i></a>{% endif %}{% endif %}</td>
+    <td>{% if inscricao.cancelada %}<s>{{ inscricao.voluntario.usuario.nome }}</s>{% else %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}</a>{% endif %}</td>
     <td>{{ inscricao.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ inscricao.voluntario.profissao }}</span></td>
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade }} anos</td>
-    {% comment %}
+    {% spaceless %}{% comment %}
     <td>
       {% if inscricao.voluntario.aprovado is None %}
       <img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando revisão da equipe Voluntários"/>
@@ -46,9 +46,10 @@
         {% else %}
           <img src="{% static 'images/misc/icon-deletelink.svg' %}" title="rejeitado pela equipe Voluntários"/>
         {% endif %}
-      {% endif %}</td>
-    {% endcomment %}
-    <td>
+      {% endif %}
+    </td>
+    {% endcomment %}{% endspaceless %}
+    <td>{% spaceless %}
       {% if processo.aberto_a_inscricoes or processo.aguardando_selecao %}
         {% if inscricao.passivel_de_selecao %}
         <select class="inscricao" name="{{ inscricao.id }}" prevIndex="{% if inscricao.selecionado %}1{% else %}{% if inscricao.nao_selecionado %}2{% else %}0{% endif %}{% endif %}">
@@ -56,9 +57,11 @@
         <option value="selecionado"{% if inscricao.selecionado %}  selected{% endif %}>selecionado</option>
         <option value="nao_selecionado"{% if inscricao.nao_selecionado %}  selected{% endif %}>não selecionado</option>
         </select>
-        <img id="{{ inscricao.id }}_icon" src="">
-        {% else %}{{ inscricao.nome_status }}{% endif %}
-      {% else %}{{ inscricao.nome_status }}{% endif %}</td>
+        <img id="{{ inscricao.id }}_icon" src=""/>{% comment %}local de exibição do ícone de ajax{% endcomment %}
+        {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado pela equipe Voluntários"/>{% endif %}{% endif %}
+      {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado pela equipe Voluntários"/>{% endif %}{% endif %}
+    {% endspaceless %}</td>
+  </tr>
   {% endwith %}
   {% endfor %}
   </tbody>
