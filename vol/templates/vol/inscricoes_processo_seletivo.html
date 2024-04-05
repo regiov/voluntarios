@@ -58,8 +58,8 @@
         <option value="nao_selecionado"{% if inscricao.nao_selecionado %}  selected{% endif %}>não selecionado</option>
         </select>
         <img id="{{ inscricao.id }}_icon" src=""/>{% comment %}local de exibição do ícone de ajax{% endcomment %}
-        {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado pela equipe Voluntários"/>{% endif %}{% endif %}
-      {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado pela equipe Voluntários"/>{% endif %}{% endif %}
+        {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado ou processo seletivo cancelado"/>{% endif %}{% endif %}
+      {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado ou processo seletivo cancelado"/>{% endif %}{% endif %}
     {% endspaceless %}</td>
   </tr>
   {% endwith %}
