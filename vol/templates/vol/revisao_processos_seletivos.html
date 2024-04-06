@@ -17,7 +17,7 @@
   <tr>
     <td><a href="{% url 'revisao_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
     <td>{{ processo.entidade.menor_nome }}</td>
-    <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</td>
+    <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>
