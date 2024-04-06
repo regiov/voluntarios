@@ -7,6 +7,21 @@
 {% include "vol/mensagens.html" %}
 
 <h1 class="margin-bottom">{{ processo.titulo }}</h1>
+
+{% if processo.cancelado %}
+<p class="lead text-danger">Atenção: este processo seletivo foi cancelado pela própria entidade.</p>
+{% elif processo.em_elaboracao %}
+<p class="lead text-warning">&gt;&gt; Processo seletivo em elaboração! &lt;&lt;</p>
+{% elif processo.aguardando_aprovacao %}
+<p class="lead text-warning">&gt;&gt; Processo seletivo aguardando revisão! &lt;&lt;</p>
+{% elif processo.aguardando_publicacao %}
+<p class="lead text-warning">Aguarde: este processo seletivo ainda não está aberto a inscrições</p>
+{% elif processo.aguardando_selecao %}
+<p class="lead text-danger">Atenção: as inscrições já foram encerradas. Se você se inscreveu, acompanhe o resultado pela sua página de perfil de voluntário.</p>
+{% elif processo.concluido %}
+<p class="lead text-danger">Atenção: este processo seletivo já foi concluído.</p>
+{% endif %}
+
 <div class="registro">
   {% with areas_de_trabalho=processo.areas_de_trabalho %}
   {% if areas_de_trabalho %}
@@ -31,7 +46,7 @@
   {% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label> {{ processo.previsao_resultado }}</p>{% endif %}
 </div>
 
-{% if processo.inscricoes_abertas %}
+{% if processo.aberto_a_inscricoes %}
 <form id="inscricao-processo-seletivo" method="POST" action="{% url 'inscricao_processo_seletivo' codigo_processo=processo.codigo %}">
     {% csrf_token %}
     <div class="form-group">
@@ -44,8 +59,6 @@
         {% endif %}
     </div>
 </form>
-{% else %}
-<p class="lead text-danger">Inscrições encerradas.</p>
 {% endif %}
 
 {% endblock content %}
