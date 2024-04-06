@@ -1,4 +1,5 @@
 {% extends "vol/base_nosidebar.html" %}
+{% load static %}
 
 {% block title %}Processo seletivo{% endblock title %}
 
@@ -18,7 +19,7 @@
     {% include "vol/campo_formulario.html" with campo=form.resumo_entidade required=False %}
     {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
     {% include "vol/campo_formulario.html" with campo=form.estado required=False div_id="estado" invisible=form.instance.trabalho_remoto %}
-    {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto loader=True %}
+    {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto %}
 
     <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
       <label for="id_area_trabalho" class="nowrap">* Área de trabalho do voluntário</label>
@@ -37,7 +38,7 @@
     {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
     {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
     {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}
-    {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=False div_class="combo-data" %}
+    {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=True div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
 
@@ -48,3 +49,18 @@
 </form>
 
 {% endblock content %}
+
+{% block post_footer %}
+
+<script type="text/javascript" src="{% if debug %}{% static 'js/vol-combo-estado-cidade-1.1.debug.js' %}{% else %}{% static 'js/vol-combo-estado-cidade-1.1.min.js' %}{% endif %}"></script>
+
+<script type="text/javascript">
+
+    // Parâmetros: url que retorna cidades de um estado,
+    //             necessidade de inclusão de opção vazia no combo estado,
+    //             cidade default
+    init_combos_estado_cidade('{% url 'retorna_cidades' %}', {% if form.instance.id and not form.instance.estado %}true{% else %}false{% endif %}, '{% if form.instance.cidade.nome %}{{ form.instance.cidade.nome }}{% else %}{% if form.initial.cidade %}{{ form.initial.cidade.nome }}{% endif %}{% endif %}');
+
+</script>
+
+{% endblock post_footer %}
