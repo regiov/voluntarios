@@ -1780,6 +1780,10 @@ class ProcessoSeletivo(models.Model):
         '''Indica se o processo está em elaboração'''
         return self.status == StatusProcessoSeletivo.EM_ELABORACAO
 
+    def aguardando_aprovacao(self):
+        '''Indica se o processo está aguardando revisão'''
+        return self.status == StatusProcessoSeletivo.AGUARDANDO_APROVACAO
+
     def aguardando_publicacao(self):
         '''Indica se o processo está com status aguardando publicação'''
         return self.status == StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO
