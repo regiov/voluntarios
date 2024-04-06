@@ -782,10 +782,19 @@ class FormProcessoSeletivo(forms.ModelForm):
         if estado:
             # Atualiza opções válidas de cidades de acordo com o estado
             cidades = Cidade.objects.filter(uf=estado).order_by('nome')
+
+            initial_cidade = ''
+
+            cidade = self.data.get('cidade')
+            if cidade is None and self.instance and self.instance.cidade:
+                cidade = self.instance.cidade.nome
+                initial_cidade = cidade
+
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                                       choices=[(c.nome, c.nome) for c in cidades],
-                                                      initial='')
+                                                      initial=initial_cidade)
+
 
         # Exibe campos desabilitados a depender do status
         if disabled or (self.instance and not self.instance.editavel()):
