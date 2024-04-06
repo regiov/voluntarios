@@ -878,6 +878,8 @@ class FormProcessoSeletivo(forms.ModelForm):
             if limite_inscricoes:
                 if val < self.cleaned_data['limite_inscricoes']:
                     raise forms.ValidationError(u'A data da previsão do resultado deve ser maior ou igual à data limite das inscrições')
+            else:
+                raise forms.ValidationError(u'Se não houver data limite de inscrição, a data da previsão de resultado não deve ser especificada')
 
             # Em caso de alteração da previsão do resultado, a nova data não pode estar no passado
             if self.instance and self.instance.pk and self.instance.passivel_de_estender_inscricoes():
