@@ -12,7 +12,7 @@ except ImportError:
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.template import engines
 
@@ -94,7 +94,7 @@ def notify_user_template(user, subject_template, msg_template, from_email=settin
         msg = u"error: %s\n\nsubject: %s\n\nto: %s\n\nmessage:\n\n%s" % (error, subject, user.get_full_name(), message)
         notify_support(u'Notification failure', msg)
 
-def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, **kwargs):
+def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, bcc=None, **kwargs):
     """
     Generic funtion to send a message to an e-mail.
     """
@@ -102,9 +102,15 @@ def notify_email(to, subject, msg_str, from_email=settings.NOTIFY_USER_FROM, **k
     try:
         #send_mail(subject, msg_str, from_email, [to], **kwargs)
         if hasattr(settings, 'NOTIFICATION_REPLY_TO'):
-            email = EmailMessage(subject, msg_str, from_email, dest, reply_to=[settings.NOTIFICATION_REPLY_TO],)
+            if bcc:
+                email = EmailMultiAlternatives(subject, msg_str, from_email, dest, reply_to=[settings.NOTIFICATION_REPLY_TO], bcc=bcc,)
+            else:
+                email = EmailMessage(subject, msg_str, from_email, dest, reply_to=[settings.NOTIFICATION_REPLY_TO],)
         else:
-            email = EmailMessage(subject, msg_str, from_email, dest,)
+            if bcc:
+                email = EmailMultiAlternatives(subject, msg_str, from_email, dest, bcc=bcc,)
+            else:
+                email = EmailMessage(subject, msg_str, from_email, dest,)
         email.send(fail_silently=False)
     except Exception as e:
         error = type(e).__name__ + str(e.args)
@@ -120,7 +126,7 @@ def notify_email_template(to, subject, msg_template, context={}, from_email=sett
     message = render_to_string(msg_template, context)
     notify_email(to, subject, message, from_email)
 
-def notify_email_msg(to, msg_obj, context={}, from_email=settings.NOTIFY_USER_FROM, content_obj=None, **kwargs):
+def notify_email_msg(to, msg_obj, context={}, from_email=settings.NOTIFY_USER_FROM, content_obj=None, bcc=None, **kwargs):
     """
     Generic funtion to send a message to an e-mail using a Message object.
     """
@@ -135,10 +141,10 @@ def notify_email_msg(to, msg_obj, context={}, from_email=settings.NOTIFY_USER_FR
         django_engine = engines['django']
         template = django_engine.from_string(content)
         content = template.render(context=context)
-    if notify_email(to, subject, content, from_email):
+    if notify_email(to, subject, content, from_email=from_email, bcc=bcc):
         if content_obj:
             try:
-                event = Event(rtype='E', content_object=content_obj, message=msg_obj, email=to)
+                event = Event(rtype='E', content_object=content_obj, message=msg_obj, email=to, bcc=bcc)
                 event.save()
             except Exception as e:
                 error = type(e).__name__ + str(e.args)

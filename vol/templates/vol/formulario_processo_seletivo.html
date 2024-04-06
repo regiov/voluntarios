@@ -57,7 +57,7 @@
     {% include "vol/campo_formulario.html" with campo=form.atividades required=True %}
     {% include "vol/campo_formulario.html" with campo=form.carga_horaria required=True %}
     {% include "vol/campo_formulario.html" with campo=form.requisitos required=False %}
-    {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=False div_class="combo-data" %}
+    {% include "vol/campo_formulario.html" with campo=form.inicio_inscricoes required=True div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.limite_inscricoes required=False div_class="combo-data" %}
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
 
@@ -69,7 +69,42 @@
 	{% else %}
         <input class="btn btn-primary" type="submit" name="gravar"  value="Gravar alterações">
 	{% endif %}
+        {% if processo %}
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirma-cancelamento">Cancelar</button>
+	{% endif %}
     </div>
+
+    {% if processo %}
+    <div class="modal" id="confirma-cancelamento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Atenção</h4>
+            </div>
+
+            <div class="modal-body">
+              <p>Tem certeza que deseja cancelar este processo seletivo?</p>
+	      {% if processo.inscricoes.count > 0 %}
+	      <p>Todas as inscrições serão automaticamente canceladas e os inscritos serão notificados com a mensagem abaixo.{% if not processo.limite_inscricoes %} Se você deseja apenas encerrar um processo que não possui data limite de inscrição, utilize a página de visualização das inscrições para encerrar o processo ao invés de cancelá-lo. Cancelamento é cancelamento - significa que não haverá mais processo seletivo.{% endif %}</p>
+	      {% endif %}
+	      {% if not processo.inscricoes_nao_iniciadas %}
+              <p>(*) Indique o motivo do cancelamento:</p>
+	      <textarea name="motivo" cols="20" rows="5" class="form-control" id="id_motivo"></textarea>
+              <p class="dica">(*) campo obrigatório</p>
+	      {% endif %}
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Não</button>
+                <input class="btn btn-danger btn-ok" type="submit" name="cancelar" value="Sim">
+            </div>
+         </div>
+      </div>
+    </div>
+    {% endif %}
+
     {% endif %}
 </form>
 

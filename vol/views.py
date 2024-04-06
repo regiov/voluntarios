@@ -46,7 +46,8 @@ from .auth import ChangeUserProfileForm
 
 from .utils import notifica_aprovacao_voluntario
 
-from notification.utils import notify_support, notify_email_template
+from notification.utils import notify_support, notify_email_template, notify_email_msg
+from notification.models import Message
 
 def csrf_failure(request, reason=""):
     '''Erro de CSRF'''
@@ -2221,7 +2222,9 @@ def revisao_processo_seletivo(request, codigo_processo):
             else:
                 return redirect(reverse('painel'))
         else:
+            
             processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
+            messages.info(request, u'Atenção: Caso seja detectado qualquer problema nos dados desta vaga, entre em contato com a entidade para solicitar a correção (link com dados para contato logo abaixo) e avise no grupo Voluntários sobre isso para evitar que outra pessoa aprove a vaga enquanto o problema não for corrigido.')
                 
     except ProcessoSeletivo.DoesNotExist:
         messages.error(request, u'Este processo não existe ou já foi revisado...')
@@ -2827,7 +2830,7 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-inicio_inscricoes')
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
@@ -2839,7 +2842,7 @@ def processos_seletivos_voluntario(request):
     '''Página listando processos seletivos na interface do voluntário'''
     inscricoes = ParticipacaoEmProcessoSeletivo.objects.none()
     if request.user.is_voluntario:
-        inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario)
+        inscricoes = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario).order_by('-data_inscricao')
     context = {'inscricoes': inscricoes}
     template = loader.get_template('vol/processos_seletivos_voluntario.html')
     return HttpResponse(template.render(context,request))
@@ -3060,7 +3063,71 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
 
     if request.method == 'POST':
 
-        if processo.editavel():
+        if 'cancelar' in request.POST:
+
+            motivo = None
+            ok = True
+
+            if not processo.inscricoes_nao_iniciadas():
+                # Neste caso o campo motivo é obrigatório
+                if 'motivo' not in request.POST or len(request.POST['motivo'].strip()) == 0:
+                    messages.error(request, u'Para cancelar, é preciso especificar um motivo de cancelamento')
+                    ok = False
+                else:
+                    motivo = request.POST['motivo'].strip()
+            if ok:
+                processo.cancelar(by=request.user, description=motivo)
+                processo.save()
+                pacotes_de_notificacao = []
+                pacote = []
+                qtde_maxima_destinatarios = getattr(settings, 'EMAIL_MAX_RECIPIENTS', 50)
+                for inscricao in processo.inscricoes():
+                    if not inscricao.cancelada():
+                        if not inscricao.desistiu():
+                            if len(pacote) == qtde_maxima_destinatarios - 1:
+                                pacotes_de_notificacao.append(pacote)
+                                pacote = []
+                            pacote.append(inscricao.voluntario.usuario.email)
+                        inscricao.cancelar()
+                        inscricao.save()
+                if len(pacote) > 0:
+                    pacotes_de_notificacao.append(pacote)
+
+                msg = Message.objects.get(code='AVISO_CANCELAMENTO_PROCESSO_SELETIVO_V1')
+                for pacote in pacotes_de_notificacao:
+                    notify_email_msg(settings.CONTACT_EMAIL, msg, context={'titulo': processo.titulo, 'motivo': motivo, 'link_entidade': reverse('exibe_entidade', kwargs={'id_entidade': processo.entidade_id})}, content_obj=processo, bcc=pacote)
+                messages.info(request, u'Processo cancelado! Nenhuma outra alteração foi registrada.')
+                return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
+
+            else:
+
+                # Estrutura customizada de dados preenchendo campos com conteúdo do registro
+                # e ignorando eventuais alterações caso o processo ainda seja editável
+                data = request.POST.dict()
+                data['titulo'] = processo.titulo
+                data['resumo_entidade'] = processo.resumo_entidade
+                data['modo_trabalho'] = str(processo.modo_trabalho)
+                data['estado'] = processo.estado
+                data['cidade'] = processo.cidade
+                data['atividades'] = processo.atividades
+                data['carga_horaria'] = processo.carga_horaria
+                data['requisitos'] = processo.requisitos
+                if not processo.passivel_de_antecipar_inscricoes():
+                    data['inicio_inscricoes'] = processo.inicio_inscricoes
+
+                form = FormProcessoSeletivo(data, instance=processo)
+
+                if processo.editavel():
+
+                    area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
+
+                else:
+                    
+                    area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+                    for subform in area_trabalho_formset:
+                        subform.disable()
+
+        elif processo.editavel():
 
             form = FormProcessoSeletivo(request.POST, instance=processo)
             area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
@@ -3117,7 +3184,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
             
             if processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
 
-                # Faz uma cópia do processo, pois a chanada ao is_valid abaixo já
+                # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
                 # irá alterar os dados da instância
                 processo_original = deepcopy(processo)
 
