@@ -748,19 +748,20 @@ class FormProcessoSeletivo(forms.ModelForm):
                                  required=False)
     carga_horaria = forms.CharField(label='Dias e horários de execução das atividades',
                                     widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'cols': 30}))
-    inicio_inscricoes = forms.DateTimeField(label=u'Início das inscrições',
-                                  initial=date.today,
-                                  widget=forms.SelectDateWidget(
-                                      years=[y for y in range(date.today().year, date.today().year + 10)],
-                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
-    limite_inscricoes = forms.DateTimeField(label='Limite para inscrições', initial=date.today,
-                                  widget=forms.SelectDateWidget(
-                                      years=[y for y in range(date.today().year, date.today().year + 10)],
-                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
-    previsao_resultado = forms.DateTimeField(label='Data prevista para os resultados', initial=date.today,
-                                  widget=forms.SelectDateWidget(
-                                      years=[y for y in range(date.today().year, date.today().year + 10)],
-                                      empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+    inicio_inscricoes = forms.DateTimeField(label=u'Início das inscrições', initial=date.today,
+                                            widget=forms.SelectDateWidget(
+                                                years=[y for y in range(date.today().year, date.today().year + 10)],
+                                                empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}))
+    limite_inscricoes = forms.DateTimeField(label='Limite para inscrições', initial=date.today() + timedelta(days=30),
+                                            widget=forms.SelectDateWidget(
+                                                years=[y for y in range(date.today().year, date.today().year + 10)],
+                                                empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}),
+                                            required=False)
+    previsao_resultado = forms.DateTimeField(label='Data prevista para os resultados', initial=date.today() + timedelta(days=45),
+                                             widget=forms.SelectDateWidget(
+                                                 years=[y for y in range(date.today().year, date.today().year + 10)],
+                                                 empty_label=(u'ano', u'mês', u'dia'), attrs={'class': 'form-control'}),
+                                             required=False)
 
     def __init__(self, *args, **kwargs):
 
