@@ -1800,6 +1800,14 @@ class ProcessoSeletivo(models.Model):
         '''Indica se o processo ainda pode ter as inscrições prorrogadas'''
         return self.status in (StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO)
 
+    def cancelado(self):
+        '''Indica se o processo foi cancelado'''
+        return self.status == StatusProcessoSeletivo.CANCELADO
+
+    def concluido(self):
+        '''Indica se o processo foi concluido'''
+        return self.status == StatusProcessoSeletivo.CONCLUIDO
+
     def busca_inscricao_de_voluntario(self, voluntario_id):
         '''Retorna a inscrição de um voluntário neste processo seletivo'''
         try:
