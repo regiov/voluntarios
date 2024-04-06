@@ -27,7 +27,7 @@
   <p>{{ processo.resumo_entidade }}</p>
 
   <h3 class="secao"><span>Inscrições</span></h3>
-  <p><label>Prazo: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }} a {% if processo.limite_inscricoes %}{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %}?{% endif %}</p>
+  <p><label>Prazo: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</p>
   {% if processo.previsao_resultado %}<p><label>Previsão de resultado: </label> {{ processo.previsao_resultado }}</p>{% endif %}
 </div>
 
