@@ -2948,7 +2948,16 @@ def busca_vagas(request):
     else:
         # Avisa caso não exista nenhum processo em aberto
         if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
-            messages.info(request, u'Ops! No momento estamos sem nenhum processo seletivo em aberto. Tente novamente dentro de alguns dias ou aguarde ser convidado por uma entidade.')
+            msg = u'Ops! No momento estamos sem nenhum processo seletivo em aberto. '
+            lancamento = datetime.datetime.strptime("06/04/2024 18:30:00-0300", "%d/%m/%Y %H:%M:%S%z")
+            current_tz = timezone.get_current_timezone()
+            now = timezone.now().astimezone(current_tz)
+            delta = now - lancamento
+            dois_meses = datetime.timedelta(days=60)
+            if delta < dois_meses:
+                msg += u'Essa funcionalidade é bastante recente no site. '
+            msg += u'Você pode tentar novamente dentro de alguns dias ou aguardar ser convidado por uma entidade.'
+            messages.info(request, msg)
 
     context = {'modos_de_trabalho': MODO_TRABALHO,
                'profissoes': profissoes,
