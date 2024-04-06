@@ -3034,6 +3034,8 @@ def novo_processo_seletivo(request, id_entidade):
 
         area_trabalho_formset = FormSetAreaTrabalho()
 
+        messages.info(request, u'Preencha os campos abaixo com o máximo de informações e, quando tudo estiver pronto, clique em solicitar aprovação para dar andamento ao processo. Caso queira iniciar um processo seletivo contínuo, sem data limite de inscrições, basta ajustar tanto a data limite sugerida quanto a previsão de resultados selecionando os respectivos valores nulos (dia/mês/ano). Depois de solicitar aprovação, o anúncio das vagas aprovadas fica visível no site a partir da data especificada de início das inscrições, e você poderá acompanhar as inscrições em tempo real e selecionar os candidatos.')
+
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,
                'entidade': entidade}
