@@ -1746,7 +1746,7 @@ class ProcessoSeletivo(models.Model):
 
     def inscricoes_encerradas(self):
         agora = timezone.now()
-        if self.limite_inscricoes < agora:
+        if self.limite_inscricoes and self.limite_inscricoes < agora:
             return True
         return False
 
@@ -1848,9 +1848,10 @@ class ProcessoSeletivo(models.Model):
     def solicitar_aprovacao(self, by=None):
         pass
 
+    @fsm_log_description
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.EM_ELABORACAO, StatusProcessoSeletivo.AGUARDANDO_APROVACAO, StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusProcessoSeletivo.CANCELADO)
-    def cancelar(self, by=None):
+    def cancelar(self, by=None, description=None):
         pass
 
     @fsm_log_by
