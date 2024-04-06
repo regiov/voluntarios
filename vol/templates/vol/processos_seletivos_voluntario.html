@@ -14,6 +14,7 @@
       <th>Vaga</th>
       <th>Status do processo</th>
       <th>Status da inscrição</th>
+      <th>Feita em</th>
     </thead>
   <tbody>
   {% for inscricao in inscricoes %}
@@ -26,6 +27,7 @@
         {% if inscricao.processo_seletivo.previsao_resultado %}<br/><span class="dica">previsão de resultado: {{ inscricao.processo_seletivo.previsao_resultado|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
       {% endif %}</td>
     <td>{{ inscricao.nome_status_para_voluntario }}</td>
+    <td>{{ inscricao.data_inscricao|date:"SHORT_DATETIME_FORMAT" }}</td>
   {% endfor %}
   </tbody>
   </table>
