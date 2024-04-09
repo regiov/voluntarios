@@ -2982,7 +2982,7 @@ def novo_processo_seletivo(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
-    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=1, max_num=10, min_num=1, validate_min=True, can_delete=True)
+    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, max_num=10, min_num=1, validate_min=True, can_delete=True)
 
     if request.method == 'POST':
 
@@ -3032,7 +3032,7 @@ def novo_processo_seletivo(request, id_entidade):
             
             return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
         else:
-            if area_trabalho_formset.min_num > 0 and not area_trabalho_formset.is_valid():
+            if area_trabalho_formset.min_num > 0 and area_trabalho_formset.non_form_errors():
                 # Repete verificação manual para exibir mensagem melhor (alguma outra ideia?)
                 areas_validas = 0
                 for area_trabalho_form in area_trabalho_formset:
