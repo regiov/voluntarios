@@ -2218,7 +2218,7 @@ def revisao_processo_seletivo(request, codigo_processo):
                         else:
                             processo.aprovar(by=request.user)
                             processo.save()
-                            return revisao_processos_seletivos(request)
+                            return redirect(reverse('revisao_processos_seletivos'))
             else:
                 return redirect(reverse('painel'))
         else:
