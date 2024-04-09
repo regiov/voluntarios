@@ -3031,6 +3031,19 @@ def novo_processo_seletivo(request, id_entidade):
                     pass
             
             return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id}))
+        else:
+            if area_trabalho_formset.min_num > 0 and not area_trabalho_formset.is_valid():
+                # Repete verificação manual para exibir mensagem melhor (alguma outra ideia?)
+                areas_validas = 0
+                for area_trabalho_form in area_trabalho_formset:
+                    area_trabalho = area_trabalho_form.cleaned_data.get('area_trabalho')
+                    if area_trabalho:
+                        areas_validas += 1
+                if areas_validas < area_trabalho_formset.min_num:
+                    final_msg = ' áreas de trabalho'
+                    if area_trabalho_formset.min_num == 1:
+                        final_msg = ' área de trabalho'
+                    messages.error(request, u'Especifique ao menos ' + str(area_trabalho_formset.min_num) + final_msg)
     else:
 
         # Copia alguns dados do último processo cadastrado para agilizar
