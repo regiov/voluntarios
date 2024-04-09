@@ -3,4 +3,6 @@ django-crispy-forms == 1.14
 django-tinymce >= 3.4.0
 django-allauth >= 0.50.0
 django-mptt >= 0.13.4
+django-fsm >= 2.7.1
+django-fsm-log >= 2.0.1
 psycopg2 >= 2.9.9
