@@ -704,7 +704,7 @@ class FormAreaTrabalho(forms.ModelForm):
                                            empty_label=u'-- Escolha uma opção --',
                                            queryset=AreaTrabalho.objects.all().order_by('nome'),
                                            widget=forms.Select(attrs={'class': 'form-control combo-area-trabalho'}),
-                                           help_text="",
+                                           help_text='',
                                            required=False) # deve ser falso para evitar problema com combo extra
 
     class Meta:
