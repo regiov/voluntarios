@@ -548,6 +548,10 @@ class Entidade(StatusCnpj):
     ultima_visualiza   = models.DateTimeField(u'Última visualização da entidade (desde 12/01/2019)', null=True, blank=True)
     ultima_atualizacao = models.DateTimeField(u'Última atualização feita pelo responsável', auto_now_add=True, null=True, blank=True)
     ultima_revisao     = models.DateTimeField(u'Última revisão', null=True, blank=True)
+    # O campo abaixo foi criado para sabermos quando alguém acessou pela última vez
+    # a página de gerenciamento de processos seletivos. Com essa informação, conseguimos
+    # saber a qualquer momento se houve inscrições novas desde esse último acesso.
+    ultimo_acesso_proc = models.DateTimeField(u'Último acesso à página de processos seletivos', null=True, blank=True)
     
     # Estes 2 campos (*_analise) só são preenchidos na primeira aprovação/rejeição do cadastro
     data_analise       = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
