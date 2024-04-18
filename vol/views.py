@@ -2830,6 +2830,9 @@ def processos_seletivos_entidade(request, id_entidade):
     if int(id_entidade) not in request.user.entidades().values_list('pk', flat=True):
         raise PermissionDenied
 
+    entidade.ultimo_acesso_proc = timezone.now()
+    entidade.save(update_fields=['ultimo_acesso_proc'])
+
     processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
