@@ -13,6 +13,9 @@ class Message(models.Model):
     subject     = models.CharField(u'Subject', max_length=200, null=True, blank=True)
     content     = models.TextField(u'Message content', null=True, blank=True)
 
+    class Meta:
+        ordering = ('code',)
+
     def __str__(self):
         if self.code:
             return self.code
