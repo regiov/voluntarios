@@ -552,6 +552,9 @@ class Entidade(StatusCnpj):
     # a página de gerenciamento de processos seletivos. Com essa informação, conseguimos
     # saber a qualquer momento se houve inscrições novas desde esse último acesso.
     ultimo_acesso_proc = models.DateTimeField(u'Último acesso à página de processos seletivos', null=True, blank=True)
+    # Data e hora do envio da última notificação para a entidade avisando sobre a
+    # existência de novas inscrições em processos seletivos
+    ultimo_aviso_proc  = models.DateTimeField(u'Última notificação sobre novas inscrições de processos seletivos', null=True, blank=True)
     
     # Estes 2 campos (*_analise) só são preenchidos na primeira aprovação/rejeição do cadastro
     data_analise       = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
@@ -668,6 +671,12 @@ class Entidade(StatusCnpj):
             return True
         except Exception:
             return False
+
+    def email_para_notificacoes(self):
+        # Retorna o e-mail do primeiro vínculo ativo
+        for vinculo in self.vinculos_ativos.order_by('id'):
+            return vinculo.usuario.email
+        return None
 
     def cnpj_puro(self):
         return self.cnpj.strip().replace('-', '').replace('.', '').replace('/', '')
@@ -1689,7 +1698,7 @@ class ProcessoSeletivo(models.Model):
     """Processo seletivo de trabalho voluntário"""
     id                 = models.AutoField(primary_key=True)
     # campos que devem ser preenchidos automaticamente pelo sistema
-    entidade           = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    entidade           = models.ForeignKey(Entidade, on_delete=models.CASCADE, related_name='processoseletivo_set')
     cadastrado_por     = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     cadastrado_em      = models.DateTimeField(u'Data de cadastro', auto_now_add=True)
     status             = FSMIntegerField(u'Status', default=StatusProcessoSeletivo.EM_ELABORACAO)
