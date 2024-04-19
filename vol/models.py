@@ -672,10 +672,17 @@ class Entidade(StatusCnpj):
         except Exception:
             return False
 
+    def usuario_para_notificacoes(self):
+        # Retorna o usuário do primeiro vínculo ativo
+        for vinculo in self.vinculos_ativos.order_by('id'):
+            return vinculo.usuario
+        return None
+
     def email_para_notificacoes(self):
         # Retorna o e-mail do primeiro vínculo ativo
-        for vinculo in self.vinculos_ativos.order_by('id'):
-            return vinculo.usuario.email
+        usuario_para_notificacoes = self.usuario_para_notificacoes()
+        if usuario_para_notificacoes is not None:
+            return usuario_para_notificacoes.email
         return None
 
     def cnpj_puro(self):
