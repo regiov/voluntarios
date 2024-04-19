@@ -5,6 +5,7 @@ from notification.models import Message, Event
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('code', 'description')
     readonly_fields = ['code']
+    search_fields = ('subject', 'content')
 
     def has_add_permission(self, request):
         # Não permite inclusão
