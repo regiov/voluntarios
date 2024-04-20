@@ -25,7 +25,7 @@
 <div class="registro">
   {% with areas_de_trabalho=processo.areas_de_trabalho %}
   {% if areas_de_trabalho %}
-  <p><label>Área(s) de trabalho: </label> {{ areas_de_trabalho }}</p>
+  <p><label>Área{% if ',' in areas_de_trabalho %}s{% endif %} de trabalho: </label> {{ areas_de_trabalho }}</p>
   {% endif %}
   {% endwith %}
   <p><label>Carga horária: </label> {{ processo.carga_horaria }}</p>
