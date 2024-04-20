@@ -99,3 +99,43 @@ class Command(BaseCommand):
                 i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' entidade(s) notificada(s) sobre novas inscrições em processos seletivos.'))
+
+        i = 0
+
+        # Notifica entidades sobre processos seletivos sem nenhuma inscrição
+        processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+
+        msg_ausencia_inscricoes = Message.objects.get(code='AVISO_AUSENCIA_INSCRICOES_V1')
+
+        now = timezone.now().astimezone(current_tz)
+        
+        for processo in processos_em_aberto:
+
+            delta = now - processo.inicio_inscricoes
+
+            intervalo_em_dias = delta.days
+
+            if intervalo_em_dias < 10:
+                # Evitamos enviar a notificação antes de 10 dias desde a publicação da vaga
+                continue
+
+            if processo.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO]).count() == 0:
+
+                ultima_notificacao = processo.ultima_notificacao_sobre_ausencia_de_inscricoes()
+
+                if ultima_notificacao is not None:
+                    # Evitamos enviar a mesma notificação outra vez
+                    continue
+
+                email_para_notificacoes = processo.entidade.email_para_notificacoes()
+                
+                notify_email_msg(email_para_notificacoes,
+                                 msg_ausencia_inscricoes,
+                                 context={'intervalo_em_dias': intervalo_em_dias,
+                                          'titulo_vaga': processo.titulo,
+                                          'link_vaga': reverse('exibe_processo_seletivo', kwargs={'codigo_processo': processo.codigo}),
+                                          'link_busca_voluntarios': reverse('busca_voluntarios')},
+                                 content_obj=processo)
+                i = i + 1
+
+        self.stdout.write(self.style.NOTICE(str(i) + ' notificações(s) sobre ausência inscrições em processos seletivos.'))

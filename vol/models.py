@@ -1870,6 +1870,13 @@ class ProcessoSeletivo(models.Model):
         self.qtde_visualiza = self.qtde_visualiza + 1
         self.save(update_fields=['qtde_visualiza'])
 
+    def ultima_notificacao_sobre_ausencia_de_inscricoes(self):
+        codigos = ['AVISO_AUSENCIA_INSCRICOES_V1']
+        avisos = Event.objects.filter(object_id=self.id, content_type=ContentType.objects.get_for_model(self).id, message__code__in=codigos).order_by('-creation')
+        if len(avisos) > 0:
+            return avisos[0].creation
+        return None
+
     # Transições de estado
 
     @fsm_log_by
