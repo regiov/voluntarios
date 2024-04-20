@@ -5,10 +5,10 @@ from django.db import transaction
 from django.utils import timezone
 from django.urls import reverse
 
-from vol.models import ProcessoSeletivo, StatusProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, Entidade
+from vol.models import ProcessoSeletivo, StatusProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, Entidade
 
 from notification.models import Message
-from notification.utils import notify_user_msg
+from notification.utils import notify_email_msg
 
 class Command(BaseCommand):
     '''Linha de comando para ser colocado para rodar no cron todos os dias logo após a meia-noite.'''
@@ -27,7 +27,10 @@ class Command(BaseCommand):
         for processo in processos_em_aberto:
             processo.encerrar_inscricoes()
             processo.save()
-            notify_user_msg(processo.cadastrado_por, msg, context={'processo': processo})
+            notify_email_msg(processo.cadastrado_por.email,
+                             msg,
+                             context={'processo': processo},
+                             content_obj=processo)
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
@@ -41,13 +44,16 @@ class Command(BaseCommand):
         for processo in processos_nao_iniciados:
             processo.publicar()
             processo.save()
-            notify_user_msg(processo.cadastrado_por, msg, context={'processo': processo})
+            notify_email_msg(processo.cadastrado_por.email,
+                             msg,
+                             context={'processo': processo},
+                             content_obj=processo)
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) iniciado(s).'))
 
         # Notifica entidades sobre novas inscrições
-        entidades_com_processos_em_aberto = Entidade.objects.filter(processoseletivo_set__status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+        entidades_com_processos_em_aberto = Entidade.objects.filter(processoseletivo_set__status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).distinct()
 
         current_tz = timezone.get_current_timezone()
         now = timezone.now().astimezone(current_tz)
@@ -57,35 +63,39 @@ class Command(BaseCommand):
         msg_novas_inscricoes = Message.objects.get(code='AVISO_NOVAS_INSCRICOES_V1')
         for entidade in entidades_com_processos_em_aberto:
 
-            if entidade.ultimo_aviso_proc is not None:
+            ultimo_aviso = entidade.ultimo_aviso_de_novas_inscricoes()
 
-                delta = now - entidade.ultimo_aviso_proc
+            if ultimo_aviso is not None:
+
+                delta = now - ultimo_aviso
 
                 if delta.days < 7:
                     # Evitamos notificar novamente entidades que já receberam
                     # essa notificação nos últimos 7 dias
                     continue
 
-            novas_inscricoes = ParticipacaoEmProcessoSeletivo.objects.filter(processoseletivo__entidade=entidade, processoseletivo__status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, status=StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO)
+            novas_inscricoes = ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo__entidade=entidade, processo_seletivo__status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, status=StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO)
 
             if entidade.ultimo_acesso_proc is not None:
                 # Somente inscrições feitas após o último acesso da entidade na
                 # interface de processos são contabilizadas aqui
                 novas_inscricoes = novas_inscricoes.filter(data_inscricao__gt=entidade.ultimo_acesso_proc)
 
-            if entidade.ultimo_aviso_proc is not None:
+            if ultimo_aviso is not None:
                 # Somente inscrições feitas após a última notificação
                 # são contabilizadas aqui
-                novas_inscricoes = novas_inscricoes.filter(data_inscricao__gt=entidade.ultimo_aviso_proc)
+                novas_inscricoes = novas_inscricoes.filter(data_inscricao__gt=ultimo_aviso)
 
             qtde_novas_inscricoes = novas_inscricoes.count()
 
-            usuario_para_notificacoes = entidade.usuario_para_notificacoes()
+            email_para_notificacoes = entidade.email_para_notificacoes()
 
-            if qtde_novas_inscricoes > 0 and usuario_para_notificacoes:
-                notify_user_msg(usuario_para_notificacoes, msg_novas_inscricoes, context={'entidade': entidade, 'link_processos_seletivos_entidade': reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id})})
-                entidade.ultimo_aviso_proc = timezone.now()
-                entidade.save(update_fields=['ultimo_aviso_proc'])
+            if qtde_novas_inscricoes > 0 and email_para_notificacoes:
+                notify_email_msg(email_para_notificacoes,
+                                 msg_novas_inscricoes,
+                                 context={'entidade': entidade,
+                                          'link_processos_seletivos_entidade': reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id})},
+                                 content_obj=entidade)
                 i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' entidade(s) notificada(s) sobre novas inscrições em processos seletivos.'))

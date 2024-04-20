@@ -23,6 +23,7 @@ from django.core.validators import validate_email
 from django.dispatch import receiver
 from django.urls import reverse
 from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -37,7 +38,7 @@ from django_fsm import FSMIntegerField, transition
 from django_fsm_log.decorators import fsm_log_by, fsm_log_description
 
 from notification.utils import notify_support, notify_email_msg
-from notification.models import Message
+from notification.models import Message, Event
 
 from .utils import track_data
 
@@ -552,9 +553,6 @@ class Entidade(StatusCnpj):
     # a página de gerenciamento de processos seletivos. Com essa informação, conseguimos
     # saber a qualquer momento se houve inscrições novas desde esse último acesso.
     ultimo_acesso_proc = models.DateTimeField(u'Último acesso à página de processos seletivos', null=True, blank=True)
-    # Data e hora do envio da última notificação para a entidade avisando sobre a
-    # existência de novas inscrições em processos seletivos
-    ultimo_aviso_proc  = models.DateTimeField(u'Última notificação sobre novas inscrições de processos seletivos', null=True, blank=True)
     
     # Estes 2 campos (*_analise) só são preenchidos na primeira aprovação/rejeição do cadastro
     data_analise       = models.DateTimeField(u'Data da análise', null=True, blank=True, db_index=True)
@@ -683,6 +681,13 @@ class Entidade(StatusCnpj):
         usuario_para_notificacoes = self.usuario_para_notificacoes()
         if usuario_para_notificacoes is not None:
             return usuario_para_notificacoes.email
+        return None
+
+    def ultimo_aviso_de_novas_inscricoes(self):
+        codigos = ['AVISO_NOVAS_INSCRICOES_V1']
+        avisos = Event.objects.filter(object_id=self.id, content_type=ContentType.objects.get_for_model(self).id, message__code__in=codigos).order_by('-creation')
+        if len(avisos) > 0:
+            return avisos[0].creation
         return None
 
     def cnpj_puro(self):
