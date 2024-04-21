@@ -16,11 +16,11 @@
   {% for processo in processos %}
   <tr>
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}</td>
-    <td>{{ processo.entidade.menor_nome }}</td>
+    <td>{{ processo.entidade.menor_nome }}<br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{{ processo.nome_status }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem limite{% endif %}</td>
     <td>{{ processo.qtde_visualiza }}</td>
-    <td>{{ processo.inscricoes.count }}</td>
+    <td>{{ processo.inscricoes.count }} <span style="margin-left: 5px;">{% if processo.ultima_notificacao_sobre_ausencia_de_inscricoes %}<span class="dica" style="color: darkred; cursor: pointer;" title="recebeu aviso sobre ausência de inscrições">&#x2022;</span>{% endif %}{% if processo.inscricoes.count and processo.entidade.ultimo_aviso_de_novas_inscricoes %}<span class="dica" style="color: darkgreen; cursor: pointer;" title="recebeu notificação sobre novas inscrições">&#x2022;</span>{% else %}{% endif %}</span></td>
     <td>{{ processo.selecionados.count }}</td>
     <td>{{ processo.nao_selecionados.count }}</td>
   </tr>
