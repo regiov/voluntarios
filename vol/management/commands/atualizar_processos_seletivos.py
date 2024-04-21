@@ -119,7 +119,7 @@ class Command(BaseCommand):
                 # Evitamos enviar a notificação antes de 10 dias desde a publicação da vaga
                 continue
 
-            if processo.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO]).count() == 0:
+            if processo.inscricoes_validas().count() == 0:
 
                 ultima_notificacao = processo.ultima_notificacao_sobre_ausencia_de_inscricoes()
 

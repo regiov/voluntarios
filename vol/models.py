@@ -1851,6 +1851,9 @@ class ProcessoSeletivo(models.Model):
             qs = qs.filter(status__in=status)
         return qs
 
+    def inscricoes_validas(self):
+        return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO])
+
     def selecionados(self):
         return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.SELECIONADO])
 
