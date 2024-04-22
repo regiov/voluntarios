@@ -409,7 +409,7 @@ class Voluntario(models.Model):
 
     def inscricoes(self, status=[]):
         '''Retorna inscricoes em processos seletivos nos status indicados, ou todas'''
-        qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').all()
+        qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(voluntario=self)
         if len(status) > 0:
             qs = qs.filter(status__in=status)
         return qs
@@ -2067,9 +2067,10 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     def desfazer_selecao(self, by=None):
         pass
 
+    @fsm_log_description
     @fsm_log_by
     @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
-    def cancelar(self, by=None):
+    def cancelar(self, by=None, description=None):
         pass
 
 class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
