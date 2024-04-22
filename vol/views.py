@@ -3405,7 +3405,7 @@ def inscricao_processo_seletivo(request, codigo_processo):
 
             if inscricao:
                 if inscricao.passivel_de_desistencia():
-                    inscricao.desistir(by=request.user)
+                    inscricao.desistir(by=request.user, description=request.POST.get('motivo'))
                     inscricao.save()
                     messages.info(request, u'Inscrição cancelada!')
                 else:

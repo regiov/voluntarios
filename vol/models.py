@@ -2039,9 +2039,10 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
 
     # Transições de estado
 
+    @fsm_log_description
     @fsm_log_by
     @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusParticipacaoEmProcessoSeletivo.DESISTENCIA)
-    def desistir(self, by=None):
+    def desistir(self, by=None, description=None):
         pass
 
     @fsm_log_by
