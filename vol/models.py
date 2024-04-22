@@ -217,8 +217,9 @@ class RemocaoUsuario(models.Model):
 class AreaTrabalho(models.Model):
     """Área de trabalho/ocupação de uma pessoa"""
     """obs: id compatível com banco anterior"""
-    id   = models.AutoField(primary_key=True)
-    nome = models.CharField(u'Nome', max_length=50, unique=True)
+    id            = models.AutoField(primary_key=True)
+    nome          = models.CharField(u'Nome', max_length=50, unique=True)
+    data_cadastro = models.DateTimeField(u'Data de cadastro', auto_now_add=True, null=True, blank=True)
 
     class Meta:
         verbose_name = u'Área de Trabalho'
@@ -295,6 +296,7 @@ class Voluntario(models.Model):
     dif_analise           = models.TextField(u'Alterações na análise', null=True, blank=True)
     qtde_visualiza        = models.IntegerField(u'Quantidade de visualizações do perfil (desde 12/01/2019)', default=0)
     ultima_visualiza      = models.DateTimeField(u'Última visualização do voluntário (desde 12/01/2019)', null=True, blank=True)
+    # Data/hora da última atualização do cadastro PELA ENTIDADE. Daí usarmos apenas o auto_now_add, e não auto_now, pois os dados da entidade podem ser alterados via interface adm por nós 
     ultima_atualizacao    = models.DateTimeField(u'Data de última atualização', auto_now_add=True, null=True, blank=True, db_index=True)
 
     class Meta:
