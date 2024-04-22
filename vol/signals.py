@@ -29,7 +29,7 @@ def voluntario_post_save(sender, instance, created, raw, using, update_fields, *
         # Voluntário aprovado pela primeira vez
         notifica_aprovacao_voluntario(instance.usuario)
 
-    if instance.old_value('aprovado') in (None, True) and not instance.aprovado:
+    if instance.old_value('aprovado') in (None, True) and instance.aprovado == False:
         # Cadastro rejeitado de voluntário, cancela inscrições em processos seletivos em aberto
         for inscricao in instance.inscricoes():
             if inscricao.aguardando_selecao():
