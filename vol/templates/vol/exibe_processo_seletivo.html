@@ -50,8 +50,8 @@
 <form id="inscricao-processo-seletivo" method="POST" action="{% url 'inscricao_processo_seletivo' codigo_processo=processo.codigo %}">
     {% csrf_token %}
     <div class="form-group">
-        {% if not inscricao %}
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirma-inscricao">Quero me inscrever</button>
+        {% if not inscricao or inscricao.desistiu %}
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirma-inscricao">Quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
         <div class="modal" id="confirma-inscricao" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
              <div class="modal-content">
@@ -62,12 +62,12 @@
                 </div>
             
                 <div class="modal-body">
-                  <p>Legal que você quer se inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
+                  <p>Legal que você quer se {% if inscricao.desistiu %}re{% endif %}inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Voltar</button>
-                    <button type="submit" class="btn btn-primary" name="inscrever">Sim, quero me inscrever</button>
+                    <button type="submit" class="btn btn-primary" name="inscrever">Sim, quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
                 </div>
              </div>
           </div>
