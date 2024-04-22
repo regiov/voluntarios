@@ -3405,9 +3405,13 @@ def inscricao_processo_seletivo(request, codigo_processo):
 
             if inscricao:
                 if inscricao.passivel_de_desistencia():
-                    inscricao.desistir(by=request.user, description=request.POST.get('motivo'))
-                    inscricao.save()
-                    messages.info(request, u'Inscrição cancelada!')
+                    if inscricao.voluntario.usuario == request.user:
+                        inscricao.desistir(by=request.user, description=request.POST.get('motivo'))
+                        inscricao.save()
+                        messages.info(request, u'Inscrição cancelada!')
+                    else:
+                        messages.error(request, u'Detectamos uma tentativa de manipular inscrição de outro usuário. O suporte foi notificado.')
+                        notify_support(u'Tentativa de cancelamento de inscricao por estranho', processo.titulo + u' (' + processo.codigo + u'): ' + request.user.nome + u'(' + str(request.user.id) + u')', request)
                 else:
                     messages.error(request, u'Não há como cancelar a inscrição nas condições em que este processo seletivo se encontra. Em caso de dúvida entre em contato conosco.')
             else:
