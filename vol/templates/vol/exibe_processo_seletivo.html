@@ -51,27 +51,33 @@
     {% csrf_token %}
     <div class="form-group">
         {% if not inscricao or inscricao.desistiu %}
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirma-inscricao">Quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
-        <div class="modal" id="confirma-inscricao" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-             <div class="modal-content">
-                
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Confirmação</h4>
-                </div>
+          {% if not request.user.is_voluntario %}
+          {% comment %}O botão aparece mesmo quando o usuário não é voluntário. Nesses casos não tem sentido confirmar a inscrição, pois ela não será feita - o usuário será informado que precisa se cadastrar como voluntário.{% endcomment %}
+          <input class="btn btn-primary" type="submit" name="inscrever"  value="Quero me inscrever">
+          {% else %}
+          {% comment %}Aqui sim a inscrição será feita, então vamos exibir a janela de confirmação{% endcomment %}
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirma-inscricao">Quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
+          <div class="modal" id="confirma-inscricao" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                  
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title" id="myModalLabel">Confirmação</h4>
+                  </div>
             
-                <div class="modal-body">
-                  <p>Legal que você quer se {% if inscricao.desistiu %}re{% endif %}inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Voltar</button>
-                    <button type="submit" class="btn btn-primary" name="inscrever">Sim, quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
-                </div>
-             </div>
+                  <div class="modal-body">
+                    <p>Legal que você quer se {% if inscricao.desistiu %}re{% endif %}inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
+                  </div>
+                  
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-danger" data-dismiss="modal">Voltar</button>
+                      <button type="submit" class="btn btn-primary" name="inscrever">Sim, quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
+                  </div>
+               </div>
+            </div>
           </div>
-        </div>
+        {% endif %}
         {% else %}
           {% if inscricao.passivel_de_desistencia %}
           <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancela-inscricao">Cancelar inscrição</button>
