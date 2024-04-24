@@ -498,9 +498,12 @@ def exibe_voluntario(request, id_voluntario):
     if not id_voluntario.isdigit():
         raise SuspiciousOperation('Parâmetro id inválido')
     try:
-        voluntario = Voluntario.objects.select_related('area_trabalho', 'usuario').get(pk=id_voluntario, aprovado=True)
+        voluntario = Voluntario.objects.select_related('area_trabalho', 'usuario').get(pk=id_voluntario)
+        if voluntario.aprovado is None:
+            return mensagem(request, u'Atenção: o cadastro deste voluntário ainda não foi revisado pela equipe do site. Este procedimento normalmente leva um dia útil. Tente novamente mais tarde.')
+        elif voluntario.aprovado == False:
+            return mensagem(request, u'O cadastro deste voluntário foi rejeitado pela equipe do site. Qualquer dúvida entre em contato conosco.')
     except Voluntario.DoesNotExist:
-        #raise SuspiciousOperation('Voluntário inexistente ou cujo cadastro ainda não foi aprovado')
         raise Http404
     voluntario.hit()
     areas_de_interesse = voluntario.areainteresse_set.all()
