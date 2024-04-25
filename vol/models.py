@@ -1936,7 +1936,9 @@ class AreaTrabalhoEmProcessoSeletivo(models.Model):
 
     class Meta:
         unique_together = ('processo_seletivo', 'area_trabalho')
-
+        verbose_name = u'Área de trabalho em processo seletivo'
+        verbose_name_plural = u'Áreas de trabalho em processo seletivo'
+        
     def __str__(self):
         return self.area_trabalho.nome
 
