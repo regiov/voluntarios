@@ -70,7 +70,7 @@ class FormVoluntario(forms.ModelForm):
                                        required=False)
     estado = forms.ChoiceField(label=u'Estado',
                                widget=forms.Select(attrs={'class': 'form-control'}),
-                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')])
+                               choices=[]) # definido via init para evitar problemas em migrações.
     cidade = forms.ChoiceField(label=u'Cidade em que reside',
                                widget=forms.Select(attrs={'class': 'form-control'}),
                                choices=[]) # definido via init para validação. No form é carregado via ajax.
@@ -149,6 +149,8 @@ class FormVoluntario(forms.ModelForm):
 
         super(FormVoluntario, self).__init__(*args, **kwargs)
 
+        self.fields['estado'].choices = [(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')]
+
         estado = self.data.get('estado')
         if estado is None and self.instance:
             estado = self.instance.estado
@@ -156,9 +158,7 @@ class FormVoluntario(forms.ModelForm):
         if estado:
             # Atualiza opções válidas de cidades de acordo com o estado
             cidades = Cidade.objects.filter(uf=estado).order_by('nome')
-            self.fields['cidade'] = forms.ChoiceField(label=u'Cidade em que reside',
-                                                      widget=forms.Select(attrs={'class': 'form-control'}),
-                                                      choices=[(c.nome, c.nome) for c in cidades])
+            self.fields['cidade'].choices = [(c.nome, c.nome) for c in cidades]
 
     def clean_data_aniversario(self):
         val = self.cleaned_data['data_aniversario']
@@ -254,7 +254,7 @@ class FormEntidade(forms.ModelForm):
                              help_text="")
     estado = forms.ChoiceField(label=u'Estado',
                                widget=forms.Select(attrs={'class': 'form-control'}),
-                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')])
+                               choices=[]) # definido via init para evitar problemas com migrações.
     cidade = forms.ChoiceField(label=u'Cidade',
                                widget=forms.Select(attrs={'class': 'form-control'}),
                                choices=[]) # definido via init para validação. No form é carregado via ajax.
@@ -309,6 +309,8 @@ class FormEntidade(forms.ModelForm):
 
         super(FormEntidade, self).__init__(*args, **kwargs)
 
+        self.fields['estado'].choices = [(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')]
+
         estado = self.data.get('estado')
         if estado is None and self.instance:
             estado = self.instance.estado
@@ -316,9 +318,7 @@ class FormEntidade(forms.ModelForm):
         if estado:
             # Atualiza opções válidas de cidades de acordo com o estado
             cidades = Cidade.objects.filter(uf=estado).order_by('nome')
-            self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
-                                                      widget=forms.Select(attrs={'class': 'form-control'}),
-                                                      choices=[(c.nome, c.nome) for c in cidades])
+            self.fields['cidade'].choices = [(c.nome, c.nome) for c in cidades]
 
         if not self.entidade_nova():
 
@@ -734,7 +734,7 @@ class FormProcessoSeletivo(forms.ModelForm):
                                       widget=forms.Select(attrs={'class': 'form-control'}))
     estado = forms.ChoiceField(label=u'Estado',
                                widget=forms.Select(attrs={'class': 'form-control'}),
-                               choices=[(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')],
+                               choices=[], # definido via init para evitar problemas com migrações.
                                required=False)
     cidade = forms.ChoiceField(label=u'Cidade',
                                widget=forms.Select(attrs={'class': 'form-control'}),
@@ -773,6 +773,8 @@ class FormProcessoSeletivo(forms.ModelForm):
             del kwargs['disabled']
 
         super(FormProcessoSeletivo, self).__init__(*args, **kwargs)
+
+        self.fields['estado'].choices = [(e.sigla, e.sigla) for e in Estado.objects.all().order_by('sigla')]
 
         estado = self.data.get('estado')
         if estado is None and self.instance and self.instance.estado:
