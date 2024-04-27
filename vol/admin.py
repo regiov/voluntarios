@@ -15,9 +15,6 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
 
-from django_fsm_log.models import StateLog
-from django_fsm_log.admin import StateLogInline
-
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from tinymce.widgets import TinyMCE
@@ -1014,62 +1011,6 @@ class TermoAdesaoAdmin(admin.ModelAdmin):
         self.message_user(request, "%s" % (main_msg))
     reenviar_para_voluntario.short_description = "Reenviar mensagem para voluntário"
 
-class LogDeTransicao(StateLog):
-    """Modelo criado apenas para acrescentar labels em português"""
-    class Meta:
-        proxy = True
-        managed = False
-        verbose_name = u'Log de transição'
-        verbose_name_plural = _(u'Log de transição')
-
-class LogDeTransicaoInline(StateLogInline):
-    "Inline customizado para exibir nome dos estados ao invés dos códigos e para incluir textos em português"
-    model = LogDeTransicao
-    fields = (
-        'transition_intl',
-        'source_state_name',
-        'state_name',
-        'by_intl',
-        'description_intl',
-        'timestamp_intl',
-    )
-
-    # Coluna para transição
-    def transition_intl(self, instance):
-        return instance.transition
-    transition_intl.short_description = u'Transição'
-
-    # Coluna para nome do status de origem
-    def source_state_name(self, instance):
-        if instance.source_state:
-            return StatusProcessoSeletivo.nome(int(instance.source_state))
-        return '-'
-    source_state_name.short_description = u'De'
-
-    # Coluna para nome do status de destino
-    def state_name(self, instance):
-        return StatusProcessoSeletivo.nome(int(instance.state))
-    state_name.short_description = u'Para'
-
-    # Coluna para responsável pela transição
-    def by_intl(self, instance):
-        if instance.by:
-            return instance.by
-        return '-'
-    by_intl.short_description = u'Por'
-
-    # Coluna para descrição
-    def description_intl(self, instance):
-        if instance.description:
-            return instance.description
-        return '-'
-    description_intl.short_description = u'Descrição'
-
-    # Coluna para 
-    def timestamp_intl(self, instance):
-        return instance.timestamp
-    timestamp_intl.short_description = u'Data/hora'
-
 class AreaTrabalhoEmProcessoSeletivoInline(admin.TabularInline):
     model = AreaTrabalhoEmProcessoSeletivo
     fields = ['area_trabalho',]
@@ -1081,7 +1022,7 @@ class ProcessoSeletivoAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'entidade', 'inicio_inscricoes', 'limite_inscricoes', 'nome_status',)
     fields = ['codigo', 'titulo', 'entidade', 'cadastrado_por', 'cadastrado_em', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
     readonly_fields = ['codigo', 'cadastrado_por', 'cadastrado_em', 'entidade', 'estado', 'cidade', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
-    inlines = [AreaTrabalhoEmProcessoSeletivoInline, LogDeTransicaoInline]
+    inlines = [AreaTrabalhoEmProcessoSeletivoInline]
     
     # Desabilita inclusão
     def has_add_permission(self, request):
