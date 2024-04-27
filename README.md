@@ -49,8 +49,7 @@ create extension postgis;
 Em seguida, na pasta onde foi instalado o código do Voluntários, dentro do diretório *website/website*, faça uma cópia do arquivo *settings.py* chamada *local_settings.py*:
 
 ```
-cd website/website
-cp settings.py local_settings.py
+cp website/settings.py website/local_settings.py
 ```
 
 Edite o arquivo *local_settings.py*, removendo a maior parte das configurqações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação, substituindo *SET IN LOCAL SETTINGS* pela sua configuração local. Mantenha apenas as configurações DEBUG e ALLOWED_HOSTS, com valores True e ['127.0.0.1', 'localhost'], respectivamente. Seu arquivo local_settings.py deverá ficar com esse aspecto:
