@@ -6,7 +6,6 @@ from datetime import date, timedelta
 
 from django import forms
 from django.utils.safestring import mark_safe
-from django.utils.functional import lazy
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.utils import timezone
