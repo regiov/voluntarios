@@ -598,7 +598,9 @@ class Entidade(StatusCnpj):
 
     def esconder_obs_doacoes(self):
         '''Indica se o campo de observações sobre doações deve ser escondido (usado no formulário da entidade)'''
-        return self.necessidadeartigo_set.all().count() == 0
+        if self.pk:
+            return self.necessidadeartigo_set.all().count() == 0
+        return True
 
     @cached_property
     def vinculos_ativos(self):
