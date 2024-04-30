@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # Encerra processos em aberto cujo limite de inscrições já tenha passado
-        processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, limite_inscricoes__lt=timezone.now())
+        processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, limite_inscricoes__date__lt=timezone.now().date())
 
         i = 0
 
@@ -36,7 +36,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
 
         # Publica processos após a data de abertura das inscrições 
-        processos_nao_iniciados = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, inicio_inscricoes__lt=timezone.now())
+        processos_nao_iniciados = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, inicio_inscricoes__date__lt=timezone.now().date())
 
         i = 0
 
