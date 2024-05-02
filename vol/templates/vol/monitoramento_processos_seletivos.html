@@ -15,7 +15,7 @@
   <tbody>
   {% for processo in processos %}
   <tr>
-    <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}
+    <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
         {{ processo.entidade.menor_nome }}<br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{% if processo.trabalho_remoto %}-{% else %}{{ processo.cidade.nome }}-{{ processo.estado.sigla }}{% endif %}</td>
     <td>{{ processo.nome_status }}</td>
