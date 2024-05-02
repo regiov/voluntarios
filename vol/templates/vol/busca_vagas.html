@@ -45,7 +45,7 @@
   </div>
 
   <div class="form-group">
-    <label for="id_fareatrabalho">Área de trabalho:</label>
+    <label for="id_fareatrabalho">Área de trabalho na vaga:</label>
     <select id="id_fareatrabalho" name="fareatrabalho" class="form-control">
       <option value="0"{% if not request.GET.fareatrabalho %} selected{% endif %}>-- Todas as áreas de trabalho --</option>
       {% for area_trabalho in profissoes %}<option value="{{ area_trabalho.id }}"{% if request.GET.fareatrabalho|add:"0" == area_trabalho.id %} selected{% endif %}>{{ area_trabalho.nome }}</option>{% endfor %}

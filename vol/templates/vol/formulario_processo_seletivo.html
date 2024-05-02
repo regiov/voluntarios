@@ -41,7 +41,7 @@
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto loader=True %}
     
     <div class="form-group required{% if area_trabalho_formset.non_form_errors %} has-error{% endif %}">
-      <label for="id_area_trabalho" class="nowrap">* Área de trabalho do voluntário</label>
+      <label for="id_area_trabalho" class="nowrap">* Área de trabalho na vaga</label>
       <p class="dica">Se quiser sugerir uma nova &aacute;rea de trabalho, envie um e-mail para <a
 	href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
       <table border="0" cellpadding="0" cellspacing="0">
