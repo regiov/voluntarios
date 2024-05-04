@@ -3467,3 +3467,33 @@ def classificar_inscricao(request):
             inscricao.save()
 
     return HttpResponse(status=200)
+
+@login_required
+@transaction.atomic
+def observacoes_inscricao(request, id_inscricao):
+    '''Serviço para retornar/editar observacoes de uma inscrição.
+    Parâmetros POST:
+    observacoes (observações sobre a inscrição)
+    OBS: também requer o header X-CSRFToken'''
+
+    metodos = ['GET', 'POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    try:
+        inscricao = ParticipacaoEmProcessoSeletivo.objects.select_related('processo_seletivo').get(id=id_inscricao)
+    except ParticipacaoEmProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    if int(inscricao.processo_seletivo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        if 'observacoes' not in request.POST:
+            return HttpResponseBadRequest('Ausência do parâmetro observacoes')
+
+        inscricao.obs_entidade = request.POST['observacoes']
+        inscricao.save(update_fields=['obs_entidade'])
+
+    return JsonResponse({'observacoes': inscricao.obs_entidade,
+                         'resumo': inscricao.obs_resumida()})

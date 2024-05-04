@@ -1997,6 +1997,7 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     voluntario        = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
     status            = FSMIntegerField(u'Status', default=StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO)
     data_inscricao    = models.DateTimeField(u'Data de inscrição', auto_now_add=True)
+    obs_entidade      = models.TextField(u'Observações feitas pela entidade', null=True, blank=True)
 
     class Meta:
         verbose_name = u'Participação em processo seletivo'
@@ -2016,6 +2017,23 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
         if (self.processo_seletivo.aguardando_selecao() or self.processo_seletivo.aberto_a_inscricoes()) and self.status in (StatusParticipacaoEmProcessoSeletivo.SELECIONADO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO):
             return self.nome_status(StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO)
         return StatusParticipacaoEmProcessoSeletivo.nome(self.status)
+
+    def obs_resumida(self):
+        # Retorna as primeiras palavras do campo observações, tentando não exceder 15 caracteres
+        resumo = None
+        if self.obs_entidade:
+            palavras = self.obs_entidade.split(' ')
+            resumo = palavras[0].lower() # Sempre retorna pelo menos a primeira palavra
+            qtde_palavras = len(palavras)
+            for i in range(1, qtde_palavras):
+                novo_resumo = resumo + ' ' + palavras[i].lower()
+                if len(novo_resumo) <= 15:
+                    resumo = novo_resumo
+                else:
+                    break
+            if len(resumo) < len(self.obs_entidade):
+                resumo = resumo + '...'
+        return resumo
 
     def aguardando_selecao(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO

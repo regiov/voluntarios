@@ -26,6 +26,7 @@
       <th>Idade</th>
       {% comment %}<th>Cadastro OK</th>{% endcomment %}
       <th>Status</th>
+      <th>Obs</th>
     </thead>
   <tbody>
   {% for inscricao in inscricoes %}
@@ -61,6 +62,8 @@
         {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado ou processo seletivo cancelado"/>{% endif %}{% endif %}
       {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado ou processo seletivo cancelado"/>{% endif %}{% endif %}
     {% endspaceless %}</td>
+    <td><i class="fas fa-edit" title="ver/editar" data-toggle="modal" data-target="#modal-observacoes" data-id="{{ inscricao.id }}" style="color:#a5732a;cursor: pointer;"></i> <span id="ins-{{ inscricao.id }}">{{ inscricao.obs_resumida|default:'' }}</span>
+    </td>
   </tr>
   {% endwith %}
   {% endfor %}
@@ -80,12 +83,96 @@
 </div>
 </form>
 {% endif %}
-  
+
+<div class="form-group">
+  <div class="modal" id="modal-observacoes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+       <div class="modal-content">
+
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Observações</h4>
+          </div>
+
+          <div class="modal-body">
+            <center><img id="observacoes-loader" src="{% static 'images/ajax-loader-circle-small.gif' %}" width="20"></center>
+            <textarea id="observacoes" name="observacoes" cols="20" rows="5" class="form-control"></textarea>
+          </div>
+
+          <div class="modal-footer">
+              <button type="button" class="btn" data-dismiss="modal">Voltar</button>
+              <button id="btn-gravar-observacoes" type="button" class="btn btn-primary" name="gravar" data-id="" onclick="gravar_observacao();">Gravar</button> <img id="gravar-observacoes-loader" src="{% static 'images/ajax-loader-circle-small.gif' %}" style="display: none;">
+          </div>
+       </div>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}
 
 {% block post_footer %}
 
 <script type="text/javascript">
+
+  // Evento de exibição do modal
+  $('#modal-observacoes').on('show.bs.modal', function (event) {
+      const button = $(event.relatedTarget); // botão que ativou o modal
+
+      // Extrai id do atributo
+      const id_inscricao = button.data('id');
+
+      // Pega observacoes da inscricao e atualiza textarea
+      $('#observacoes').hide();
+      $('#btn-gravar-observacoes').hide();
+      $('#observacoes-loader').show();
+
+      var request = $.ajax({
+        url: '/inscricao/' + id_inscricao + '/obs',
+        method: 'GET',
+      });
+      request.done(function (ret) {
+        $('#observacoes').val(ret.observacoes);
+        $('#observacoes-loader').hide();
+        $('#observacoes').show();
+        $('#btn-gravar-observacoes').show();
+      });
+      request.fail(function (jqXHR, textStatus) {
+
+        window.alert('Ops, erro ao carregar as observações...');
+      });
+
+      // atualiza atributo id, caso o botão gravar seja clicado
+      $('#btn-gravar-observacoes').data('id', id_inscricao);
+  })
+
+  function gravar_observacao() {
+
+    var id_inscricao = $('#btn-gravar-observacoes').data('id');
+    var token = '{{ csrf_token }}';
+
+    $("#gravar-observacoes-loader").show();
+    $("#btn-gravar-observacoes").prop("disabled", true);
+
+    $.ajax({
+        url: "/inscricao/" + id_inscricao + "/obs",
+        method: "POST",
+        headers: {"X-CSRFToken": token},
+        data: {
+          observacoes: $('#observacoes').val()
+        },
+        success: function(response) {
+          $('#ins-' + id_inscricao).text(response.resumo);
+          $('#modal-observacoes').modal('hide');
+          $("#gravar-observacoes-loader").hide();
+          $("#btn-gravar-observacoes").prop("disabled", false);
+        },
+        error: function(xhr, errmsg, err) {
+          $("#gravar-observacoes-loader").hide();
+          $("#btn-gravar-observacoes").prop("disabled", false);
+          console.log('Erro ao gravar observações: ', errmsg);
+        }
+    });
+  }
 
   {% if processo.aberto_a_inscricoes or processo.aguardando_selecao %}
   
