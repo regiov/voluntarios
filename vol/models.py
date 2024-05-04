@@ -1866,10 +1866,11 @@ class ProcessoSeletivo(models.Model):
 
     def areas_de_trabalho(self):
         areas = ''
-        for area in self.areatrabalhoemprocessoseletivo_set.select_related('area_trabalho').all().order_by('area_trabalho__nome'):
-            if len(areas) > 0:
-                areas = areas + ', '
-            areas = areas + area.area_trabalho.nome
+        if self.pk:
+            for area in self.areatrabalhoemprocessoseletivo_set.select_related('area_trabalho').all().order_by('area_trabalho__nome'):
+                if len(areas) > 0:
+                    areas = areas + ', '
+                areas = areas + area.area_trabalho.nome
         return areas
 
     def hit(self):
