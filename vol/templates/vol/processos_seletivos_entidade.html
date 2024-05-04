@@ -30,6 +30,7 @@ td[status="concluido"] { color: black; }
     <td status="{% if processo.aberto_a_inscricoes %}aberto{% elif processo.cancelado %}cancelado{% elif processo.concluido %}concluido{% endif %}">{{ processo.nome_status }}{% if processo.em_elaboracao %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="Para dar andamento, edite o processo e clique em solicitar aprovação"/>{% elif processo.aguardando_selecao %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="Para encerrar o processo, termine a seleção de candidatos"/>{% endif %}</td>
     <td status="{% if processo.aberto_a_inscricoes %}aberto{% elif processo.cancelado %}cancelado{% elif processo.concluido %}concluido{% endif %}">{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</td>
     <td>{% if processo.num_inscricoes > 0 %}<a href="{% url 'inscricoes_processo_seletivo' id_entidade=processo.entidade.pk codigo_processo=processo.codigo %}">{{ processo.num_inscricoes }}</a>&nbsp;<a href="{% url 'inscricoes_processo_seletivo' id_entidade=processo.entidade.pk codigo_processo=processo.codigo %}" class="btn btn-default btn-sm" style="margin-left:5px;">Ver</a>{% else %}{{ processo.num_inscricoes }}{% endif %}</td>
+    <td><a href="{% url 'novo_processo_seletivo' entidade.id %}?copia={{ processo.id }}" title="criar cópia"><i class="fas fa-copy"></i></a></td>
   </tr>
   {% endfor %}
   </tbody>

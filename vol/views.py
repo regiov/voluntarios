@@ -3052,20 +3052,52 @@ def novo_processo_seletivo(request, id_entidade):
                     messages.error(request, u'Especifique ao menos ' + str(area_trabalho_formset.min_num) + final_msg)
     else:
 
-        # Copia alguns dados do último processo cadastrado para agilizar
         initial = {}
-        ultimo_processo = ProcessoSeletivo.objects.all().last()
-        if ultimo_processo is not None:
-            initial['resumo_entidade'] = ultimo_processo.resumo_entidade
-            initial['modo_trabalho'] = ultimo_processo.modo_trabalho
-            initial['estado'] = ultimo_processo.estado
-            initial['cidade'] = ultimo_processo.cidade
+        formset_initial = []
+
+        if 'copia' in request.GET: # Clonagem de processo seletivo via link
+
+            copia = request.GET['copia']
+
+            if copia.isdigit():
+                try:
+                    modelo = ProcessoSeletivo.objects.get(pk=int(copia))
+                    if modelo.entidade_id != int(id_entidade):
+                        messages.error(request, u'Modelo de processo seletivo indisponível')
+                    else:
+                        initial['titulo'] = modelo.titulo
+                        initial['resumo_entidade'] = modelo.resumo_entidade
+                        initial['modo_trabalho'] = modelo.modo_trabalho
+                        initial['estado'] = modelo.estado
+                        initial['cidade'] = modelo.cidade
+                        initial['atividades'] = modelo.atividades
+                        initial['requisitos'] = modelo.requisitos
+                        initial['carga_horaria'] = modelo.carga_horaria
+
+                        for area in modelo.areatrabalhoemprocessoseletivo_set.select_related('area_trabalho').all().order_by('id'):
+                            formset_initial.append({'area_trabalho': area.area_trabalho.pk})
+
+                except ProcessoSeletivo.DoesNotExist:
+                    messages.error(request, u'Modelo de processo seletivo não encontrado')
+        else:
+            # Copia alguns dados do último processo cadastrado para agilizar
+            ultimo_processo = ProcessoSeletivo.objects.all().last()
+            if ultimo_processo is not None:
+                initial['resumo_entidade'] = ultimo_processo.resumo_entidade
+                initial['modo_trabalho'] = ultimo_processo.modo_trabalho
+                initial['estado'] = ultimo_processo.estado
+                initial['cidade'] = ultimo_processo.cidade
         
         form = FormProcessoSeletivo(initial=initial)
 
-        area_trabalho_formset = FormSetAreaTrabalho()
+        area_trabalho_formset = FormSetAreaTrabalho(initial=formset_initial)
 
-        messages.info(request, u'Preencha os campos abaixo com o máximo de informações e, quando tudo estiver pronto, clique em solicitar aprovação para dar andamento ao processo. Caso queira iniciar um processo seletivo contínuo, sem data limite de inscrições, basta ajustar tanto a data limite sugerida quanto a previsão de resultados selecionando os respectivos valores nulos (dia/mês/ano). Depois de solicitar aprovação, o anúncio das vagas aprovadas fica visível no site a partir da data especificada de início das inscrições, e você poderá acompanhar as inscrições em tempo real e selecionar os candidatos.')
+        if 'copia' in request.GET:
+
+            messages.info(request, u'Os dados abaixo foram replicados do processo seletivo especificado.')
+        else:
+
+            messages.info(request, u'Preencha os campos abaixo com o máximo de informações e, quando tudo estiver pronto, clique em solicitar aprovação para dar andamento ao processo. Caso queira iniciar um processo seletivo contínuo, sem data limite de inscrições, basta ajustar tanto a data limite sugerida quanto a previsão de resultados selecionando os respectivos valores nulos (dia/mês/ano). Depois de solicitar aprovação, o anúncio das vagas aprovadas fica visível no site a partir da data especificada de início das inscrições, e você poderá acompanhar as inscrições em tempo real e selecionar os candidatos.')
 
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,
