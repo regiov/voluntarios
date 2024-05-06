@@ -31,9 +31,12 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.postgres.search import SearchVector
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.apps import apps
+
+from django_fsm_log.models import StateLog
 
 from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
 
@@ -2056,18 +2059,12 @@ def painel(request):
     # Total de voluntários revisados pelo usuário
     total_vol_pessoal = Voluntario.objects.filter(aprovado__isnull=False, resp_analise=request.user).count()
 
-    # Data da primeira análise do usuário
-    primeira_analise = Voluntario.objects.filter(resp_analise=request.user).aggregate(data=Min(F('data_analise')))
+    # Total de voluntários revisados pelo usuário que se inscreveram/foram selecionados em processos seletivos
+    total_vol_inscritos_pessoal = ParticipacaoEmProcessoSeletivo.objects.filter(voluntario__resp_analise=request.user).distinct('voluntario_id').count()
+    total_vol_selecionados_pessoal = ParticipacaoEmProcessoSeletivo.objects.filter(voluntario__resp_analise=request.user, status=StatusParticipacaoEmProcessoSeletivo.SELECIONADO).distinct('voluntario_id').count()
 
-    # Total de voluntários revisados por todos desde que o usuário logado começou a revisar
-    total_vol_geral = 0
-    if primeira_analise['data']:
-        total_vol_geral = Voluntario.objects.filter(aprovado__isnull=False, data_analise__gte=primeira_analise['data']).count()
-
-    # Percentual de revisão
-    indice_revisao_vol_pessoal = None
-    if total_vol_pessoal > 0 and total_vol_geral > 0:
-        indice_revisao_vol_pessoal = round(100*(total_vol_pessoal/total_vol_geral), 3)
+    # Data da primeira e última revisão de voluntário do usuário
+    limites = Voluntario.objects.filter(resp_analise=request.user).aggregate(data_ini=Min(F('data_analise')), data_fim=Max(F('data_analise')))
 
     # Total de entidades que confirmaram o email e estão aguardando aprovação
     id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, confirmado=True).values_list('entidade_id')
@@ -2097,6 +2094,13 @@ def painel(request):
 
     # Total de processos seletivos
     total_procs = ProcessoSeletivo.objects.filter().count()
+
+    # Total de processos seletivos revisados pelo usuário
+    total_procs_pessoal = StateLog.objects.filter(source_state=StatusProcessoSeletivo.AGUARDANDO_APROVACAO,
+                                                  state__in=[StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO,
+                                                             StatusProcessoSeletivo.ABERTO_A_INSCRICOES],
+                                                  by_id=request.user.id,
+                                                  content_type=ContentType.objects.get_for_model(ProcessoSeletivo).id).count()
 
     # Forças tarefas
     tarefas_ativas = ForcaTarefa.objects.filter(visivel=True).order_by('data_cadastro')
@@ -2166,7 +2170,8 @@ def painel(request):
                'tempo_vol_max_recente': tempo_vol_max_recente,
                'total_vol_dia': total_vol_dia,
                'total_vol_pessoal': total_vol_pessoal,
-               'indice_revisao_vol_pessoal': indice_revisao_vol_pessoal,
+               'total_vol_inscritos_pessoal': total_vol_inscritos_pessoal,
+               'total_vol_selecionados_pessoal': total_vol_selecionados_pessoal,
                'total_ents': total_ents,
                'total_ents_dia': total_ents_dia,
                'total_onboarding': total_onboarding,
@@ -2176,6 +2181,7 @@ def painel(request):
                'total_emails_descobertos': total_emails_descobertos,
                'total_procs_revisao': total_procs_revisao,
                'total_procs': total_procs,
+               'total_procs_pessoal': total_procs_pessoal,
                'tarefas': tarefas,
                'num_tickets': num_tickets,
                'ultimos_commits': ultimos_commits }

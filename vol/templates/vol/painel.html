@@ -61,16 +61,21 @@
 <hr style="margin:0;"/>
 
 <h3>Voluntários revisados <span class="dica"><sup>[1]</sup></span>: <span style="margin-left:15px;">{{ total_vol_pessoal }}</span></h3>
-
-{% if indice_revisao_vol_pessoal > 0.001 %}
-<h3>Participação na revisão de voluntários <span class="dica"><sup>[2]</sup></span>: <span style="margin-left:15px;">{% if indice_revisao_vol_pessoal > 1.0 %}{{ indice_revisao_vol_pessoal|floatformat:1 }}{% else %}{{ indice_revisao_vol_pessoal|floatformat:3 }}{% endif %}%</span></h3>
+{% if total_vol_inscritos_pessoal or total_vol_selecionados_pessoal %}
+<ul>
+  {% if total_vol_inscritos_pessoal %}<li>&#8227; Se inscreveram em processos seletivos: {{ total_vol_inscritos_pessoal }}</li>{% endif %}
+  {% if total_vol_selecionados_pessoal %}<li>&#8227; Foram aprovados em processos seletivos: {{ total_vol_selecionados_pessoal }}</li>{% endif %}
+</ul>
 {% endif %}
 
-<h3>Entidades revisadas <span class="dica"><sup>[3]</sup></span>: <span style="margin-left:15px;">{{ total_ents_pessoal }}</span></h3>
+<h3>Entidades revisadas <span class="dica"><sup>[2]</sup></span>: <span style="margin-left:15px;">{{ total_ents_pessoal }}</span></h3>
 
 <h3>E-mails descobertos de entidades: <span style="margin-left:15px;">{{ total_emails_descobertos }}</span></h3>
 
-<br/>
+<h3>Processos seletivos revisados: <span style="margin-left:15px;">{{ total_procs_pessoal }}</span></h3>
+
+<p class="dica" style="font-weight: 300; margin-top: 20px;">[1] cálculo a partir de 23/05/2020.</p>
+<p class="dica" style="font-weight: 300;">[2] cálculo a partir de 14/09/2020.</p>
 
 <h2>Processos seletivos</h2>
 <hr style="margin:0;"/>
@@ -111,8 +116,4 @@
 <br/>
 <hr style="margin:0;"/>
 			   
-<p class="dica" style="font-weight: 300;">[1] cálculo a partir de 23/05/2020.</p>
-<p class="dica" style="font-weight: 300;">[2] considerando todos voluntários já revisados desde a data da sua primeira revisão.</p>
-<p class="dica" style="font-weight: 300;">[3] cálculo a partir de 14/09/2020.</p>
-
 {% endblock content %}
