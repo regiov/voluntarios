@@ -29,7 +29,7 @@
   {% endif %}
   {% endwith %}
   <p><label>Carga horária: </label> {{ processo.carga_horaria }}</p>
-  <p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }} {% if not processo.trabalho_remoto %}<label style="margin-left: 10px;">Local: </label> {{ processo.cidade }} - {{ processo.estado }}{% endif %}</p>
+  <p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }} {% if not processo.trabalho_remoto %}<label style="margin-left: 10px;">Local: </label> {{ processo.cidade.nome }} - {{ processo.estado.sigla }}{% endif %}</p>
   <h3 class="secao"><span>Atividades</span></h3>
   <p>{{ processo.atividades }}</p>
 
@@ -67,7 +67,11 @@
                   </div>
             
                   <div class="modal-body">
+		    {% if not processo.trabalho_remoto and request.user.is_voluntario and request.user.voluntario.estado != processo.estado.sigla or request.user.voluntario.cidade != processo.cidade.nome %}
+                    <p>Atenção: Esta vaga exige <b>presença física na cidade de {{ processo.cidade }}, {{ processo.estado }}</b>, que é diferente da cidade onde você mora. Mesmo assim deseja fazer a inscrição??</p>
+                    {% else %}
                     <p>Legal que você quer se {% if inscricao.desistiu %}re{% endif %}inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
+                    {% endif %}
                   </div>
                   
                   <div class="modal-footer">
