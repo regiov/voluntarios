@@ -168,6 +168,7 @@ urlpatterns = [
     re_path(r'^painel/processos$', views.revisao_processos_seletivos, name='revisao_processos_seletivos'),
     re_path(r'^painel/processos/(?P<codigo_processo>[\d-]+)$', views.revisao_processo_seletivo, name='revisao_processo_seletivo'),
     re_path(r'^painel/processos/monitoramento$', views.monitoramento_processos_seletivos, name='monitoramento_processos_seletivos'),
+    re_path(r'^painel/processos/monitoramento/(?P<codigo_processo>[\d-]+)$', views.monitoramento_inscricoes_processo_seletivo, name='monitoramento_inscricoes_processo_seletivo'),
 
     # Blog
     path('blog/<slug:slug>', views.PostagemNoBlog.as_view(), name='postagem_blog'),

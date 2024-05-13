@@ -2273,6 +2273,25 @@ def monitoramento_processos_seletivos(request):
 
 @login_required
 @staff_member_required
+def monitoramento_inscricoes_processo_seletivo(request, codigo_processo):
+    '''Página para monitorar as inscrições de um processo seletivo'''
+
+    try:
+        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    inscricoes = processo.inscricoes_validas().order_by('-data_inscricao')
+
+    context = {'processo': processo,
+               'inscricoes': inscricoes}
+
+    template = loader.get_template('vol/monitoramento_inscricoes_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
 def panorama_revisao_voluntarios(request):
     '''Panorama da dinâmica de trabalho de revisão de cadastros de voluntários'''
 

@@ -1,0 +1,34 @@
+{% extends "vol/base_nosidebar.html" %}
+
+{% block title %}Inscrições{% endblock title %}
+
+{% block content %}
+
+<h2 class="margin-bottom">Inscrições para: {{ processo.titulo }}</h2>
+
+<h3>Entidade: {{ processo.entidade.menor_nome }}</h3>
+<h4>Modo: {{ processo.nome_modo_trabalho }}</h4>
+{% if not processo.trabalho_remoto %}<h4>Local: {{ processo.cidade.nome }} - {{ processo.estado.sigla }}</h4>{% endif %}
+<br/>
+{% if inscricoes|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Inscrição</th><th>Nome</th><th>Local</th><th>Idade</th><th>Status</th></thead>
+  <tbody>
+  {% for inscricao in inscricoes %}
+  <tr>
+    <td>{{ inscricao.data_inscricao|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</td>
+    <td>{{ inscricao.voluntario.usuario.nome }}</td>
+    <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
+    <td>{{ inscricao.voluntario.idade_str }}</td>
+    <td>{{ inscricao.nome_status }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+{% else %}
+  <h4>Nenhuma inscrição para este processo seletivo.</h4>
+{% endif %}
+
+{% endblock content %}

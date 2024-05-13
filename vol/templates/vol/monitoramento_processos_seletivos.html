@@ -14,6 +14,7 @@
   <thead><th>Título/Entidade</th><th>Local</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
   <tbody>
   {% for processo in processos %}
+  {% with num_inscricoes_validas=processo.inscricoes_validas.count %}
   <tr>
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
         {{ processo.entidade.menor_nome }}<br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
@@ -21,10 +22,11 @@
     <td>{{ processo.nome_status }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem limite{% endif %}</td>
     <td>{{ processo.qtde_visualiza }}</td>
-    <td>{{ processo.inscricoes_validas.count }} <span style="margin-left: 5px;">{% if processo.ultima_notificacao_sobre_ausencia_de_inscricoes %}<span class="dica" style="color: darkred; cursor: pointer;" title="recebeu aviso sobre ausência de inscrições">&#x2022;</span>{% endif %}{% if processo.entidade.ultimo_aviso_de_novas_inscricoes %}<span class="dica" style="color: darkgreen; cursor: pointer;" title="recebeu notificação sobre novas inscrições">&#x2022;</span>{% else %}{% endif %}</span></td>
+    <td>{% if num_inscricoes_validas > 0 %}<a href="{% url 'monitoramento_inscricoes_processo_seletivo' codigo_processo=processo.codigo %}">{{ num_inscricoes_validas }}</a>{% else %}{{ num_inscricoes_validas }}{% endif %} <span style="margin-left: 5px;">{% if processo.ultima_notificacao_sobre_ausencia_de_inscricoes %}<span class="dica" style="color: darkred; cursor: pointer;" title="recebeu aviso sobre ausência de inscrições">&#x2022;</span>{% endif %}{% if processo.entidade.ultimo_aviso_de_novas_inscricoes %}<span class="dica" style="color: darkgreen; cursor: pointer;" title="recebeu notificação sobre novas inscrições">&#x2022;</span>{% else %}{% endif %}</span></td>
     <td>{{ processo.selecionados.count }}</td>
     <td>{{ processo.nao_selecionados.count }}</td>
   </tr>
+  {% endwith %}
   {% endfor %}
   </tbody>
   </table>
