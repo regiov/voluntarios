@@ -741,9 +741,9 @@ class FormProcessoSeletivo(forms.ModelForm):
                                required=False,
                                initial='')
     atividades = forms.CharField(label='Atividades a serem realizadas',
-                                 widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
+                                 widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'cols': 30}))
     requisitos = forms.CharField(label='Pré-requisitos',
-                                 widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}),
+                                 widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'cols': 30}),
                                  required=False)
     carga_horaria = forms.CharField(label='Dias e horários de execução das atividades',
                                     widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'cols': 30}))
