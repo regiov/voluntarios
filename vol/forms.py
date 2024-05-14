@@ -699,7 +699,7 @@ class FormAssinarTermoAdesaoVol(forms.Form):
 
 class FormAreaTrabalho(forms.ModelForm):
     "Formulário de áreas de trabalho de voluntários para processo seletivo"
-    area_trabalho = forms.ModelChoiceField(label='Área de trabalho do voluntário',
+    area_trabalho = forms.ModelChoiceField(label='Área de trabalho na vaga',
                                            empty_label=u'-- Escolha uma opção --',
                                            queryset=AreaTrabalho.objects.all().order_by('nome'),
                                            widget=forms.Select(attrs={'class': 'form-control combo-area-trabalho'}),
