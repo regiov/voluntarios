@@ -2225,7 +2225,10 @@ def revisao_processo_seletivo(request, codigo_processo):
                         if processo.inscricoes_encerradas():
                             messages.error(request, u'As inscrições para este processo já estão encerradas! Entre em contato com a entidade para atualizar as datas.')
                         else:
-                            processo.aprovar(by=request.user)
+                            if processo.inscricoes_nao_iniciadas():
+                                processo.aprovar(by=request.user)
+                            else:
+                                processo.aprovar_e_publicar(by=request.user)
                             processo.save()
                             return redirect(reverse('revisao_processos_seletivos'))
             else:

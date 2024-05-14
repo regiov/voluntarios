@@ -1905,7 +1905,7 @@ class ProcessoSeletivo(models.Model):
 
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
-    def aprovar(self, by=None):
+    def aprovar_e_publicar(self, by=None):
         pass
 
     # Transição normalmente automática feita por cron diário, mas também pode ocorrer caso a entidade antecipe
