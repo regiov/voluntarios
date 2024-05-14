@@ -22,7 +22,7 @@
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto %}
 
     <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
-      <label for="id_area_trabalho" class="nowrap">* Área de trabalho do voluntário</label>
+      <label for="id_area_trabalho" class="nowrap">* Área de trabalho na vaga</label>
       <table border="0" cellpadding="0" cellspacing="0">
         <tbody>
         {% for subform in area_trabalho_formset.forms %}
