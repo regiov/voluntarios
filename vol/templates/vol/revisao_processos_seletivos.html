@@ -11,10 +11,11 @@
 {% if processos|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th>Título</th><th>Entidade</th><th>Inscrições</th></thead>
+  <thead><th></th><th>Título</th><th>Entidade</th><th>Inscrições</th></thead>
   <tbody>
   {% for processo in processos %}
   <tr>
+    <td><a href="mailto:{{ processo.cadastrado_por.email }}"><i class="fas fa-envelope" title="Enviar e-mail para {{ processo.cadastrado_por.nome }}"></i></a></td>
     <td><a href="{% url 'revisao_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a></td>
     <td>{{ processo.entidade.menor_nome }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</td>

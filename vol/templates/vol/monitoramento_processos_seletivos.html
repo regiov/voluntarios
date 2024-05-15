@@ -11,11 +11,12 @@
 {% if processos|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th>Título/Entidade</th><th>Local</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
+  <thead><th></th><th>Título/Entidade</th><th>Local</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
   <tbody>
   {% for processo in processos %}
   {% with num_inscricoes_validas=processo.inscricoes_validas.count %}
   <tr>
+    <td><a href="mailto:{{ processo.cadastrado_por.email }}"><i class="fas fa-envelope" title="Enviar e-mail para {{ processo.cadastrado_por.nome }}"></i></a></td>
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
         {{ processo.entidade.menor_nome }}<br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{% if processo.trabalho_remoto %}-{% else %}{{ processo.cidade.nome }}-{{ processo.estado.sigla }}{% endif %}</td>

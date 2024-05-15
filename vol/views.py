@@ -2193,7 +2193,7 @@ def painel(request):
 def revisao_processos_seletivos(request):
     '''Página para revisar novos processos seletivos'''
 
-    processos = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).order_by('inicio_inscricoes')
+    processos = ProcessoSeletivo.objects.select_related('entidade', 'cadastrado_por').filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).order_by('inicio_inscricoes')
 
     if len(processos) == 0:
         # Um usuário só entrará aqui nessa condição se tiver armazenado o link da página (pouco provável)
@@ -2266,7 +2266,7 @@ def revisao_processo_seletivo(request, codigo_processo):
 def monitoramento_processos_seletivos(request):
     '''Página para monitorar todos os processos seletivos cadastrados'''
 
-    processos = ProcessoSeletivo.objects.filter().order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.select_related('entidade', 'cadastrado_por').all().order_by('-cadastrado_em')
 
     context = {'processos': processos}
 
