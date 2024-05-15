@@ -469,7 +469,7 @@ class EntidadeAdmin(GISModelAdmin, BaseEntidadeAdmin):
     search_fields = ('nome_fantasia', 'razao_social', 'cnpj', 'email_set__endereco',)
     list_filter = ('aprovado', 'importado',)
     preserve_filters = True
-    readonly_fields = ('geocode_status', 'importado',)
+    readonly_fields = ('geocode_status', 'importado', 'ultimo_acesso_proc',)
     actions = ['aprovar', 'enviar_confirmacao']
     inlines = [
         EmailEntidadeInline, TelEntidadeInline, VinculoEntidadeInline, DocumentoInline, NecessidadeArtigoInline, NecessidadeInline, AnotacaoEntidadeInline
