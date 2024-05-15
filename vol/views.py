@@ -3109,7 +3109,7 @@ def novo_processo_seletivo(request, id_entidade):
                     messages.error(request, u'Modelo de processo seletivo não encontrado')
         else:
             # Copia alguns dados do último processo cadastrado para agilizar
-            ultimo_processo = ProcessoSeletivo.objects.all().last()
+            ultimo_processo = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).last()
             if ultimo_processo is not None:
                 initial['resumo_entidade'] = ultimo_processo.resumo_entidade
                 initial['modo_trabalho'] = ultimo_processo.modo_trabalho
