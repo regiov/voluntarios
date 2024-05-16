@@ -794,6 +794,7 @@ class FormProcessoSeletivo(forms.ModelForm):
             self.fields['cidade'] = forms.ChoiceField(label=u'Cidade',
                                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                                       choices=[(c.nome, c.nome) for c in cidades],
+                                                      required=False,
                                                       initial=initial_cidade)
 
 
@@ -816,6 +817,9 @@ class FormProcessoSeletivo(forms.ModelForm):
                     field.widget.attrs['disabled'] = 'disabled'
 
     def clean_estado(self):
+        modo_trabalho = self.cleaned_data['modo_trabalho']
+        if modo_trabalho == '0': # Remoto
+            return None
         # Como o campo estado não é um ModelChoiceField, transforma a sigla do estado numa instância de Estado
         val = self.cleaned_data['estado']
         if isinstance(val, str):
@@ -826,6 +830,9 @@ class FormProcessoSeletivo(forms.ModelForm):
         return val
 
     def clean_cidade(self):
+        modo_trabalho = self.cleaned_data['modo_trabalho']
+        if modo_trabalho == '0': # Remoto
+            return None
         # Como o campo cidade não é um ModelChoiceField, transforma o nome da cidade numa instância de Cidade
         val = self.cleaned_data['cidade']
         estado = self.clean_estado()

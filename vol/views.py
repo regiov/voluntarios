@@ -3037,14 +3037,17 @@ def novo_processo_seletivo(request, id_entidade):
                                                  titulo=form.cleaned_data['titulo'],
                                                  resumo_entidade=form.cleaned_data['resumo_entidade'],
                                                  modo_trabalho=form.cleaned_data['modo_trabalho'],
-                                                 estado=form.cleaned_data['estado'],
-                                                 cidade=form.cleaned_data['cidade'],
                                                  atividades=form.cleaned_data['atividades'],
                                                  carga_horaria=form.cleaned_data['carga_horaria'],
                                                  requisitos=form.cleaned_data['requisitos'],
                                                  inicio_inscricoes=form.cleaned_data['inicio_inscricoes'],
                                                  limite_inscricoes=form.cleaned_data['limite_inscricoes'],
                                                  previsao_resultado=form.cleaned_data['previsao_resultado'])
+
+            if not processo_seletivo.trabalho_remoto():
+                processo_seletivo.estado = form.cleaned_data['estado']
+                processo_seletivo.cidade = form.cleaned_data['cidade']
+
             processo_seletivo.save()
 
             # áreas de trabalho
@@ -3096,8 +3099,9 @@ def novo_processo_seletivo(request, id_entidade):
                         initial['titulo'] = modelo.titulo
                         initial['resumo_entidade'] = modelo.resumo_entidade
                         initial['modo_trabalho'] = modelo.modo_trabalho
-                        initial['estado'] = modelo.estado
-                        initial['cidade'] = modelo.cidade
+                        if not modelo.trabalho_remoto():
+                            initial['estado'] = modelo.estado
+                            initial['cidade'] = modelo.cidade
                         initial['atividades'] = modelo.atividades
                         initial['requisitos'] = modelo.requisitos
                         initial['carga_horaria'] = modelo.carga_horaria
@@ -3113,8 +3117,9 @@ def novo_processo_seletivo(request, id_entidade):
             if ultimo_processo is not None:
                 initial['resumo_entidade'] = ultimo_processo.resumo_entidade
                 initial['modo_trabalho'] = ultimo_processo.modo_trabalho
-                initial['estado'] = ultimo_processo.estado
-                initial['cidade'] = ultimo_processo.cidade
+                if not ultimo_processo.trabalho_remoto():
+                    initial['estado'] = ultimo_processo.estado
+                    initial['cidade'] = ultimo_processo.cidade
         
         form = FormProcessoSeletivo(initial=initial)
 
