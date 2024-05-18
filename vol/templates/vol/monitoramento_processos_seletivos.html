@@ -18,7 +18,7 @@
   <tr>
     <td><a href="mailto:{{ processo.cadastrado_por.email }}"><i class="fas fa-envelope" title="Enviar e-mail para {{ processo.cadastrado_por.nome }}"></i></a></td>
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
-        {{ processo.entidade.menor_nome }}<br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
+        <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}">{{ processo.entidade.menor_nome }}</a><br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{{ processo.nome_modo_trabalho }}{% if processo.estado or processo.cidade %}<br/>{{ processo.cidade.nome }}-{{ processo.estado.sigla }}{% endif %}</td>
     <td>{{ processo.nome_status }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem limite{% endif %}</td>
