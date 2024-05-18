@@ -3112,14 +3112,23 @@ def novo_processo_seletivo(request, id_entidade):
                 except ProcessoSeletivo.DoesNotExist:
                     messages.error(request, u'Modelo de processo seletivo não encontrado')
         else:
-            # Copia alguns dados do último processo cadastrado para agilizar
+            # Copia resumo da entidade do último processo cadastrado para agilizar
             ultimo_processo = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).last()
             if ultimo_processo is not None:
                 initial['resumo_entidade'] = ultimo_processo.resumo_entidade
-                initial['modo_trabalho'] = ultimo_processo.modo_trabalho
-                if not ultimo_processo.trabalho_remoto():
-                    initial['estado'] = ultimo_processo.estado
-                    initial['cidade'] = ultimo_processo.cidade
+
+            # Se a entidade possuir sede, usa a sede como local da vaga
+            if entidade.estado and entidade.cidade:
+                try:
+                    estado = Estado.objects.get(sigla=entidade.estado)
+                    initial['estado'] = estado
+                    try:
+                        cidade = Cidade.objects.get(uf=estado.sigla, nome__iexact=entidade.cidade)
+                        initial['cidade'] = cidade
+                    except Cidade.DoesNotExist:
+                        pass
+                except Estado.DoesNotExist:
+                    pass
         
         form = FormProcessoSeletivo(initial=initial)
 
