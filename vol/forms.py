@@ -872,10 +872,11 @@ class FormProcessoSeletivo(forms.ModelForm):
                 current_tz = timezone.get_current_timezone()
                 now = timezone.now().astimezone(current_tz)
                 if val:
-                    if val < now:
+                    if val.date() < now.date():
                         raise forms.ValidationError(u'A data limite de inscrições deve ser maior ou igual a hoje')
-                    elif val < self.instance.limite_inscricoes and self.instance.passivel_de_estender_inscricoes():
-                        raise forms.ValidationError(u'Em respeito aos voluntários que já viram o anúncio porém ainda não se inscreveram, a data limite de inscrições não pode ser antecipada')
+                    else:
+                        if self.instance.limite_inscricoes and val < self.instance.limite_inscricoes and self.instance.passivel_de_estender_inscricoes():
+                            raise forms.ValidationError(u'Em respeito aos voluntários que já viram o anúncio porém ainda não se inscreveram, a data limite de inscrições não pode ser antecipada')
         return val
 
     def clean_previsao_resultado(self):

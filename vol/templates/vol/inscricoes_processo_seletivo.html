@@ -11,8 +11,8 @@
 
 {% with num_inscricoes=inscricoes|length %}
 
-{% if num_inscricoes > 0 and processo.aberto_a_inscricoes or processo.aguardando_selecao %}
-<p>Para concluir o processo seletivo, será preciso classificar cada candidato inscrito. <i>Você pode mudar a classificação quantas vezes desejar que o resultado só aparecerá para os voluntários após a conclusão do processo seletivo</i>.</p>
+{% if num_inscricoes > 0 and processo.passivel_de_encerramento %}
+<p>{% if processo.limite_inscricoes %}Para poder concluir o processo seletivo, será preciso classificar cada candidato inscrito. Como este processo seletivo possui data limite de inscrição, você pode mudar a classificação quantas vezes desejar que <i>o resultado só aparecerá para os voluntários após o encerramento</i>.{% else %}Como este processo seletivo é contínuo, ou seja, não possui data limite para inscrições, ao indicar se uma pessoa foi ou não selecionada, o resultado <i>já irá aparecer para ela</i>, portanto não convém alterar o resultado. Observe que mesmo que o processo não possua data limite de inscrição, você pode encerrá-lo a qualquer momento, desde que todos os candidatos tenham sido escolhidos.{% endif %}</p>
 {% endif %}
 
 {% if num_inscricoes > 0 %}
@@ -75,7 +75,7 @@
 {% endif %}
 {% endwith %}
 
-{% if processo.aguardando_selecao and processo.inscricoes_encerradas or processo.limite_inscricoes is None %}
+{% if processo.passivel_de_encerramento %}
 <form id="encerrar-selecao" method="POST">
 {% csrf_token %}
 <div class="form-group">
@@ -179,41 +179,39 @@
   
     $(document).ready(function () {
     
-      {% if processo.aguardando_selecao %}
-      var $ja_avisou_usuario_sobre_encerramento = false;
+      var ja_avisou_usuario_sobre_encerramento = false;
       
       // Controle da exibição do botão de encerramento
       function controla_exibicao_do_botao_de_encerramento(primeiro_loop) {
-          var $tem_pendencias = false;
-          if ($("#btn-encerrar").length > 0) {
+          var tem_pendencias = false;
+          if ( $("#btn-encerrar").length > 0 ) {
               $(".inscricao").each(function(index) {
-                 if ($(this).val() === 'aguardando_selecao') {
-                     $tem_pendencias = true;
+                 if ( $(this).val() === 'aguardando_selecao' ) {
+                     tem_pendencias = true;
                      return false; // interrompe loop
                  }
               });
-              if ($tem_pendencias) {
+              if (tem_pendencias) {
                   $("#btn-encerrar").hide();
               } else {
                   $("#btn-encerrar").show();
-                  if ($primeiro_loop) {
-                      $ja_avisou_usuario_sobre_encerramento = true;
+                  if (primeiro_loop) {
+                      ja_avisou_usuario_sobre_encerramento = true;
                   } else {
-                      if (not $ja_avisou_usuario_sobre_encerramento) {
+                      if (!ja_avisou_usuario_sobre_encerramento) {
                           // Devemos melhorar a mensagem considerando os seguintes casos:
                           // houve pelo menos uma pessoa selecionada, ninguém foi selecionado,
                           // não houve inscrições
                           window.alert('Já é possível encerrar o processo seletivo utilizando o botão no final da página.');
-                          $ja_avisou_usuario_sobre_encerramento = true;
+                          ja_avisou_usuario_sobre_encerramento = true;
                       }
                   }
               }
           }
       }
-      {% endif %}
       
       // Combos de seleção
-      $(".inscricao").change(function() {
+      $(".inscricao").on('change', function() {
 
         var id = this.name;
         var icon_id = "#" + id + "_icon";
@@ -222,6 +220,7 @@
         var token = '{{ csrf_token }}';
   
         $(icon_id).attr("src", "{% static 'images/ajax-loader-circle-small.gif' %}");
+        $(icon_id).show();
   
         $.ajax({
             url: "{% url 'classificar_inscricao' %}",
@@ -235,9 +234,7 @@
               combo.setAttribute("prevIndex", this.selectedIndex);
               $(icon_id).attr("src", "{% static 'images/misc/icon-yes.svg' %}");
               $(icon_id).fadeOut(1000);
-              {% if processo.aguardando_selecao %}
               controla_exibicao_do_botao_de_encerramento(false);
-              {% endif %}
             },
             error: function(xhr, errmsg, err) {
               combo.selectedIndex = prev_index;

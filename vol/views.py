@@ -3365,9 +3365,9 @@ def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
         raise PermissionDenied
 
     if request.method == 'POST' and 'encerrar' in request.POST:
-        if processo.aguardando_selecao():
+        if processo.passivel_de_encerramento():
             if (processo.inscricoes_encerradas() or processo.limite_inscricoes is None):
-                num_inscricoes_aguardando_selecao = processo.inscricoes(status=StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO).count()
+                num_inscricoes_aguardando_selecao = processo.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO]).count()
                 if num_inscricoes_aguardando_selecao == 0:
                     processo.concluir(by=request.user)
                     processo.save()
@@ -3379,7 +3379,7 @@ def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
             else:
                 messages.error(request, u'Só é possível encerrar um processo seletivo quando as inscrições estiverem encerradas ou quando não houver data limite para as inscrições.')
         else:
-            messages.error(request, u'Só é possível encerrar um processo seletivo quando o mesmo estiver na situação "aguardando seleção".')
+            messages.error(request, u'Só é possível encerrar processos seletivos cujas inscrições já estejam encerradas ou quando não houver data limite de inscrições.')
             
     inscricoes = processo.inscricoes()
 

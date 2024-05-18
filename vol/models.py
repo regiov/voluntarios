@@ -1833,6 +1833,15 @@ class ProcessoSeletivo(models.Model):
         '''Indica se o processo ainda pode ter as inscrições prorrogadas'''
         return self.status in (StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO)
 
+    def passivel_de_encerramento(self):
+        '''Indica se o processo pode em princípio ser encerrado
+        (desde de que todos os voluntários tenham sido triados - condição que é verificada na página das inscrições'''
+        if self.status == StatusProcessoSeletivo.ABERTO_A_INSCRICOES and self.limite_inscricoes is None:
+            return True
+        if self.status == StatusProcessoSeletivo.AGUARDANDO_SELECAO and self.inscricoes_encerradas():
+            return True
+        return False
+
     def cancelado(self):
         '''Indica se o processo foi cancelado'''
         return self.status == StatusProcessoSeletivo.CANCELADO
