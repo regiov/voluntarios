@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'allauth',               #
     'allauth.account',       # para gerenciar autenticação
     'allauth.socialaccount', #
-    'allauth.socialaccount.providers.facebook',  # login via Facebook
+    #'allauth.socialaccount.providers.facebook',  # login via Facebook
     'allauth.socialaccount.providers.google',    # login via Google
     'website.apps.MyFlatPagesConfig', # para customizar páginas planas
     'tinymce',       # para poder visualizar e gravar html em campos texto
