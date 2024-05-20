@@ -36,7 +36,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
 
         # Publica processos após a data de abertura das inscrições 
-        processos_nao_iniciados = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, inicio_inscricoes__date__lt=timezone.now().date())
+        processos_nao_iniciados = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, inicio_inscricoes__date__lte=timezone.now().date())
 
         i = 0
 
