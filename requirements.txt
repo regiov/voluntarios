@@ -6,3 +6,6 @@ django-mptt == 0.13.4
 django-fsm == 2.7.1
 django-fsm-log == 2.0.1
 psycopg2 >= 2.9.9
+GDAL == 3.8.5
+geos == 0.2.3
+django-debug-toolbar == 4.3.0

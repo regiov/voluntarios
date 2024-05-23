@@ -47,6 +47,7 @@ migrations/
 *.log
 *.pot
 local_settings.py
+!docker/local_settings.py
 
 # Sphinx documentation
 docs/_build/

@@ -1,0 +1,53 @@
+networks:
+  vol:
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    container_name: voluntarios_web
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    command: [
+        "sh",
+        "-c",
+        "
+        python3 manage.py makemigrations vol &&
+        python3 manage.py makemigrations notification &&
+        python3 manage.py migrate &&
+        python3 manage.py dbshell -- -c 'truncate table auth_permission cascade' &&
+        python3 manage.py dbshell -- -c 'truncate table django_content_type cascade' &&
+        python3 manage.py loaddata vol/fixtures/django_* &&
+        python3 manage.py loaddata vol/fixtures/auth_* &&
+        python3 manage.py loaddata vol/fixtures/notification_* &&
+        python3 manage.py loaddata vol/fixtures/vol_* &&
+        python3 manage.py atualiza_municipios &&
+        python3 manage.py collectstatic -l &&
+        python3 manage.py compilemessages --locale=pt_BR &&
+        python3 manage.py runserver 0.0.0.0:8000
+        ",
+      ]
+    networks:
+      - vol
+
+  database:
+    image: "postgis/postgis:16-3.4-alpine"
+    container_name: voluntarios_postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    env_file: .env
+    restart: always
+    networks:
+      - vol
