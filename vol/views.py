@@ -2266,7 +2266,7 @@ def revisao_processo_seletivo(request, codigo_processo):
 def monitoramento_processos_seletivos(request):
     '''Página para monitorar todos os processos seletivos cadastrados'''
 
-    processos = ProcessoSeletivo.objects.select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao')).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
 
     context = {'processos': processos}
 
