@@ -11,12 +11,12 @@ O site dispõe de funcionalidades como: cadastro de voluntários, cadastro de or
 * Linguagens: Python 3 (backend) e JavaScript (frontend)
 * Banco de dados: PostgreSQL com a extensão Postgis (consequentemente dependendo das libs GEOS e GDAL)
 * Framework no backend: Django com os módulos:
-** [crispy-forms](https://django-crispy-forms.readthedocs.io/en/latest/index.html)
-** [tinymce](https://github.com/jazzband/django-tinymce/releases)
-** [allauth](https://github.com/pennersr/django-allauth/tags)
-** [mptt](https://github.com/django-mptt/django-mptt/tags)
-** [fsm](https://github.com/viewflow/django-fsm)
-** [fsm-log](https://github.com/gizmag/django-fsm-log)
+    * [crispy-forms](https://django-crispy-forms.readthedocs.io/en/latest/index.html)
+    * [tinymce](https://github.com/jazzband/django-tinymce/releases)
+    * [allauth](https://github.com/pennersr/django-allauth/tags)
+    * [mptt](https://github.com/django-mptt/django-mptt/tags)
+    * [fsm](https://github.com/viewflow/django-fsm)
+    * [fsm-log](https://github.com/gizmag/django-fsm-log)
 * Libs no frontend: jQuery e Booststrap
 
 ## Instalação
@@ -75,7 +75,7 @@ Em seguida, na pasta onde foi instalado o código do Voluntários, dentro do dir
 cp website/settings.py website/local_settings.py
 ```
 
-Edite o arquivo *local_settings.py*, removendo a maior parte das configurqações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação, substituindo *SET IN LOCAL SETTINGS* pela sua configuração local. Mantenha apenas as configurações DEBUG e ALLOWED_HOSTS, com valores True e ['127.0.0.1', 'localhost'], respectivamente. Seu arquivo local_settings.py deverá ficar com esse aspecto:
+Edite o arquivo *local_settings.py*, removendo a maior parte das configurqações que não contenham *SET IN LOCAL SETTINGS*. Em seguida especifique todas as configurações locais da sua instalação, substituindo *SET IN LOCAL SETTINGS* pela sua configuração local. Mantenha apenas as configurações DEBUG e ALLOWED_HOSTS, com valores True e ['127.0.0.1', 'localhost'], respectivamente. Seu arquivo *local_settings.py* deverá ficar com este aspecto:
 
 ```
 SECRET_KEY = 'DIGITE_UM_TEXTO_TOTALMENTE_ALEATORIO'
