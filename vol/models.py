@@ -1797,6 +1797,16 @@ class ProcessoSeletivo(models.Model):
         # Dentro do prazo estipulado
         return True
 
+    def dias_para_encerramento_inscricoes(self):
+        if self.aberto_a_inscricoes() and self.limite_inscricoes:
+            agora = timezone.now()
+            delta = self.limite_inscricoes - agora
+            dias = delta.days
+            if dias >=0:
+                return dias
+
+        return None
+
     def trabalho_remoto(self):
         '''Indica se os campos estado e cidade devem ser escondidos no formulário'''
         return self.modo_trabalho == 0
