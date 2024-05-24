@@ -28,13 +28,16 @@ DEBUG = False
 ALLOWED_HOSTS = ['voluntarios.com.br']
 
 # E-mail configuration
+ADMINS = (
+     ('SEU NOME', 'SEU@EMAIL'), # Lista de contatos notificados em caso de erro
+)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_USER = 'SET IN LOCAL SETTINGS'
 EMAIL_HOST_PASSWORD = 'SET IN LOCAL SETTINGS'
 EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = 'SET IN LOCAL SETTINGS'
-SERVER_EMAIL = 'SET IN LOCAL SETTINGS'
+DEFAULT_FROM_EMAIL = 'SET IN LOCAL SETTINGS' # Remetente padrão de e-mails enviados pelo sistema
+SERVER_EMAIL = 'SET IN LOCAL SETTINGS' # Remetente de notificações de erro
 
 # Application definition
 
@@ -110,6 +113,8 @@ DATABASES = {
         'NAME': 'SET IN LOCAL SETTINGS',
     }
 }
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
