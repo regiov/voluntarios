@@ -19,7 +19,3 @@ MEDIA_ROOT = '/code/media'
 MEDIA_URL = '/media/'
 
 MY_ADMIN_PREFIX = 'adm'
-
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
-
-ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
