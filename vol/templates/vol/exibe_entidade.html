@@ -61,13 +61,13 @@
   </div>
    
 {% else %}
-<p>No momento não há processos seletivos abertos para esta entidade.</p>
+<p>No momento não há processos seletivos abertos para esta organização.</p>
 {% endif %}
 
 {% with doacoes=entidade.necessidadeartigo_set.all %}
 {% if doacoes %}
 <h3 class="secao"><span>Artigos aceitos como doação</span></h3>
-<p>{% for necessidade in doacoes %}{{ necessidade.tipoartigo }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+<p>{% for necessidade in doacoes %}<span class="item-doacao">{{ necessidade.tipoartigo }}</span>{% endfor %}</p>
 {% if entidade.obs_doacoes %}<p>Obs: {{ entidade.obs_doacoes }}</p>{% endif %}
 {% endif %}
 {% endwith %}
