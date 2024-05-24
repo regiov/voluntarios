@@ -199,10 +199,11 @@ class FormEntidade(forms.ModelForm):
     "Formulário para cadastro de entidade"
     nome_fantasia = forms.CharField(label=u'Nome fantasia',
                                     max_length=100,
-                                    help_text=u'(sigla, apelido)',
+                                    help_text=u'(sigla, acrônimo, apelido. Ex: ABAV)',
                                     widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}))
     razao_social = forms.CharField(label=u'Razão social',
                                    max_length=120,
+                                   help_text=u'(nome completo. Ex: Associação Brasileira Amiga de Voluntários)',
                                    widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}))
     cnpj = forms.CharField(label=u'CNPJ',
                            max_length=36,
