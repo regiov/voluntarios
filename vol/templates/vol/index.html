@@ -13,9 +13,40 @@
                         <div class="row">
                             <div class="col-sm-2"></div>
                             <div class="col-sm-8 text-center banner">
-                                <h1>Seja um voluntário</h1>
-                                <p>Você acaba de achar a melhor maneira de ser ou de encontrar voluntários, doadores e informações sobre o voluntariado no Brasil!</p> 
-                                <a class="btn btn-common" href="{% url 'escolha_cadastro' %}" rel="nofollow">Faça seu cadastro</a> 
+                                <h1>Somos Voluntários</h1>
+                                {% comment %}
+                                Não está logado ou não é voluntário e nem possui entidade:
+                                [ Quero ser voluntário ] [ Preciso de voluntários ]
+                                É voluntário e não possui entidade:
+                                [ Procurar vagas ] [ Procurar entidades ]
+                                É voluntário e possui entidade:
+                                [ Procurar vagas ] [ Gerenciar vagas ]
+                                Não é voluntário e possui entidade:
+                                [ Gerenciar vagas ] [ Quero ser voluntário ]
+                                {% endcomment %}
+                                {% if request.user.is_authenticated %}
+                                  <p>Que bom que você já está com a gente!</p>
+                                  {% if request.user.is_voluntario %}
+                                    <a class="btn btn-common" href="{% url 'busca_vagas' %}" rel="nofollow">Procurar vagas</a>
+                                    {% if request.user.has_entidade %}
+                                      <a class="btn btn-common" href="{% url 'lista_entidades_vinculadas' %}" rel="nofollow">Gerenciar vagas</a>
+                                    {% else %}
+                                      <a class="btn btn-common" href="{% url 'busca_entidades' %}" rel="nofollow">Procurar entidades</a>
+                                    {% endif %}
+                                  {% else %}
+                                    {% if request.user.has_entidade %}
+                                      <a class="btn btn-common" href="{% url 'lista_entidades_vinculadas' %}" rel="nofollow">Gerenciar vagas</a>
+                                      <a class="btn btn-common" href="{% url 'link_voluntario_novo' %}" rel="nofollow">Quero ser voluntário</a>
+                                    {% else %}
+                                      <a class="btn btn-common" href="{% url 'link_voluntario_novo' %}" rel="nofollow">Quero ser voluntário</a>
+                                      <a class="btn btn-common" href="{% url 'link_entidade_nova' %}" rel="nofollow">Preciso de voluntários</a>
+                                    {% endif %}
+                                  {% endif %}
+                                {% else %}
+                                  <p>Você também pode fazer parte deste movimento!</p>
+                                  <a class="btn btn-common" href="{% url 'link_voluntario_novo' %}" rel="nofollow">Quero ser voluntário</a>
+                                  <a class="btn btn-common" href="{% url 'link_entidade_nova' %}" rel="nofollow">Preciso de voluntários</a>
+                                {% endif %}
                             </div>
                             <div class="col-sm-2"></div>
                         </div>
