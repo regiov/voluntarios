@@ -5,11 +5,26 @@
 
 {% block content %}
 
-<h2 class="margin-bottom">Inscrições para: {{ processo.titulo }}</h2>
+{% with num_inscricoes=inscricoes|length %}
+
+<div class="row">
+  <div class="col-md-8">
+    <h2 class="margin-bottom">Inscrições para: {{ processo.titulo }}</h2>
+  </div>
+  <div class="col-md-4" style="margin-top: 20px; margin-bottom: 20px;">
+    {% if num_inscricoes > 0 %}
+    <label>Ordenar por: </label>
+    <select id="combo-ordenacao" name="ordenacao">
+      <option value="inscricao"{% if ordenacao == 'inscricao' %} selected{% endif %}>data de inscrição</option>
+      <option value="nome"{% if ordenacao == 'nome' %} selected{% endif %}>nome</option>
+      <option value="status"{% if ordenacao == 'status' %} selected{% endif %}>status</option>
+      <option value="observacoes"{% if ordenacao == 'observacoes' %} selected{% endif %}>observações</option>
+    </select>
+    {% endif %}
+  </div>
+</div>
 
 {% include "vol/mensagens.html" %}
-
-{% with num_inscricoes=inscricoes|length %}
 
 {% if num_inscricoes > 0 and processo.passivel_de_encerramento %}
 <p>{% if processo.limite_inscricoes %}Para poder concluir o processo seletivo, será preciso classificar cada candidato inscrito. Como este processo seletivo possui data limite de inscrição, você pode mudar a classificação quantas vezes desejar que <i>o resultado só aparecerá para os voluntários após o encerramento</i>.{% else %}Como este processo seletivo é contínuo, ou seja, não possui data limite para inscrições, ao indicar se uma pessoa foi ou não selecionada, o resultado <i>já irá aparecer para ela</i>, portanto não convém alterar o resultado. Observe que mesmo que o processo não possua data limite de inscrição, você pode encerrá-lo a qualquer momento, desde que todos os candidatos tenham sido escolhidos.{% endif %}</p>
@@ -19,22 +34,24 @@
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
     <thead>
+     <tr class="topo">
       <th>&nbsp;</th>
-      <th>Nome</th>
-      <th>Área de Trabalho/Profissão</th>
-      <th>Município</th>
-      <th>Idade</th>
+      <th>Nome<br/><span class="dica">Inscrição</span></th>
+      <th class="topo">Área de Trabalho<br/><span class="dica">Profissão</span></th>
+      <th class="topo">Município</th>
+      <th class="topo">Idade</th>
       {% comment %}<th>Cadastro OK</th>{% endcomment %}
-      <th>Status</th>
-      <th>Obs</th>
+      <th class="topo">Status</th>
+      <th class="topo">Obs</th>
+     </tr>
     </thead>
   <tbody>
   {% for inscricao in inscricoes %}
   {% with telefone_competo=inscricao.voluntario.telefone_completo processo=inscricao.processo_seletivo %}
   <tr>
     <td>{% if not inscricao.cancelada %}<a href="mailto:{{ inscricao.voluntario.usuario.email }}"><i class="fas fa-envelope" title="contatar por e-mail"></i></a>{% if telefone_completo %} <a href="https://api.whatsapp.com/send?phone={{ telefone_completo }}" style="margin-left:5px;"><i class="fab fa-whatsapp" title="contatar por zap"></i></a>{% endif %}{% endif %}</td>
-    <td>{% if inscricao.cancelada %}<s>{{ inscricao.voluntario.usuario.nome }}</s>{% else %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}</a>{% endif %}</td>
-    <td>{{ inscricao.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica">{{ inscricao.voluntario.profissao }}</span></td>
+    <td>{% if inscricao.cancelada %}<s>{{ inscricao.voluntario.usuario.nome }}</s>{% else %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}</a>{% endif %}<br/><span class="dica cor-clara">{{ inscricao.data_inscricao }}</span></td>
+    <td>{{ inscricao.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica cor-clara">{{ inscricao.voluntario.profissao }}</span></td>
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade }} anos</td>
     {% spaceless %}{% comment %}
@@ -78,6 +95,7 @@
 {% if processo.passivel_de_encerramento %}
 <form id="encerrar-selecao" method="POST">
 {% csrf_token %}
+<input type="hidden" id="input-ordenacao" name="ordenacao" value="{{ ordenacao }}">  
 <div class="form-group">
    <input id="btn-encerrar" class="btn btn-primary" type="submit" name="encerrar" value="Encerrar Seleção" style="display: none;">
 </div>
@@ -209,7 +227,15 @@
               }
           }
       }
-      
+
+      // Combo de ordenação
+      $("#combo-ordenacao").on('change', function() {
+        var ordenacao = this.options[this.selectedIndex].value;
+        var url = "{% url 'inscricoes_processo_seletivo' id_entidade=processo.entidade_id codigo_processo=processo.codigo %}";
+        $('#input-ordenacao').val(ordenacao);
+        window.location.replace(url + "?ordenacao=" + ordenacao);        
+      });
+
       // Combos de seleção
       $(".inscricao").on('change', function() {
 

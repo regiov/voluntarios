@@ -3389,12 +3389,24 @@ def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
                 messages.error(request, u'Só é possível encerrar um processo seletivo quando as inscrições estiverem encerradas ou quando não houver data limite para as inscrições.')
         else:
             messages.error(request, u'Só é possível encerrar processos seletivos cujas inscrições já estejam encerradas ou quando não houver data limite de inscrições.')
-            
-    inscricoes = processo.inscricoes()
+
+    ordenacoes_validas = {'inscricao': '-data_inscricao',
+                          'nome': 'voluntario__usuario__nome',
+                          'status': 'status',
+                          'observacoes': 'obs_entidade'}
+
+    ordenacao = 'inscricao'
+    if request.method == 'POST' and 'ordenacao' in request.POST and request.POST['ordenacao'] in ordenacoes_validas:
+        ordenacao = request.POST['ordenacao']
+    elif request.method == 'GET' and 'ordenacao' in request.GET and request.GET['ordenacao'] in ordenacoes_validas:
+        ordenacao = request.GET['ordenacao']
+
+    inscricoes = processo.inscricoes().order_by(ordenacoes_validas[ordenacao])
 
     context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
                'processo': processo,
-               'inscricoes': inscricoes}
+               'inscricoes': inscricoes,
+               'ordenacao': ordenacao}
 
     template = loader.get_template('vol/inscricoes_processo_seletivo.html')
     
