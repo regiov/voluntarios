@@ -720,8 +720,8 @@ class FormProcessoSeletivo(forms.ModelForm):
     class Meta:
         model = ProcessoSeletivo
         fields = ('titulo', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade',
-                  'atividades', 'requisitos', 'carga_horaria', 'inicio_inscricoes',
-                  'limite_inscricoes', 'previsao_resultado',)
+                  'somente_da_cidade', 'atividades', 'requisitos', 'carga_horaria',
+                  'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado',)
 
     titulo = forms.CharField(label=u'Título da vaga',
                              max_length=100,
@@ -741,6 +741,11 @@ class FormProcessoSeletivo(forms.ModelForm):
                                choices=[], # definido via init para validação. No form é carregado via ajax.
                                required=False,
                                initial='')
+    somente_da_cidade = forms.BooleanField(label=u'',
+                                           # Acrescenta margem para o label não ficar muito colado
+                                           widget=forms.CheckboxInput(attrs={'style': 'margin-right:5px;'}),
+                                           help_text="",
+                                           required=False)
     atividades = forms.CharField(label='Atividades a serem realizadas',
                                  widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'cols': 30}))
     requisitos = forms.CharField(label='Pré-requisitos',

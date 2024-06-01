@@ -20,6 +20,7 @@
     {% include "vol/campo_formulario.html" with campo=form.modo_trabalho required=True %} 
     {% include "vol/campo_formulario.html" with campo=form.estado required=False div_id="estado" invisible=form.instance.trabalho_remoto %}
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto %}
+    {% include "vol/campo_formulario.html" with campo=form.somente_da_cidade div_id="somente_da_cidade" invisible=form.instance.trabalho_remoto after_field="Restringir inscrições a candidatos desta cidade" %}
 
     <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
       <label for="id_area_trabalho" class="nowrap">* Área de trabalho na vaga</label>

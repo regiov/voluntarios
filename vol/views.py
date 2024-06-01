@@ -3047,6 +3047,7 @@ def novo_processo_seletivo(request, id_entidade):
             if not processo_seletivo.trabalho_remoto():
                 processo_seletivo.estado = form.cleaned_data['estado']
                 processo_seletivo.cidade = form.cleaned_data['cidade']
+                processo_seletivo.somente_da_cidade = form.cleaned_data['somente_da_cidade']
 
             processo_seletivo.save()
 
@@ -3102,6 +3103,7 @@ def novo_processo_seletivo(request, id_entidade):
                         if not modelo.trabalho_remoto():
                             initial['estado'] = modelo.estado
                             initial['cidade'] = modelo.cidade
+                            initial['somente_da_cidade'] = modelo.somente_da_cidade
                         initial['atividades'] = modelo.atividades
                         initial['requisitos'] = modelo.requisitos
                         initial['carga_horaria'] = modelo.carga_horaria
@@ -3211,6 +3213,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                 data['modo_trabalho'] = str(processo.modo_trabalho)
                 data['estado'] = processo.estado
                 data['cidade'] = processo.cidade
+                data['somente_da_cidade'] = processo.somente_da_cidade
                 data['atividades'] = processo.atividades
                 data['carga_horaria'] = processo.carga_horaria
                 data['requisitos'] = processo.requisitos
@@ -3297,6 +3300,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                 data['modo_trabalho'] = str(processo.modo_trabalho)
                 data['estado'] = processo.estado
                 data['cidade'] = processo.cidade
+                data['somente_da_cidade'] = processo.somente_da_cidade
                 data['atividades'] = processo.atividades
                 data['carga_horaria'] = processo.carga_horaria
                 data['requisitos'] = processo.requisitos
@@ -3430,8 +3434,11 @@ def exibe_processo_seletivo(request, codigo_processo):
         except ParticipacaoEmProcessoSeletivo.DoesNotExist:
             pass
 
+    local_incompativel = processo.local_incompativel(request.user)
+
     context = {'processo': processo,
-               'inscricao': inscricao}
+               'inscricao': inscricao,
+               'local_incompativel': local_incompativel}
 
     template = loader.get_template('vol/exibe_processo_seletivo.html')
     
@@ -3480,15 +3487,21 @@ def inscricao_processo_seletivo(request, codigo_processo):
 
             if inscricao:
                 if inscricao.desistiu():
-                    inscricao.reinscrever(by=request.user)
-                    inscricao.save()
-                    messages.info(request, u'Inscrição reativada com sucesso!')
+                    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+                        messages.error(request, u'Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem se inscrever nesta vaga.')
+                    else:
+                        inscricao.reinscrever(by=request.user)
+                        inscricao.save()
+                        messages.info(request, u'Inscrição reativada com sucesso!')
                 else:
                     messages.warning(request, u'Você já se inscreveu neste processo seletivo. Não há necesidade de se inscrever novamente.')
             else:
-                inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
-                inscricao.save()
-                messages.info(request, u'Inscrição realizada com sucesso! Aguarde as instruções do processo seletivo.')
+                if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+                    messages.error(request, u'Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem se inscrever nesta vaga.')
+                else:
+                    inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
+                    inscricao.save()
+                    messages.info(request, u'Inscrição realizada com sucesso! Aguarde as instruções do processo seletivo.')
 
         elif 'desistir' in request.POST:
 

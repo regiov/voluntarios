@@ -1729,6 +1729,7 @@ class ProcessoSeletivo(models.Model):
     # em outro local
     estado             = models.ForeignKey(Estado, on_delete=models.PROTECT, null=True, blank=True)
     cidade             = models.ForeignKey(Cidade, on_delete=models.PROTECT, null=True, blank=True)
+    somente_da_cidade  = models.BooleanField(u'Restringir inscrições a candidatos desta cidade', null=True, blank=True)
     # melhor ter isso em campo próprio, assim pode ser mais facilmente reutilizado em futuro termo de adesão
     atividades         = models.TextField(u'Atividades') # atividades a serem desenvolvidas
     carga_horaria      = models.TextField(u'Dias e horários de execução das atividades')
@@ -1903,6 +1904,24 @@ class ProcessoSeletivo(models.Model):
         if len(avisos) > 0:
             return avisos[0].creation
         return None
+
+    def local_incompativel(self, usuario):
+        '''Verifica se o local de trabalho é incompatível com a residência do voluntário,
+        retornando Falso também em situações onde não se tem resposta precisa (usuário
+        indeterminado ou sem perfil de voluntário cadastrado)'''
+        if usuario is None:
+            return False
+        if not usuario.is_authenticated:
+            return False
+        if not usuario.is_voluntario:
+            return False
+        if self.trabalho_remoto():
+            return False
+        if self.estado.sigla != usuario.voluntario.estado:
+            return True
+        if self.cidade.nome != usuario.voluntario.cidade:
+            return True
+        return False
 
     # Transições de estado
 

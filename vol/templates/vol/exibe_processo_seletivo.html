@@ -63,12 +63,22 @@
                   
                   <div class="modal-header">
                       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                      <h4 class="modal-title" id="myModalLabel">Confirmação</h4>
+                      <h4 class="modal-title" id="myModalLabel">
+                      {% if processo.somente_da_cidade and local_incompativel %}
+                      Aviso
+                      {% else %}
+                      Confirmação
+                      {% endif %}
+                      </h4>
                   </div>
             
                   <div class="modal-body">
-		    {% if not processo.trabalho_remoto and request.user.is_voluntario and request.user.voluntario.estado != processo.estado.sigla or request.user.voluntario.cidade != processo.cidade.nome %}
-                    <p>Atenção: Esta vaga exige <b>presença física na cidade de {{ processo.cidade }}, {{ processo.estado }}</b>, que é diferente da cidade onde você mora. Mesmo assim deseja fazer a inscrição??</p>
+                    {% if local_incompativel %}
+                      {% if processo.somente_da_cidade %}
+                        <p>Ops, somente voluntários residentes em {{ processo.cidade }}, {{ processo.estado }}, podem se inscrever nesta vaga.</p>
+                      {% else %}
+                        <p>Atenção: Esta vaga exige <b>presença física na cidade de {{ processo.cidade }}, {{ processo.estado }}</b>, que é diferente da cidade onde você mora. Mesmo assim deseja fazer a inscrição??</p>
+                      {% endif %}
                     {% else %}
                     <p>Legal que você quer se {% if inscricao.desistiu %}re{% endif %}inscrever! Você confirma a inscrição? Em breve você deverá receber diretamente da entidade as orientações necessárias.</p>
                     {% endif %}
@@ -76,7 +86,11 @@
                   
                   <div class="modal-footer">
                       <button type="button" class="btn btn-danger" data-dismiss="modal">Voltar</button>
+                      {% if processo.somente_da_cidade and local_incompativel %}
+                      {% comment %}Não exibe o botão para inscrição{% endcomment %}
+                      {% else %}
                       <button type="submit" class="btn btn-primary" name="inscrever">Sim, quero me {% if inscricao.desistiu %}re{% endif %}inscrever</button>
+                      {% endif %}
                   </div>
                </div>
             </div>
