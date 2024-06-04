@@ -18,7 +18,9 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
 
+        ########################################################################
         # Encerra processos em aberto cujo limite de inscrições já tenha passado
+        ########################################################################
         processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, limite_inscricoes__date__lt=timezone.now().date())
 
         i = 0
@@ -35,7 +37,9 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
 
-        # Publica processos após a data de abertura das inscrições 
+        ##########################################################
+        # Publica processos após a data de abertura das inscrições
+        ##########################################################
         processos_nao_iniciados = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO, inicio_inscricoes__date__lte=timezone.now().date())
 
         i = 0
@@ -52,7 +56,9 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) iniciado(s).'))
 
+        ###########################################
         # Notifica entidades sobre novas inscrições
+        ###########################################
         entidades_com_processos_em_aberto = Entidade.objects.filter(processoseletivo_set__status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).distinct()
 
         current_tz = timezone.get_current_timezone()
@@ -100,15 +106,17 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE(str(i) + ' entidade(s) notificada(s) sobre novas inscrições em processos seletivos.'))
 
-        i = 0
-
+        ####################################################################
         # Notifica entidades sobre processos seletivos sem nenhuma inscrição
+        ####################################################################
         processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
 
         msg_ausencia_inscricoes = Message.objects.get(code='AVISO_AUSENCIA_INSCRICOES_V1')
 
         now = timezone.now().astimezone(current_tz)
-        
+
+        i = 0
+
         for processo in processos_em_aberto:
 
             delta = now - processo.inicio_inscricoes
@@ -139,3 +147,31 @@ class Command(BaseCommand):
                 i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' notificações(s) sobre ausência inscrições em processos seletivos.'))
+
+        ############################################################
+        # Encerra processos cujas inscrições terminaram há 10 dias
+        # (tempo suficiente pra entidade decidir estender o prazo)
+        # e que não tiveram nenhuma inscrição.
+        ############################################################
+        processos_com_limite_aguardando_selecao = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_SELECAO, limite_inscricoes__isnull=False)
+
+        now = timezone.now().astimezone(current_tz)
+
+        i = 0
+
+        for processo in processos_com_limite_aguardando_selecao:
+
+            delta = now - processo.limite_inscricoes
+
+            intervalo_em_dias = delta.days
+
+            if intervalo_em_dias > 10:
+
+                if processo.inscricoes_validas().count() == 0:
+
+                    # Não especifica responsável, indicando que foi transição automática
+                    processo.concluir()
+                    processo.save()
+                    i = i + 1
+
+        self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) concluídos(s) por falta de inscrição.'))
