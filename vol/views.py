@@ -3487,7 +3487,7 @@ def inscricao_processo_seletivo(request, codigo_processo):
 
             if inscricao:
                 if inscricao.desistiu():
-                    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+                    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != request.user.voluntario.cidade:
                         messages.error(request, u'Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem se inscrever nesta vaga.')
                     else:
                         inscricao.reinscrever(by=request.user)
@@ -3496,7 +3496,7 @@ def inscricao_processo_seletivo(request, codigo_processo):
                 else:
                     messages.warning(request, u'Você já se inscreveu neste processo seletivo. Não há necesidade de se inscrever novamente.')
             else:
-                if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+                if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != request.user.voluntario.cidade:
                     messages.error(request, u'Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem se inscrever nesta vaga.')
                 else:
                     inscricao = ParticipacaoEmProcessoSeletivo(processo_seletivo=processo, voluntario=request.user.voluntario)
