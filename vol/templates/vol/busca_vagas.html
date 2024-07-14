@@ -106,7 +106,16 @@
     <br>
     <div>
       <span>
-      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}{% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;{% for p in vagas.paginator.page_range %}{% if p >= pagina_inicial and p <= pagina_final %}{% if p == vagas.number %}<b>{{p}}</b>{% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;{% endif %}{% endfor %}{% if pagina_final < vagas.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}" rel="nofollow">&gt;</a>{% endif %}{% if pagina_final < vagas.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ vagas.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>{% endif %}
+      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}
+      {% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;
+      {% for p in vagas.paginator.page_range %}
+        {% if p >= pagina_inicial and p <= pagina_final %}
+          {% if p == vagas.number %}<b>{{p}}</b>
+          {% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
+          {% endif %}
+      {% endfor %}
+      {% if pagina_final < vagas.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}" rel="nofollow">&gt;</a>{% endif %}
+      {% if pagina_final < vagas.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ vagas.paginator.num_pages }}&amp;{{ get_params }}" rel="nofollow">&gt;&gt;</a>{% endif %}
       </span>
     </div>
     {% endif %}

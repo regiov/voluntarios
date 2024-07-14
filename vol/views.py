@@ -2783,6 +2783,7 @@ def logo_rastreado(request):
 
 class ListaDePostagensNoBlog(generic.ListView):
     template_name = 'vol/lista_postagens_blog.html'
+    paginate_by = 10
 
     def get_queryset(self):
         status_list = [1]
