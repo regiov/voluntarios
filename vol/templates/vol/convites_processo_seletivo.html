@@ -1,0 +1,63 @@
+{% extends "vol/base_entidade.html" %}
+{% load static %}
+
+{% block title %}Convites{% endblock title %}
+
+{% block content %}
+
+{% with num_convites=convites|length %}
+
+<h2 class="margin-bottom">Convites para: {{ processo.titulo }}</h2>
+
+{% include "vol/mensagens.html" %}
+
+{% if num_convites > 0 %}
+
+<p>Para convidar mais pessoas, faça uma <a href="{% url 'busca_voluntarios' %}">busca por voluntários</a> usando critérios condizentes com esta vaga e ao navegar pelos resultados realize os convites.</p>
+
+<div class="table-responsive">
+  <table class="table table-striped table-condensed">
+    <thead>
+     <tr class="topo">
+      <th>Nome<br/><span class="dica">data do convite</span></th>
+      <th class="topo">Área de Trabalho<br/><span class="dica">Profissão</span></th>
+      <th class="topo">Município</th>
+      <th class="topo">Idade</th>
+      <th class="topo">Enviado</th>
+      <th class="topo">Resposta</th>
+      <th class="topo">Inscrito</th>
+     </tr>
+    </thead>
+  <tbody>
+  {% for convite in convites %}
+  <tr>
+    <td><a href="{% url 'exibe_voluntario' convite.voluntario.id %}" rel="nofollow">{{ convite.voluntario.usuario.nome }}</a><br/><span class="dica cor-clara">{{ convite.incluido_em }}</span></td>
+    <td>{{ convite.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica cor-clara">{{ convite.voluntario.profissao }}</span></td>
+    <td>{{ convite.voluntario.cidade }} - {{ convite.voluntario.estado }}</td>
+    <td>{{ convite.voluntario.idade }} anos</td>
+    {% spaceless %}
+    <td>
+      {% if convite.enviado_em is None %}
+      <i class="fa-regular fa-clock" title="envio agendado"></i>
+      {% else %}
+      <i class="fas fa-check" title="sim"></i>
+      {% endif %}
+    </td>
+    {% endspaceless %}
+    <td>{{ convite.resposta|default:'?' }}</td>
+    <td>{% if convite.voluntario_id in inscritos %}<i class="fas fa-check" title="sim"></i>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+{% else %}
+  {% if processo.aberto_a_inscricoes %}
+  <h4>Nenhum convite até o momento. Para convidar, faça uma <a href="{% url 'busca_voluntarios' %}">busca por voluntários</a> usando critérios condizentes com esta vaga e ao navegar pelos resultados realize os convites.</h4>
+  {% else %}
+  <h4>Nenhum convite realizado.</h4>
+  {% endif %}
+{% endif %}
+{% endwith %}
+
+{% endblock content %}

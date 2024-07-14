@@ -1893,6 +1893,11 @@ class ProcessoSeletivo(models.Model):
         except ParticipacaoEmProcessoSeletivo.DoesNotExist:
             return None
 
+    def convites(self):
+        '''Retorna os convites para este processo seletivo'''
+        qs = ConviteProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
+        return qs
+
     def inscricoes(self, status=[]):
         '''Retorna as inscricoes deste processo seletivo nos status indicados, ou todas'''
         qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)

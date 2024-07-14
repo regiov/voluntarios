@@ -2958,7 +2958,7 @@ def processos_seletivos_entidade(request, id_entidade):
     entidade.ultimo_acesso_proc = timezone.now()
     entidade.save(update_fields=['ultimo_acesso_proc'])
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_convites=Count('conviteprocessoseletivo'), num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
@@ -3457,6 +3457,27 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                'num_inscricoes': num_inscricoes}
 
     template = loader.get_template('vol/formulario_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def convites_processo_seletivo(request, id_entidade, codigo_processo):
+    '''Visualização de convites para processo seletivo'''
+    try:
+        processo = ProcessoSeletivo.objects.select_related('entidade').get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+    if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    convites = processo.convites().order_by('voluntario__usuario__nome')
+
+    context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
+               'processo': processo,
+               'convites': convites,
+               'inscritos': list(processo.inscricoes_validas().values_list('voluntario_id', flat=True))}
+
+    template = loader.get_template('vol/convites_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))
 
