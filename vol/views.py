@@ -38,7 +38,7 @@ from django.apps import apps
 
 from django_fsm_log.models import StateLog
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE
 
 from .signals import voluntario_post_save
 
@@ -3719,6 +3719,54 @@ def convites_voluntario(request):
     if request.user.is_voluntario:
         convites = ConviteProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario).order_by('-incluido_em')
 
-    context = {'convites': convites}
+    tem_processo_aberto_a_inscricoes = False
+
+    for convite in convites:
+        if convite.processo_seletivo.aberto_a_inscricoes():
+            tem_processo_aberto_a_inscricoes = True
+            if convite.resposta is None:
+                messages.info(request, u'Lembre de responder a todos os convites que recebe. É uma maneira de dar satisfação à entidade e de demonstrar que você está dando atenção à dinâmica de voluntariado no site.')
+                break
+
+    context = {'convites': convites,
+               'tem_processo_aberto_a_inscricoes': tem_processo_aberto_a_inscricoes,
+               'resposta_a_convite': RESPOSTA_A_CONVITE}
     template = loader.get_template('vol/convites_voluntario.html')
     return HttpResponse(template.render(context, request))
+
+@login_required
+@transaction.atomic
+def responder_convite(request):
+    '''Armazena resposta a convite.
+    Parâmetros POST:
+    id (id do convite),
+    value (código da resposta)
+    OBS: também requer o header X-CSRFToken'''
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    convite_id = request.POST.get('id')
+    value = request.POST.get('value')
+
+    if convite_id is None or value is None or value not in [opcao[0] for opcao in RESPOSTA_A_CONVITE] + [''] or not convite_id.isdigit():
+        return HttpResponseBadRequest('Parâmetros incorretos')
+
+    try:
+        convite = ConviteProcessoSeletivo.objects.select_related('processo_seletivo').get(pk=convite_id)
+    except ConviteProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    if request.user.voluntario.id != convite.voluntario_id:
+        raise PermissionDenied
+
+    if not convite.processo_seletivo.aberto_a_inscricoes():
+        raise PermissionDenied
+
+    if value == '':
+        value = None
+
+    convite.resposta = value
+    convite.save(update_fields=['resposta'])
+
+    return HttpResponse(status=200)

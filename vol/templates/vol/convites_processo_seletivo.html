@@ -44,7 +44,7 @@
       {% endif %}
     </td>
     {% endspaceless %}
-    <td>{{ convite.resposta|default:'?' }}</td>
+    <td>{{ convite.resposta_em_palavras|default:'-' }}</td>
     <td>{% if convite.voluntario_id in inscritos %}<i class="fas fa-check" title="sim"></i>{% endif %}</td>
   </tr>
   {% endfor %}

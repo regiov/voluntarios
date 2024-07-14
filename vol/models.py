@@ -1895,7 +1895,7 @@ class ProcessoSeletivo(models.Model):
 
     def convites(self):
         '''Retorna os convites para este processo seletivo'''
-        qs = ConviteProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
+        qs = ConviteProcessoSeletivo.objects.select_related('processo_seletivo', 'voluntario', 'voluntario__usuario').filter(processo_seletivo=self)
         return qs
 
     def inscricoes(self, status=[]):
@@ -2176,6 +2176,11 @@ class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
     avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
     anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
 
+RESPOSTA_A_CONVITE = (
+    ('+','Vou considerar'),
+    ('-','Não posso participar'),
+)
+
 class ConviteProcessoSeletivo(models.Model):
     """Convite para participar em processo seletivo"""
     id                = models.AutoField(primary_key=True)
@@ -2184,4 +2189,10 @@ class ConviteProcessoSeletivo(models.Model):
     incluido_por      = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     incluido_em       = models.DateTimeField(u'Data de criação do convite', auto_now_add=True)
     enviado_em        = models.DateTimeField(u'Data de envio', null=True, blank=True)
+    resposta          = models.CharField(u'Resposta', choices=RESPOSTA_A_CONVITE, max_length=1, null=True, blank=True)
 
+    def resposta_em_palavras(self):
+        for opcao in RESPOSTA_A_CONVITE:
+            if opcao[0] == self.resposta:
+                return opcao[1]
+        return None

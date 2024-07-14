@@ -200,6 +200,7 @@ urlpatterns = [
     re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/alternar_convite/(?P<id_voluntario>\d+)$', views.alternar_convite, name='alternar_convite'),
     re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/?$', views.exibe_processo_seletivo, name='exibe_processo_seletivo'),
     re_path(r'^classificar_inscricao$', views.classificar_inscricao, name='classificar_inscricao'),
+    re_path(r'^responder_convite$', views.responder_convite, name='responder_convite'),
 
 ]
 
