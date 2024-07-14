@@ -11,7 +11,7 @@
 {% if processos|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th></th><th>Título/Entidade</th><th>Modo</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
+  <thead><th></th><th>Título/Entidade</th><th>Modo</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Convites</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
   <tbody>
   {% for processo in processos %}
   {% with num_inscricoes_validas=processo.inscricoes_validas.count %}
@@ -23,6 +23,7 @@
     <td{% if processo.aberto_a_inscricoes %} style="font-weight: 400;"{% endif %}>{{ processo.nome_status }}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a <span{% if processo.dias_para_encerramento_inscricoes < 15 %} style="font-weight: 400;"{% endif %}>{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}<span>{% else %} sem limite{% endif %}</td>
     <td>{{ processo.qtde_visualiza }}</td>
+    <td>{{ processo.convites }}</td>
     <td>
       {% if num_inscricoes_validas > 0 %}
         <a href="{% url 'monitoramento_inscricoes_processo_seletivo' codigo_processo=processo.codigo %}">{{ num_inscricoes_validas }}</a>

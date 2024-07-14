@@ -178,6 +178,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def is_voluntario(self):
+        '''Indica se possui perfil de voluntário cadastrado'''
         try:
             self.voluntario
             return True
@@ -186,14 +187,32 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def has_entidade(self):
+        '''Indica se está vinculado a uma entidade'''
         return self.vinculoentidade_set.filter(data_fim__isnull=True).count() > 0
 
     @cached_property
     def has_entidade_aprovada(self):
+        '''Indica se o usuário possui vínculo vigente com alguma entidade já aprovada'''
         return self.vinculoentidade_set.filter(entidade__aprovado=True, data_fim__isnull=True).count() > 0
 
     def entidades(self):
+        '''Retorna queryset de entidades com as quais o usuário possui vínculo confirmado e vigente'''
         return Entidade.objects.filter(vinculoentidade__usuario=self, vinculoentidade__data_fim__isnull=True, vinculoentidade__confirmado=True)
+
+    @cached_property
+    def vagas_em_aberto(self):
+        '''Retorna lista de vagas em aberto de entidades já aprovadas com as quais o
+        usuário possui vínculo confirmado e vigente. Se for da equipe do Voluntários,
+        retorna todas as vagas em aberto.'''
+        procs = ProcessoSeletivo.objects.select_related('Entidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+
+        if not self.is_staff:
+            procs = procs.filter(entidade__vinculoentidade__usuario=self,
+                                 entidade__vinculoentidade__data_fim__isnull=True,
+                                 entidade__vinculoentidade__confirmado=True,
+                                 entidade__aprovado=True)
+
+        return list(procs.order_by('entidade__nome_fantasia', 'titulo').values_list('codigo', 'entidade__nome_fantasia', 'titulo'))
 
     def codigo_de_processo_seletivo_de_entrada(self):
         '''Quando o usuário se cadastra tendo clicado para se inscrever num processo seletivo,
@@ -296,7 +315,7 @@ class Voluntario(models.Model):
     dif_analise           = models.TextField(u'Alterações na análise', null=True, blank=True)
     qtde_visualiza        = models.IntegerField(u'Quantidade de visualizações do perfil (desde 12/01/2019)', default=0)
     ultima_visualiza      = models.DateTimeField(u'Última visualização do voluntário (desde 12/01/2019)', null=True, blank=True)
-    # Data/hora da última atualização do cadastro PELA ENTIDADE. Daí usarmos apenas o auto_now_add, e não auto_now, pois os dados da entidade podem ser alterados via interface adm por nós 
+    # Data/hora da última atualização do cadastro PELO VOLUNTÁRIO. Daí usarmos apenas o auto_now_add, e não auto_now, pois os dados da entidade podem ser alterados via interface adm por nós 
     ultima_atualizacao    = models.DateTimeField(u'Data de última atualização', auto_now_add=True, null=True, blank=True, db_index=True)
 
     class Meta:
@@ -309,7 +328,7 @@ class Voluntario(models.Model):
         return self.usuario.nome
 
     def hit(self):
-        '''Contabiliza mais uma visualização do registro'''
+        '''Contabiliza mais uma visualização do perfil deste voluntário'''
         self.qtde_visualiza = self.qtde_visualiza + 1
         self.ultima_visualiza = timezone.now()
         self.save(update_fields=['qtde_visualiza', 'ultima_visualiza'])
@@ -412,6 +431,12 @@ class Voluntario(models.Model):
         qs = ParticipacaoEmProcessoSeletivo.objects.select_related('voluntario', 'voluntario__usuario').filter(voluntario=self)
         if len(status) > 0:
             qs = qs.filter(status__in=status)
+        return qs
+
+    def convites(self):
+        '''Retorna queryset de processos seletivos para os quais o voluntário já possui convite'''
+        ids = ConviteProcessoSeletivo.objects.filter(voluntario=self).values_list('processo_seletivo_id')
+        qs = ProcessoSeletivo.objects.filter(pk__in=ids)
         return qs
 
 class AreaInteresse(models.Model):
@@ -2145,4 +2170,13 @@ class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
     link_resposta  = models.URLField(max_length=200, null=True, blank=True) # para acessar respostas de formulário
     avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
     anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
+
+class ConviteProcessoSeletivo(models.Model):
+    """Convite para participar em processo seletivo"""
+    id                = models.AutoField(primary_key=True)
+    processo_seletivo = models.ForeignKey(ProcessoSeletivo, on_delete=models.CASCADE)
+    voluntario        = models.ForeignKey(Voluntario, on_delete=models.CASCADE)
+    incluido_por      = models.ForeignKey(Usuario, on_delete=models.PROTECT)
+    incluido_em       = models.DateTimeField(u'Data de criação do convite', auto_now_add=True)
+    enviado_em        = models.DateTimeField(u'Data de envio', null=True, blank=True)
 
