@@ -102,7 +102,7 @@ def notifica_aprovacao_entidade(entidade):
         if hasattr(settings, 'ONBOARDING_TEAM_EMAIL'):
              notify_email(settings.ONBOARDING_TEAM_EMAIL, '\o/ Nova entidade aprovada!', 'Ei! O cadastro da entidade ' + entidade.menor_nome() + ' acaba de ser aprovado no Voluntários. Você está recebendo esse e-mail porque faz parte da equipe de boas-vindas. Use esse link para recepcionar a entidade: https://voluntarios.com.br' + reverse('onboarding_entidades'))
 
-def elabora_paginacao(request, qs, registros_por_pagina=2, paginas_visiveis=2):
+def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
     '''Determina variáveis de paginação para poder usar o template paginador.html'''
     get_params = ''
     pagina_inicial = pagina_final = None
