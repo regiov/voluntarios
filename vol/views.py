@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario
+from .utils import notifica_aprovacao_voluntario, elabora_paginacao
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -2986,8 +2986,8 @@ def busca_vagas(request):
     causas = AreaAtuacao.objects.all().order_by('indice')
     estados = Estado.objects.all().order_by('nome')
     vagas = None
-    get_params = ''
-    pagina_inicial = pagina_final = None
+    parametros = ''
+    p_inicial = p_final = None
 
     if 'Envia' in request.GET:
 
@@ -3046,34 +3046,8 @@ def busca_vagas(request):
             vagas = vagas.order_by('-inicio_inscricoes')
 
         # Paginação
-        paginador = Paginator(vagas, 20) # 20 vagas por página
-        pagina = request.GET.get('page')
-        try:
-            vagas = paginador.page(pagina)
-        except PageNotAnInteger:
-            # Se a página não é um número inteiro, exibe a primeira
-            vagas = paginador.page(1)
-        except EmptyPage:
-            # Se a página está fora dos limites (ex 9999), exibe a última
-            vagas = paginador.page(paginador.num_pages)
-        pagina_atual = vagas.number
-        max_links_visiveis = 10
-        intervalo = 10/2
-        pagina_inicial = pagina_atual - intervalo
-        pagina_final = pagina_atual + intervalo -1
-        if pagina_inicial <= 0:
-            pagina_final = pagina_final - pagina_inicial + 1
-            pagina_inicial = 1
-        if pagina_final > paginador.num_pages:
-            pagina_final = paginador.num_pages
-            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET
-        for k, v in request.GET.items():
-            if k in ('page', 'csrfmiddlewaretoken'):
-                continue
-            if len(get_params) > 0:
-                get_params += '&'
-            get_params += k + '=' + v
+        (vagas, parametros, p_inicial, p_final) = elabora_paginacao(request, vagas)
+
     else:
         # Avisa caso não exista nenhum processo em aberto
         if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
@@ -3093,9 +3067,9 @@ def busca_vagas(request):
                'causas': causas,
                'estados': estados,
                'vagas': vagas,
-               'get_params': get_params,
-               'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
+               'get_params': parametros,
+               'p_inicial': p_inicial,
+               'p_final': p_final}
     
     template = loader.get_template('vol/busca_vagas.html')
     return HttpResponse(template.render(context, request))
