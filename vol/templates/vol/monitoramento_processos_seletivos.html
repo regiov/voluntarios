@@ -20,7 +20,7 @@
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
         <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}">{{ processo.entidade.menor_nome }}</a><br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{{ processo.nome_modo_trabalho }}{% if processo.estado or processo.cidade %}<br/>{{ processo.cidade.nome }}-{{ processo.estado.sigla }}{% endif %}</td>
-    <td{% if processo.aberto_a_inscricoes %} style="font-weight: 400;"{% endif %}>{{ processo.nome_status }}</td>
+    <td{% if processo.aberto_a_inscricoes %} style="font-weight: 400;"{% else %}{% if processo.cancelado %} style="text-decoration: line-through;"{% endif %}{% endif %}>{% if processo.concluido %}[{{ processo.nome_status }}]{% else %}{{ processo.nome_status }}{% endif %}{% if processo.aguardando_selecao %}...{% endif %}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a <span{% if processo.dias_para_encerramento_inscricoes < 15 %} style="font-weight: 400;"{% endif %}>{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}<span>{% else %} sem limite{% endif %}</td>
     <td>{{ processo.qtde_visualiza }}</td>
     <td>{{ processo.convites }}</td>
