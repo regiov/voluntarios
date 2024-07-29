@@ -1,6 +1,49 @@
 {% extends "vol/base.html" %}
+{% load static %}
 
 {% block title %}Voluntário{% endblock title %}
+
+{% block head %}
+{% comment %}Voluntários que não desejam aparecer em buscas (invisíveis) não podem ser convidados{% endcomment %}
+{% if vagas_em_aberto and not voluntario.invisivel %}
+<script type="text/javascript">
+
+  function alternar_convite(codigo_vaga, id_voluntario) {
+
+    var token = '{{ csrf_token }}';
+    var loader = $('#loader-' + codigo_vaga);
+    var checkbox = $('#convite-' + codigo_vaga);
+    var checked = checkbox.prop('checked');
+
+    checkbox.prop('disabled', true);
+    loader.show();
+
+    var request = $.ajax({
+      url: '/vaga/' + codigo_vaga + '/alternar_convite/' + id_voluntario,
+      method: 'POST',
+      headers: {"X-CSRFToken": token},
+    });
+    request.done(function (ret) {
+      //ret.num_convites_pendentes;
+      loader.hide();
+      checkbox.prop('disabled', false);
+    });
+    request.fail(function (jqXHR, textStatus) {
+      loader.hide();
+      if (jqXHR.responseText && jqXHR.responseText.length < 200) {
+        window.alert(jqXHR.responseText);
+      } else {
+        window.alert('Ops, houve um erro inesperado nesta operação...');
+      }
+      // Retorna checkbox à situação original
+      checkbox.prop('checked', !checked);
+      checkbox.prop('disabled', false);
+    });
+  }
+
+</script>
+{% endif %}
+{% endblock head %}
 
 {% block content %}
 
@@ -19,11 +62,39 @@
 <p><label>Já fez trabalho voluntário:</label> {% if voluntario.foi_voluntario %}sim{% if voluntario.entidade_que_ajudou %} <br/><label>Entidade(s) que ajudou:</label> {{ voluntario.entidade_que_ajudou }}{% endif %}{% else %}não{% endif %}</p>
 {% endif %}
 {% if voluntario.descricao %}
-<p><label>Comentário:</label> {{ voluntario.descricao }}</p>
+<p><label>Comentários:</label> {{ voluntario.descricao }}</p>
 {% endif %}
 <p><label>Última atualização no cadastro:</label> {{ voluntario.ultima_atualizacao|date:"F" }}/{{ voluntario.ultima_atualizacao|date:"Y" }}</p>
 </div>
+
+{% if vagas_em_aberto and not voluntario.invisivel %}
+<div class="panel panel-default">
+  <div class="panel-heading">Convites para processos seletivos <button type="button" class="btn btn-default btn-xs pull-right"><i id="panel-toggle" class="fas fa-caret-down" title="abrir/fechar" data-toggle="collapse" data-target="#convites"></i></button></div>
+  {% comment %}Painel deve iniciar aberto caso haja alguma vaga na sessão{% endcomment %}
+  <div id="convites" class="panel-body collapse{% if ultima_vaga_em_convite %} in{% endif %}">
+    <p id="explicacao-convite"{% if ultima_vaga_em_convite %} style="display: none;"{% endif %}>Marque os processos seletivos para os quais deseja convidar este voluntário.</p>
+    <table class="table table-condensed table-responsive">
+      {% comment %}Caso haja alguma vaga na sessão, mostra somente ela{% endcomment %}
+      {% for vaga in vagas_em_aberto %}
+      <tr id="vaga-{{ vaga.0 }}" class="convite"{% if ultima_vaga_em_convite and ultima_vaga_em_convite != vaga.0 %} style="display: none;"{% endif %}><td>{{ vaga.1 }}</td><td>{{ vaga.2 }}</td><td width="35">{% if vaga.0 in vagas_com_inscricao %}inscrito{% else %}<input type="checkbox" class="check-convite" id="convite-{{ vaga.0 }}"{% if vaga.0 in vagas_com_convite %} checked{% endif %} onclick="javascript:alternar_convite('{{ vaga.0 }}', '{{ voluntario.id }}');"><img id="loader-{{ vaga.0 }}" src="{% static 'images/ajax-loader-circle-small.gif' %}" width="10" style="display: none;">{% endif %}</td><td>{% if ultima_vaga_em_convite and ultima_vaga_em_convite == vaga.0 and vagas_em_aberto|length > 1 %}<button id="btn-show" type="button" class="btn btn-default btn-xs"><i class="fas fa-caret-down" title="ver outros processos seletivos" onclick="javascript:$('.convite').show();$('#explicacao-convite').show();$('#btn-show').hide();"></i></button>{% endif %}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endif %}
+
 <br>
 <p class="dica">[{{ agora|date:"l" }}, {{ agora|date:"j" }} de {{ agora|date:"F" }} de {{ agora|date:"Y" }} às {{ agora|time:"H:i:s" }}]</p>
 
 {% endblock content %}
+
+{% block post_footer %}
+{% if vagas_em_aberto and not voluntario.invisivel %}
+<script type="text/javascript">
+  // Evita duplo clique nos checkboxes
+  $(".check-convite").on("dblclick", function(event){
+    event.preventDefault();
+  });
+</script>
+{% endif %}
+{% endblock post_footer %}

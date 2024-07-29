@@ -1,0 +1,102 @@
+{% extends "vol/base_voluntario.html" %}
+{% load static %}
+
+{% block title %}Convites{% endblock title %}
+
+{% block content %}
+
+<h1 class="margin-bottom">Convites para processos seletivos</h1>
+
+{% include "vol/mensagens.html" %}
+
+{% if convites|length > 0 %}
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+  <thead><th>Vaga</th><th>Entidade</th><th>Status</th><th>Resposta</th></thead>
+  <tbody>
+  {% for convite in convites %}
+  <tr>
+    <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=convite.processo_seletivo.codigo %}">{{ convite.processo_seletivo.titulo }}</a></td>
+    <td><a href="{% url 'exibe_entidade' id_entidade=convite.processo_seletivo.entidade.pk %}">{{ convite.processo_seletivo.entidade.menor_nome }}</a></td>
+    <td>{{ convite.processo_seletivo.nome_status }}</td>
+    <td>{% spaceless %}
+      {% if convite.processo_seletivo.aberto_a_inscricoes %}
+        <select class="resposta" name="{{ convite.id }}" prevIndex="">
+        <option value=""{% if convite.resposta == None %} selected{% endif %}>-- selecione --</option>
+	{% for opcao in resposta_a_convite %}
+        <option value="{{ opcao.0 }}"{% if convite.resposta == opcao.0 %} selected{% endif %}>{{ opcao.1 }}</option>
+	{% endfor %}
+        </select>
+	<img id="{{ convite.id }}_icon" src=""/>{% comment %}local de exibição do ícone de ajax{% endcomment %}
+      {% else %}
+      {{ convite.resposta|default:'-' }}
+      {% endif %}
+    {% endspaceless %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+  
+{% else %}
+
+  {% if request.user.voluntario.invisivel %}
+    <p>Como você marcou no seu perfil de voluntário a opção de não aparecer em buscas, não há como receber convites sem ser visto.</p>
+  {% else %}
+    <p>Nenhum convite até o momento.</p>
+  {% endif %}
+{% endif %}
+
+{% endblock content %}
+
+{% block post_footer %}
+
+{% if tem_processo_aberto_a_inscricoes %}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+      $( ".resposta" ).each(function() {
+        // Armazena opção selecionada atualmente
+        this.setAttribute("prevIndex", this.selectedIndex);
+      });
+
+      // Combos de seleção
+      $(".resposta").on('change', function() {
+
+        var id = this.name;
+        var icon_id = "#" + id + "_icon";
+        var prev_index = this.getAttribute("prevIndex");
+        var combo = this;
+        var token = '{{ csrf_token }}';
+
+        $(icon_id).attr("src", "{% static 'images/ajax-loader-circle-small.gif' %}");
+        $(icon_id).show();
+
+        $.ajax({
+            url: "{% url 'responder_convite' %}",
+            method: "POST",
+            headers: {"X-CSRFToken": token},
+            data: {
+              id: id,
+              value: this.value,
+            },
+            success: function(response) {
+              combo.setAttribute("prevIndex", this.selectedIndex);
+              $(icon_id).attr("src", "{% static 'images/misc/icon-yes.svg' %}");
+              $(icon_id).fadeOut(1000);
+            },
+            error: function(xhr, errmsg, err) {
+              combo.selectedIndex = prev_index;
+              $(icon_id).attr("src", "{% static 'images/misc/icon-deletelink.svg' %}");
+              //$(icon_id).fadeOut(1000);
+
+              console.log('Erro ao responder convite: ', errmsg);
+            }
+        });
+      });
+    });
+</script>
+{% endif %}
+
+{% endblock post_footer %}

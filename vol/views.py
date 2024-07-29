@@ -38,7 +38,7 @@ from django.apps import apps
 
 from django_fsm_log.models import StateLog
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE
 
 from .signals import voluntario_post_save
 
@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario
+from .utils import notifica_aprovacao_voluntario, elabora_paginacao
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -491,8 +491,11 @@ def busca_voluntarios(request):
     template = loader.get_template('vol/busca_voluntarios.html')
     return HttpResponse(template.render(context, request))
 
+@login_required
 def exibe_voluntario(request, id_voluntario):
-    '''Página para exibir detalhes de um voluntário'''
+    '''Página para exibir detalhes de um voluntário. Importante: mesmo que o voluntário tenha marcado
+    que não quer aparecer em buscas, a página dele precisa ser exibida quando solicitada, pois ele
+    pode se inscrever em vagas e as entidades precisam acessar as informações dele para contato.'''
     metodos = ['GET']
     if request.method not in (metodos):
         return HttpResponseNotAllowed(metodos)
@@ -500,6 +503,7 @@ def exibe_voluntario(request, id_voluntario):
         return mensagem(request, u'Busca de voluntários')
     if not id_voluntario.isdigit():
         raise SuspiciousOperation('Parâmetro id inválido')
+
     try:
         voluntario = Voluntario.objects.select_related('area_trabalho', 'usuario').get(pk=id_voluntario)
         if voluntario.aprovado is None:
@@ -508,12 +512,36 @@ def exibe_voluntario(request, id_voluntario):
             return mensagem(request, u'O cadastro deste voluntário foi rejeitado pela equipe do site. Qualquer dúvida entre em contato conosco.')
     except Voluntario.DoesNotExist:
         raise Http404
+
     voluntario.hit()
+
     areas_de_interesse = voluntario.areainteresse_set.all()
+
     now = datetime.datetime.now()
+
+    # Dados para gerenciamento de convites
+    vagas_em_aberto = request.user.vagas_em_aberto # cached_property
+    vagas_com_convite = []
+    vagas_com_inscricao = []
+    if vagas_em_aberto:
+        # Evita executar queries se não houver vagas em aberto
+        vagas_com_convite = list(voluntario.convites().values_list('codigo', flat=True))
+        vagas_com_inscricao = list(voluntario.inscricoes().values_list('processo_seletivo_id', flat=True))
+
+    ultima_vaga_em_convite = request.session.get('ultima_vaga_em_convite', None)
+
+    # Remove vaga da sessão caso já não esteja mais em aberto
+    if ultima_vaga_em_convite not in [p[0] for p in vagas_em_aberto]:
+        ultima_vaga_em_convite = None
+        request.session['ultima_vaga_em_convite'] = None
+
     context = {'voluntario': voluntario,
                'agora': now,
-               'areas_de_interesse': areas_de_interesse}
+               'areas_de_interesse': areas_de_interesse,
+               'vagas_em_aberto': vagas_em_aberto,
+               'vagas_com_convite': vagas_com_convite,
+               'vagas_com_inscricao': vagas_com_inscricao,
+               'ultima_vaga_em_convite': ultima_vaga_em_convite}
     template = loader.get_template('vol/exibe_voluntario.html')
     return HttpResponse(template.render(context, request))
 
@@ -523,6 +551,67 @@ def exibe_voluntario_old(request):
         raise SuspiciousOperation('Ausência do parâmetro idvoluntario')
     id_voluntario = request.GET.get('idvoluntario')
     return exibe_voluntario(request, id_voluntario)
+
+@login_required
+@transaction.atomic
+def alternar_convite(request, codigo_processo, id_voluntario):
+    '''Serviço para convidar ou desconvidar voluntário para vaga'''
+
+    # Atenção: o texto retornado no corpo da resposta é exibido ao usuário final
+
+    metodos = ['POST']
+    if request.method not in (metodos):
+        return HttpResponseNotAllowed(metodos)
+
+    if not id_voluntario.isdigit():
+        raise SuspiciousOperation('Parâmetro id_voluntario inválido')
+
+    try:
+        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+        if not processo.aberto_a_inscricoes():
+            return HttpResponse('Este processo seletivo não está aberto a inscrições', status=409)
+        voluntario = Voluntario.objects.get(pk=id_voluntario)
+    except ProcessoSeletivo.DoesNotExist:
+        # Não usamos "raise Http404" para poder especificar outro texto no corpo da mensagem
+        return HttpResponse('Processo seletivo inexistente!', status=404)
+    except Voluntario.DoesNotExist:
+        return HttpResponse('Voluntário inexistente!', status=404)
+
+    # Não permite convite a voluntário não aprovado
+    if not voluntario.aprovado:
+        return HttpResponse('Não é possível convidar um voluntário cujo cadastro ainda não foi revisado', status=403)
+
+    # Não permite convite a voluntário "invisível"
+    if voluntario.invisivel:
+        return HttpResponse('Este voluntário não deseja ser contatado', status=403)
+
+    # Não permite ação em processo seletivo alheio
+    if codigo_processo not in [p[0] for p in request.user.vagas_em_aberto]:
+        return HttpResponse('Você está sem permissão para enviar convites deste processo seletivo', status=403)
+
+    # Não permite nenhuma ação caso voluntário já esteja inscrito no processo
+    if ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=processo, voluntario_id=id_voluntario).count() > 0:
+        return HttpResponse('Este voluntário já se inscreveu neste processo seletivo', status=409)
+
+    try:
+        convite = ConviteProcessoSeletivo.objects.get(processo_seletivo=processo, voluntario=voluntario)
+        if convite.enviado_em:
+            return HttpResponse('Já foi enviado um convite para este voluntário', status=409)
+        # Se convite já existe, desconvida
+        convite.delete()
+    except ConviteProcessoSeletivo.DoesNotExist:
+        # Se convite não existe, convida
+        convite = ConviteProcessoSeletivo(processo_seletivo=processo, voluntario=voluntario, incluido_por=request.user)
+        convite.save()
+        # Armazena o código da vaga para somente exibir ela na lista de vagas para convites
+        request.session['ultima_vaga_em_convite'] = codigo_processo
+
+    num_convites_pendentes = ConviteProcessoSeletivo.objects.filter(incluido_por=request.user,
+                                                                    enviado_em__isnull=True).count()
+
+    # Retorna número de convites com envio pendente, caso algum dia a gente queira ter um ícone
+    # do tipo carrinho de compras para enviar convites
+    return JsonResponse({'num_convites_pendentes': num_convites_pendentes})
 
 def link_entidade_nova(request):
     '''Link para cadastro de nova entidade'''
@@ -2066,6 +2155,9 @@ def painel(request):
     # Data da primeira e última revisão de voluntário do usuário
     limites = Voluntario.objects.filter(resp_analise=request.user).aggregate(data_ini=Min(F('data_analise')), data_fim=Max(F('data_analise')))
 
+    # Total de voluntários convidados pelo usuário a participar de processos seletivos
+    total_vol_convites = ConviteProcessoSeletivo.objects.filter(incluido_por=request.user).count()
+
     # Total de entidades que confirmaram o email e estão aguardando aprovação
     id_entidades = Email.objects.filter(entidade__aprovado__isnull=True, confirmado=True).values_list('entidade_id')
 
@@ -2172,6 +2264,7 @@ def painel(request):
                'total_vol_pessoal': total_vol_pessoal,
                'total_vol_inscritos_pessoal': total_vol_inscritos_pessoal,
                'total_vol_selecionados_pessoal': total_vol_selecionados_pessoal,
+               'total_vol_convites': total_vol_convites,
                'total_ents': total_ents,
                'total_ents_dia': total_ents_dia,
                'total_onboarding': total_onboarding,
@@ -2266,7 +2359,8 @@ def revisao_processo_seletivo(request, codigo_processo):
 def monitoramento_processos_seletivos(request):
     '''Página para monitorar todos os processos seletivos cadastrados'''
 
-    processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao')).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao'),
+                                                  convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
 
     context = {'processos': processos}
 
@@ -2783,6 +2877,7 @@ def logo_rastreado(request):
 
 class ListaDePostagensNoBlog(generic.ListView):
     template_name = 'vol/lista_postagens_blog.html'
+    paginate_by = 10
 
     def get_queryset(self):
         status_list = [1]
@@ -2864,7 +2959,7 @@ def processos_seletivos_entidade(request, id_entidade):
     entidade.ultimo_acesso_proc = timezone.now()
     entidade.save(update_fields=['ultimo_acesso_proc'])
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_convites=Count('conviteprocessoseletivo'), num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
@@ -2891,8 +2986,8 @@ def busca_vagas(request):
     causas = AreaAtuacao.objects.all().order_by('indice')
     estados = Estado.objects.all().order_by('nome')
     vagas = None
-    get_params = ''
-    pagina_inicial = pagina_final = None
+    parametros = ''
+    p_inicial = p_final = None
 
     if 'Envia' in request.GET:
 
@@ -2951,34 +3046,8 @@ def busca_vagas(request):
             vagas = vagas.order_by('-inicio_inscricoes')
 
         # Paginação
-        paginador = Paginator(vagas, 20) # 20 vagas por página
-        pagina = request.GET.get('page')
-        try:
-            vagas = paginador.page(pagina)
-        except PageNotAnInteger:
-            # Se a página não é um número inteiro, exibe a primeira
-            vagas = paginador.page(1)
-        except EmptyPage:
-            # Se a página está fora dos limites (ex 9999), exibe a última
-            vagas = paginador.page(paginador.num_pages)
-        pagina_atual = vagas.number
-        max_links_visiveis = 10
-        intervalo = 10/2
-        pagina_inicial = pagina_atual - intervalo
-        pagina_final = pagina_atual + intervalo -1
-        if pagina_inicial <= 0:
-            pagina_final = pagina_final - pagina_inicial + 1
-            pagina_inicial = 1
-        if pagina_final > paginador.num_pages:
-            pagina_final = paginador.num_pages
-            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET
-        for k, v in request.GET.items():
-            if k in ('page', 'csrfmiddlewaretoken'):
-                continue
-            if len(get_params) > 0:
-                get_params += '&'
-            get_params += k + '=' + v
+        (vagas, parametros, p_inicial, p_final) = elabora_paginacao(request, vagas)
+
     else:
         # Avisa caso não exista nenhum processo em aberto
         if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
@@ -2998,9 +3067,9 @@ def busca_vagas(request):
                'causas': causas,
                'estados': estados,
                'vagas': vagas,
-               'get_params': get_params,
-               'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
+               'get_params': parametros,
+               'p_inicial': p_inicial,
+               'p_final': p_final}
     
     template = loader.get_template('vol/busca_vagas.html')
     return HttpResponse(template.render(context, request))
@@ -3367,6 +3436,27 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
     return HttpResponse(template.render(context, request))
 
 @login_required
+def convites_processo_seletivo(request, id_entidade, codigo_processo):
+    '''Visualização de convites para processo seletivo'''
+    try:
+        processo = ProcessoSeletivo.objects.select_related('entidade').get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+    if int(processo.entidade_id) not in request.user.entidades().values_list('pk', flat=True):
+        raise PermissionDenied
+
+    convites = processo.convites().order_by('voluntario__usuario__nome')
+
+    context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
+               'processo': processo,
+               'convites': convites,
+               'inscritos': list(processo.inscricoes_validas().values_list('voluntario_id', flat=True))}
+
+    template = loader.get_template('vol/convites_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
 @transaction.atomic
 def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
     '''Visualização e gerenciamento das inscrições de um processo seletivo'''
@@ -3596,3 +3686,62 @@ def observacoes_inscricao(request, id_inscricao):
 
     return JsonResponse({'observacoes': inscricao.obs_entidade,
                          'resumo': inscricao.obs_resumida()})
+
+@login_required
+def convites_voluntario(request):
+    '''Exibe lista de convites para o voluntário participar de processos seletivos'''
+    convites = ConviteProcessoSeletivo.objects.none()
+    if request.user.is_voluntario:
+        convites = ConviteProcessoSeletivo.objects.select_related('processo_seletivo', 'processo_seletivo__entidade').filter(voluntario=request.user.voluntario).order_by('-incluido_em')
+
+    tem_processo_aberto_a_inscricoes = False
+
+    for convite in convites:
+        if convite.processo_seletivo.aberto_a_inscricoes():
+            tem_processo_aberto_a_inscricoes = True
+            if convite.resposta is None:
+                messages.info(request, u'Lembre de responder a todos os convites que recebe. É uma maneira de dar satisfação à entidade e de demonstrar que você está dando atenção à dinâmica de voluntariado no site.')
+                break
+
+    context = {'convites': convites,
+               'tem_processo_aberto_a_inscricoes': tem_processo_aberto_a_inscricoes,
+               'resposta_a_convite': RESPOSTA_A_CONVITE}
+    template = loader.get_template('vol/convites_voluntario.html')
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@transaction.atomic
+def responder_convite(request):
+    '''Armazena resposta a convite.
+    Parâmetros POST:
+    id (id do convite),
+    value (código da resposta)
+    OBS: também requer o header X-CSRFToken'''
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    convite_id = request.POST.get('id')
+    value = request.POST.get('value')
+
+    if convite_id is None or value is None or value not in [opcao[0] for opcao in RESPOSTA_A_CONVITE] + [''] or not convite_id.isdigit():
+        return HttpResponseBadRequest('Parâmetros incorretos')
+
+    try:
+        convite = ConviteProcessoSeletivo.objects.select_related('processo_seletivo').get(pk=convite_id)
+    except ConviteProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    if request.user.voluntario.id != convite.voluntario_id:
+        raise PermissionDenied
+
+    if not convite.processo_seletivo.aberto_a_inscricoes():
+        raise PermissionDenied
+
+    if value == '':
+        value = None
+
+    convite.resposta = value
+    convite.save(update_fields=['resposta'])
+
+    return HttpResponse(status=200)

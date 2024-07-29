@@ -9,6 +9,7 @@ from django.db.models.signals import post_init
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.urls import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from notification.utils import notify_user_msg, notify_email_msg, notify_email
 from notification.models import Message, Event
@@ -100,3 +101,38 @@ def notifica_aprovacao_entidade(entidade):
         # Envia notificação para responsáveis pelo onboarding
         if hasattr(settings, 'ONBOARDING_TEAM_EMAIL'):
              notify_email(settings.ONBOARDING_TEAM_EMAIL, '\o/ Nova entidade aprovada!', 'Ei! O cadastro da entidade ' + entidade.menor_nome() + ' acaba de ser aprovado no Voluntários. Você está recebendo esse e-mail porque faz parte da equipe de boas-vindas. Use esse link para recepcionar a entidade: https://voluntarios.com.br' + reverse('onboarding_entidades'))
+
+def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
+    '''Determina variáveis de paginação para poder usar o template paginador.html'''
+    get_params = ''
+    pagina_inicial = pagina_final = None
+    paginador = Paginator(qs, registros_por_pagina)
+    pagina = request.GET.get('page')
+    try:
+        new_qs = paginador.page(pagina)
+    except PageNotAnInteger:
+        # Se a página não é um número inteiro, exibe a primeira
+        new_qs = paginador.page(1)
+    except EmptyPage:
+        # Se a página está fora dos limites (ex 9999), exibe a última
+        new_qs = paginador.page(paginador.num_pages)
+    pagina_atual = new_qs.number
+    intervalo = paginas_visiveis/2
+    pagina_inicial = pagina_atual - intervalo
+    pagina_final = pagina_atual + intervalo -1
+    if pagina_inicial <= 0:
+        pagina_final = pagina_final - pagina_inicial + 1
+        pagina_inicial = 1
+    if pagina_final > paginador.num_pages:
+        pagina_final = paginador.num_pages
+        pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
+
+    # Parâmetros GET
+    for k, v in request.GET.items():
+        if k in ('page', 'csrfmiddlewaretoken'):
+            continue
+        if len(get_params) > 0:
+            get_params += '&'
+        get_params += k + '=' + v
+
+    return (new_qs, get_params, pagina_inicial, pagina_final)

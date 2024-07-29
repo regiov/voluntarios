@@ -49,6 +49,7 @@ urlpatterns = [
 
     re_path(r'^voluntario/cadastro/?$', views.cadastro_voluntario, {'msg': None}, name='cadastro_voluntario'),
     re_path(r'^voluntario/termos/?$', views.termos_de_adesao_de_voluntario, name='termos_de_adesao_de_voluntario'),
+    re_path(r'^voluntario/convites/?$', views.convites_voluntario, name='convites_voluntario'),
 
     re_path(r'^voluntario/busca$', views.busca_voluntarios, name='busca_voluntarios'),
     re_path(r'^contato.htm$', views.busca_voluntarios),#old
@@ -188,6 +189,7 @@ urlpatterns = [
 
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/nova/?$', views.novo_processo_seletivo, name='novo_processo_seletivo'),
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/(?P<codigo_processo>[\d-]+)/inscricoes$', views.inscricoes_processo_seletivo, name='inscricoes_processo_seletivo'),
+    re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/(?P<codigo_processo>[\d-]+)/convites$', views.convites_processo_seletivo, name='convites_processo_seletivo'),
     re_path(r'^entidade/(?P<id_entidade>\d+)/selecao/(?P<codigo_processo>[\d-]+)/?$', views.editar_processo_seletivo, name='editar_processo_seletivo'),
     re_path(r'^inscricao/(?P<id_inscricao>\d+)/obs?$', views.observacoes_inscricao, name='observacoes_inscricao'),
 
@@ -195,8 +197,10 @@ urlpatterns = [
 
     re_path(r'^vaga/busca$', views.busca_vagas, name='busca_vagas'),
     re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/inscricao$', views.inscricao_processo_seletivo, name='inscricao_processo_seletivo'),
+    re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/alternar_convite/(?P<id_voluntario>\d+)$', views.alternar_convite, name='alternar_convite'),
     re_path(r'^vaga/(?P<codigo_processo>[\d-]+)/?$', views.exibe_processo_seletivo, name='exibe_processo_seletivo'),
     re_path(r'^classificar_inscricao$', views.classificar_inscricao, name='classificar_inscricao'),
+    re_path(r'^responder_convite$', views.responder_convite, name='responder_convite'),
 
 ]
 

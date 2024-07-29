@@ -1,0 +1,31 @@
+    {% if qs.paginator.num_pages > 1 %}
+    <br>
+    <div>
+      <span>
+      {% comment %}
+      O widget de paginação funciona como um visor que ajuda a navegar pelas páginas. Um resultado
+      com 21 páginas e um paginador configurado para exibir 5 páginas apareceria da seguinte forma
+      se ele iniciar na página 7:
+                        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
+                             <<  <  7 8 9 10 11 > >>
+                              |  |              |  |
+               vai p/ p.1 <---+  +-> p.6 p.12 <-+  +---> vai p/ p.21
+      Ou seja:
+      "<<": sempre volta para a primeira página. Só faz sentido exibir qdo o paginador iniciar de 3 em diante.
+      "<": vai para a página imediatamente anterior. Só faz sentido exibir qdo o paginador iniciar de 2 em diante.
+      ">>": sempre vai para a última página. Só faz sentido exibir qdo faltar exibir mais de 2 páginas no fim.
+      ">": vai para a página imediatamente posterior. Só faz sentido exibir qdo faltar pelo menos 1 página no fim.
+      {% endcomment %}
+      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ parametros }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}
+      {% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ parametros }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;
+      {% for p in qs.paginator.page_range %}
+        {% if p >= pagina_inicial and p <= pagina_final %}
+          {% if p == qs.number %}<b>{{p}}</b>{% comment %}página atual, não precisa de link{% endcomment %}
+          {% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
+          {% endif %}
+      {% endfor %}
+      {% if pagina_final < qs.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ parametros }}" rel="nofollow">&gt;</a>{% endif %}
+      {% if pagina_final < qs.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ qs.paginator.num_pages }}&amp;{{ parametros }}" rel="nofollow">&gt;&gt;</a>{% endif %}
+      </span>
+    </div>
+    {% endif %}

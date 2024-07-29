@@ -5,6 +5,7 @@
 {% url 'cadastro_voluntario' as cadastro_voluntario %}
 {% url 'termos_de_adesao_de_voluntario' as termos_de_adesao_de_voluntario %}
 {% url 'entidades_favoritas' as entidades_favoritas %}
+{% url 'convites_voluntario' as convites_voluntario %}
 {% url 'processos_seletivos_voluntario' as processos_seletivos_voluntario %}
 <section id="content">
   <div class="container">
@@ -28,6 +29,11 @@
 		<a href="{{ entidades_favoritas }}">
 		  <i class="fas fa-heart"></i>
 		  Entidades favoritas </a>
+	      </li>
+	      <li{% if request.path == convites_voluntario %} class="active"{% endif %}>
+		<a href="{{ convites_voluntario }}">
+		  <i class="fas fa-envelope"></i>
+		  Convites</a>
 	      </li>
 	      <li{% if request.path == processos_seletivos_voluntario %} class="active"{% endif %}>
 		<a href="{{ processos_seletivos_voluntario }}">
