@@ -158,6 +158,7 @@ class Command(BaseCommand):
         now = timezone.now().astimezone(current_tz)
 
         i = 0
+        j = 0
 
         for processo in processos_com_limite_aguardando_selecao:
 
@@ -167,11 +168,25 @@ class Command(BaseCommand):
 
             if intervalo_em_dias > 10:
 
-                if processo.inscricoes_validas().count() == 0:
+                num_inscricoes_validas = processo.inscricoes_validas().count()
+
+                if num_inscricoes_validas == 0:
 
                     # Não especifica responsável, indicando que foi transição automática
                     processo.concluir()
                     processo.save()
                     i = i + 1
+                else:
+
+                    num_selecionados = processo.selecionados().count()
+                    num_nao_selecionados = processo.nao_selecionados().count()
+
+                    if num_inscricoes_validas == num_selecionados + num_nao_selecionados:
+
+                        # Não especifica responsável, indicando que foi transição automática
+                        processo.concluir()
+                        processo.save()
+                        j = j + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) concluídos(s) por falta de inscrição.'))
+        self.stdout.write(self.style.NOTICE(str(j) + ' processo(s) seletivo(s) concluídos(s) tempo transcorrido após seleção de todos os candidatos.'))
