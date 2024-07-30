@@ -564,12 +564,12 @@ def alternar_convite(request, codigo_processo, id_voluntario):
         return HttpResponseNotAllowed(metodos)
 
     if not id_voluntario.isdigit():
-        raise SuspiciousOperation('Parâmetro id_voluntario inválido')
+        raise SuspiciousOperation('Parâmetro id_voluntario inválido.')
 
     try:
-        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+        processo = ProcessoSeletivo.objects.select_related('cidade', 'estado').get(codigo=codigo_processo)
         if not processo.aberto_a_inscricoes():
-            return HttpResponse('Este processo seletivo não está aberto a inscrições', status=409)
+            return HttpResponse('Este processo seletivo não está aberto a inscrições.', status=409)
         voluntario = Voluntario.objects.get(pk=id_voluntario)
     except ProcessoSeletivo.DoesNotExist:
         # Não usamos "raise Http404" para poder especificar outro texto no corpo da mensagem
@@ -579,24 +579,28 @@ def alternar_convite(request, codigo_processo, id_voluntario):
 
     # Não permite convite a voluntário não aprovado
     if not voluntario.aprovado:
-        return HttpResponse('Não é possível convidar um voluntário cujo cadastro ainda não foi revisado', status=403)
+        return HttpResponse('Não é possível convidar um voluntário cujo cadastro ainda não foi revisado.', status=403)
 
     # Não permite convite a voluntário "invisível"
     if voluntario.invisivel:
-        return HttpResponse('Este voluntário não deseja ser contatado', status=403)
+        return HttpResponse('Este voluntário não deseja ser contatado.', status=403)
 
     # Não permite ação em processo seletivo alheio
     if codigo_processo not in [p[0] for p in request.user.vagas_em_aberto]:
-        return HttpResponse('Você está sem permissão para enviar convites deste processo seletivo', status=403)
+        return HttpResponse('Você está sem permissão para enviar convites deste processo seletivo.', status=403)
 
     # Não permite nenhuma ação caso voluntário já esteja inscrito no processo
     if ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=processo, voluntario_id=id_voluntario).count() > 0:
-        return HttpResponse('Este voluntário já se inscreveu neste processo seletivo', status=409)
+        return HttpResponse('Este voluntário já se inscreveu neste processo seletivo.', status=409)
+
+    # Não permite convite se o voluntário for de outra cidade exigida no processo
+    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+        return HttpResponse('Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem ser convidados para esta vaga.', status=403)
 
     try:
         convite = ConviteProcessoSeletivo.objects.get(processo_seletivo=processo, voluntario=voluntario)
         if convite.enviado_em:
-            return HttpResponse('Já foi enviado um convite para este voluntário', status=409)
+            return HttpResponse(u'Já foi enviado um convite para este voluntário.', status=409)
         # Se convite já existe, desconvida
         convite.delete()
     except ConviteProcessoSeletivo.DoesNotExist:
