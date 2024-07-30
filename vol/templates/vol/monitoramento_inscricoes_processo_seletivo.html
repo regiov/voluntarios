@@ -18,7 +18,7 @@
   {% for inscricao in inscricoes %}
   <tr>
     <td>{{ inscricao.data_inscricao|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</td>
-    <td>{{ inscricao.voluntario.usuario.nome }}</td>
+    <td><a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}">{{ inscricao.voluntario.usuario.nome }}</a></td>
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade_str }}</td>
     <td>{{ inscricao.nome_status }}</td>
