@@ -1020,7 +1020,7 @@ class AreaTrabalhoEmProcessoSeletivoInline(admin.TabularInline):
 class ProcessoSeletivoAdmin(admin.ModelAdmin):
     '''Interface administrativa para processos seletivos'''
     list_display = ('titulo', 'entidade', 'inicio_inscricoes', 'limite_inscricoes', 'nome_status',)
-    fields = ['codigo', 'titulo', 'entidade', 'cadastrado_por', 'cadastrado_em', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
+    fields = ['codigo', 'titulo', 'entidade', 'cadastrado_por', 'cadastrado_em', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'somente_da_cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
     readonly_fields = ['codigo', 'cadastrado_por', 'cadastrado_em', 'entidade', 'estado', 'cidade', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
     inlines = [AreaTrabalhoEmProcessoSeletivoInline]
     
