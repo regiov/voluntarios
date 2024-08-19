@@ -1929,7 +1929,7 @@ class ProcessoSeletivo(models.Model):
         self.save(update_fields=['qtde_visualiza'])
 
     def ultima_notificacao_sobre_ausencia_de_inscricoes(self):
-        codigos = ['AVISO_AUSENCIA_INSCRICOES_V1']
+        codigos = ['AVISO_AUSENCIA_INSCRICOES_V1', 'AVISO_AUSENCIA_INSCRICOES_V2']
         avisos = Event.objects.filter(object_id=self.id, content_type=ContentType.objects.get_for_model(self).id, message__code__in=codigos).order_by('-creation')
         if len(avisos) > 0:
             return avisos[0].creation
@@ -2176,6 +2176,22 @@ class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
     avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
     anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
 
+# Sobre convites para processos seletivos, o que pode acontecer depois que um convite é enviado:
+#
+# Convite enviado
+#   ├ Não recebeu
+#   └ Recebeu
+#      ├ Não tem a ver (local longe, área sem relação, não preenche requisito, procura algo diferente)
+#      └ Tem a ver
+#          ├ Posso participar
+#          └ Não posso (não tenho tempo)
+#
+# Ou seja, aí vão algumas possibilidades de opções mais específicas de respostas:
+# * Legal, vou considerar
+# * Não preencho os requisitos
+# * Procuro algo diferente
+# * Não estou disponível no momento
+# * Não posso (outro motivo)
 RESPOSTA_A_CONVITE = (
     ('+','Vou considerar'),
     ('-','Não posso participar'),

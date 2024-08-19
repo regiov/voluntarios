@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
         i = 0
 
-        msg = Message.objects.get(code='AVISO_ENCERRAMENTO_INSCRICOES_SELECAO_V1')
+        msg = Message.objects.get(code='AVISO_ENCERRAMENTO_INSCRICOES_SELECAO_V2')
         for processo in processos_em_aberto:
             processo.encerrar_inscricoes()
             processo.save()
@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
         i = 0
 
-        msg = Message.objects.get(code='AVISO_INSCRICOES_INICIADAS_SELECAO_V1')
+        msg = Message.objects.get(code='AVISO_INSCRICOES_INICIADAS_SELECAO_V2')
         for processo in processos_nao_iniciados:
             processo.publicar()
             processo.save()
@@ -111,7 +111,7 @@ class Command(BaseCommand):
         ####################################################################
         processos_em_aberto = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
 
-        msg_ausencia_inscricoes = Message.objects.get(code='AVISO_AUSENCIA_INSCRICOES_V1')
+        msg_ausencia_inscricoes = Message.objects.get(code='AVISO_AUSENCIA_INSCRICOES_V2')
 
         now = timezone.now().astimezone(current_tz)
 
