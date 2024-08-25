@@ -5,7 +5,7 @@
 
 {% block content %}
 
-{% if not request.GET.Envia %}
+{% if num_vagas > 40 and not request.GET.Envia %}
 
 {% include "vol/mensagens.html" %}
 
@@ -79,21 +79,20 @@
 {% else %}
 
   {% if vagas|length > 0 %}
-    <h1>Vagas encontradas</h1>
+    <h1>Vagas {% if num_vagas > 40 %}encontradas{% else %}disponíveis{% endif %}</h1>
     <br>
     <div class="table-responsive">
     <table class="table table-striped table-condensed">
-    <thead><th>Vaga</th><th>Entidade</th><th>Causa</th><th>Área de trabalho na vaga</th><th>Modo de trabalho</th><th>Local</th><th>Inscrições</th></thead>
+    <thead><th>Vaga</th><th>Área de trabalho na vaga</th><th>Modo de trabalho</th><th>Local</th><th>Causa</th><th>Inscrições</th></thead>
     <tbody>
     {% for vaga in vagas %}
     {% with interesses=vaga.areainteresse_set.all %}
     <tr>
       <td><a href="{% url 'exibe_processo_seletivo' codigo_processo=vaga.codigo %}">{{ vaga.titulo}}</a></td>
-      <td>{{ vaga.entidade.razao_social }}</td>
-      <td>{{ vaga.entidade.area_atuacao.nome }}</td>
       <td>{{ vaga.areas_de_trabalho }}</td>
       <td>{{ vaga.nome_modo_trabalho }}</td>
       <td>{% if vaga.trabalho_remoto %}-{% else %}{{ vaga.cidade.nome }}-{{ vaga.estado.sigla }}{% endif %}</td>
+      <td>{{ vaga.entidade.area_atuacao.nome }}</td>
       <td>{{ vaga.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if vaga.limite_inscricoes %} a {{ vaga.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</td>
     </tr>
     {% endwith %}

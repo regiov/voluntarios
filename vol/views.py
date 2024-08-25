@@ -2993,10 +2993,15 @@ def busca_vagas(request):
     parametros = ''
     p_inicial = p_final = None
 
-    if 'Envia' in request.GET:
+    # Queryset apenas para vagas abertas a inscrições
+    vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
 
-        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
-        vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+    # Totaliza vagas disponíveis
+    num_vagas = vagas.count()
+
+    # Não exibe filtros caso a quantidade de vagas seja pequena (até duas páginas),
+    # para evitar muitas buscas com resultados vazios
+    if 'Envia' in request.GET or num_vagas < 41:
 
         # Filtro por modo de trabalho
         modo_trabalho = request.GET.get('modo_trabalho')
@@ -3014,7 +3019,7 @@ def busca_vagas(request):
 
         # Filtro por causa
         fasocial = request.GET.get('fasocial')
-        if fasocial.isdigit() and fasocial not in [0, '0']:
+        if fasocial and fasocial.isdigit() and fasocial not in [0, '0']:
             try:
                 causa = AreaAtuacao.objects.get(pk=fasocial)
                 if '.' in causa.indice:
@@ -3026,7 +3031,7 @@ def busca_vagas(request):
 
         # Filtro por profissão
         fareatrabalho = request.GET.get('fareatrabalho')
-        if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
+        if fareatrabalho and fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
             vagas = vagas.filter(areatrabalhoemprocessoseletivo__area_trabalho=fareatrabalho)
 
         # Filtro por palavras-chave
@@ -3054,7 +3059,7 @@ def busca_vagas(request):
 
     else:
         # Avisa caso não exista nenhum processo em aberto
-        if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
+        if num_vagas == 0:
             msg = u'Ops! No momento estamos sem nenhum processo seletivo em aberto. '
             lancamento = datetime.datetime.strptime("06/04/2024 18:30:00-0300", "%d/%m/%Y %H:%M:%S%z")
             current_tz = timezone.get_current_timezone()
@@ -3073,7 +3078,8 @@ def busca_vagas(request):
                'vagas': vagas,
                'get_params': parametros,
                'p_inicial': p_inicial,
-               'p_final': p_final}
+               'p_final': p_final,
+               'num_vagas': num_vagas}
     
     template = loader.get_template('vol/busca_vagas.html')
     return HttpResponse(template.render(context, request))
