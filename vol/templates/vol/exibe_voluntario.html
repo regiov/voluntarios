@@ -46,6 +46,21 @@
 {% endblock head %}
 
 {% block content %}
+{{seq}}
+{{total_voluntarios}}
+<div>
+  {% if seq|add:-1 > 0 %}
+      <a href="{% url 'busca_voluntarios' %}?seq={{ seq|add:-1 }}&{{ get_params }}" class="btn btn-primary">Anterior</a>
+  {% else %}
+      <span class="btn btn-primary disabled">Anterior</span>
+  {% endif %}
+
+  {% if seq|add:+1 < total_voluntarios %}
+      <a href="{% url 'busca_voluntarios' %}?seq={{ seq|add:1 }}&{{ get_params }}" class="btn btn-primary">Próximo</a>
+  {% else %}
+      <span class="btn btn-primary disabled">Próximo</span>
+  {% endif %}
+</div>
 
 <h2>{{ voluntario.usuario.nome }}</h2>
 <div class="registro">

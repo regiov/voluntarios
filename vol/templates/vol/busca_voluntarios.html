@@ -100,7 +100,7 @@
           {% for voluntario in voluntarios %}{% with interesses=voluntario.areainteresse_set.all %}
             <tr>
               <td>
-                <a href="{% url 'exibe_voluntario' voluntario.id %}" rel="nofollow">
+                <a href="{% url 'exibe_voluntario' voluntario.id %}?seq={{ voluntarios.start_index|add:forloop.counter0 }}&{{ get_params }}" rel="nofollow">
                   {{ voluntario.usuario.nome}}
                 </a>
               </td>
