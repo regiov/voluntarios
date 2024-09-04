@@ -389,80 +389,14 @@ def busca_voluntarios(request):
     total_voluntarios = 0
     get_params = ''
     pagina_inicial = pagina_final = None
-    
+
+    # Este parâmetro é usado para acessar um voluntário numa posição específica de uma busca
     seq = request.GET.get('seq')
 
-    if seq is not None:
-        try:
-            seq = int(seq) - 1
-        except ValueError:
-            return HttpResponseBadRequest("Parâmetro seq inválido")
-
-        voluntarios_query = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(
-            Q(invisivel=False) | Q(invisivel__isnull=True), aprovado=True)
-
-        fasocial = request.GET.get('fasocial')
-        if fasocial and fasocial.isdigit() and fasocial not in [0, '0']:
-            try:
-                area_interesse = AreaAtuacao.objects.get(pk=fasocial)
-                if '.' in area_interesse.indice:
-                    voluntarios_query = voluntarios_query.filter(areainteresse__area_atuacao=fasocial)
-                else:
-                    voluntarios_query = voluntarios_query.filter(
-                        Q(areainteresse__area_atuacao=fasocial) | Q(areainteresse__area_atuacao__indice__startswith=str(area_interesse.indice)+'.')
-                    )
-            except AreaAtuacao.DoesNotExist:
-                raise SuspiciousOperation(u'Área de Interesse inexistente')
-
-        fcidade = request.GET.get('fcidade')
-        if fcidade:
-            fcidade = fcidade.strip()
-            if len(fcidade) > 0:
-                if 'boxexato' in request.GET:
-                    voluntarios_query = voluntarios_query.filter(cidade__unaccent__iexact=fcidade)
-                else:
-                    voluntarios_query = voluntarios_query.filter(cidade__unaccent__icontains=fcidade)
-
-        fareatrabalho = request.GET.get('fareatrabalho')
-        if fareatrabalho and fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
-            voluntarios_query = voluntarios_query.filter(area_trabalho=fareatrabalho)
-
-        fpalavras = request.GET.get('fpalavras')
-        if fpalavras:
-            ids = Voluntario.objects.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct('pk')
-            voluntarios_query = voluntarios_query.filter(pk__in=ids)
-
-        atualiza = request.GET.get('atualiza')
-        if atualiza and atualiza.isdigit():
-            atualiza = int(atualiza)
-            if atualiza in [5, 3, 2, 1]:
-                now = datetime.datetime.now()
-                year = datetime.timedelta(days=365)
-                ref = now - atualiza * year
-                voluntarios_query = voluntarios_query.filter(ultima_atualizacao__date__gt=ref.date())
-
-        ordem = request.GET.get('ordem', 'nome')
-        if ordem == 'trabalho':
-            voluntarios_query = voluntarios_query.order_by('area_trabalho__nome', 'usuario__nome')
-        else:
-            voluntarios_query = voluntarios_query.order_by('usuario__nome', 'area_trabalho__nome')
-
-        try:
-            voluntario = voluntarios_query[seq]
-        except IndexError:
-            return HttpResponseBadRequest("Voluntário não encontrado")
-
-        total_voluntarios = voluntarios_query.count()
-
-        context = {
-            'voluntario': voluntario,
-            'seq': seq + 1,
-            'total_voluntarios': total_voluntarios,
-            'get_params': get_params
-        }
-        return render(request, 'vol/exibe_voluntario.html', context)
-
-    if 'Envia' in request.GET:
+    # Os filtros são necessários quando o usuário submete uma busca ou quando
+    # precisamos acessar um voluntário numa posição específica na busca (através
+    # dos botões anterior/próximo na página de detalhe do voluntário)
+    if 'Envia' in request.GET or seq is not None:
 
         # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
         voluntarios = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(Q(invisivel=False) | Q(invisivel__isnull=True), aprovado=True)
@@ -523,9 +457,33 @@ def busca_voluntarios(request):
             voluntarios = voluntarios.order_by('usuario__nome', 'area_trabalho__nome')
         #else: # interesse
         #    voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
-        
+
         total_voluntarios = voluntarios.count()
 
+        # Caso seja necessário apenas acessar um voluntário numa posição específica
+        if seq is not None:
+            try:
+                seq = int(seq) - 1
+            except ValueError:
+                return HttpResponseBadRequest("Parâmetro seq inválido")
+
+            try:
+                voluntario = voluntarios[seq]
+            except IndexError:
+                return HttpResponseBadRequest("Voluntário não encontrado")
+
+            # Exibe o voluntário
+            context = {
+                'voluntario': voluntario,
+                'seq': seq + 1,
+                'total_voluntarios': total_voluntarios,
+                'get_params': get_params
+                }
+            return render(request, 'vol/exibe_voluntario.html', context)
+
+        # Caso contrário, prosseguimos com o resultado da busca em
+        # forma de tabela com paginação
+        
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página
         pagina = request.GET.get('page')
