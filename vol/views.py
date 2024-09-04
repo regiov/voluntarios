@@ -388,6 +388,78 @@ def busca_voluntarios(request):
     voluntarios = None
     get_params = ''
     pagina_inicial = pagina_final = None
+    
+    seq = request.GET.get('seq')
+
+    if seq is not None:
+        try:
+            seq = int(seq) - 1
+        except ValueError:
+            return HttpResponseBadRequest("Parâmetro seq inválido")
+
+        voluntarios_query = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(
+            Q(invisivel=False) | Q(invisivel__isnull=True), aprovado=True)
+
+        fasocial = request.GET.get('fasocial')
+        if fasocial and fasocial.isdigit() and fasocial not in [0, '0']:
+            try:
+                area_interesse = AreaAtuacao.objects.get(pk=fasocial)
+                if '.' in area_interesse.indice:
+                    voluntarios_query = voluntarios_query.filter(areainteresse__area_atuacao=fasocial)
+                else:
+                    voluntarios_query = voluntarios_query.filter(
+                        Q(areainteresse__area_atuacao=fasocial) | Q(areainteresse__area_atuacao__indice__startswith=str(area_interesse.indice)+'.')
+                    )
+            except AreaAtuacao.DoesNotExist:
+                raise SuspiciousOperation(u'Área de Interesse inexistente')
+
+        fcidade = request.GET.get('fcidade')
+        if fcidade:
+            fcidade = fcidade.strip()
+            if len(fcidade) > 0:
+                if 'boxexato' in request.GET:
+                    voluntarios_query = voluntarios_query.filter(cidade__unaccent__iexact=fcidade)
+                else:
+                    voluntarios_query = voluntarios_query.filter(cidade__unaccent__icontains=fcidade)
+
+        fareatrabalho = request.GET.get('fareatrabalho')
+        if fareatrabalho and fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
+            voluntarios_query = voluntarios_query.filter(area_trabalho=fareatrabalho)
+
+        fpalavras = request.GET.get('fpalavras')
+        if fpalavras:
+            ids = Voluntario.objects.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct('pk')
+            voluntarios_query = voluntarios_query.filter(pk__in=ids)
+
+        atualiza = request.GET.get('atualiza')
+        if atualiza and atualiza.isdigit():
+            atualiza = int(atualiza)
+            if atualiza in [5, 3, 2, 1]:
+                now = datetime.datetime.now()
+                year = datetime.timedelta(days=365)
+                ref = now - atualiza * year
+                voluntarios_query = voluntarios_query.filter(ultima_atualizacao__date__gt=ref.date())
+
+        ordem = request.GET.get('ordem', 'nome')
+        if ordem == 'trabalho':
+            voluntarios_query = voluntarios_query.order_by('area_trabalho__nome', 'usuario__nome')
+        else:
+            voluntarios_query = voluntarios_query.order_by('usuario__nome', 'area_trabalho__nome')
+
+        try:
+            voluntario = voluntarios_query[seq]
+        except IndexError:
+            return HttpResponseBadRequest("Voluntário não encontrado")
+
+        total_voluntarios = voluntarios_query.count()
+
+        context = {
+            'voluntario': voluntario,
+            'seq': seq + 1,
+            'total_voluntarios': total_voluntarios,
+            'get_params': get_params
+        }
+        return render(request, 'vol/exibe_voluntario.html', context)
 
     if 'Envia' in request.GET:
 
@@ -450,6 +522,8 @@ def busca_voluntarios(request):
             voluntarios = voluntarios.order_by('usuario__nome', 'area_trabalho__nome')
         #else: # interesse
         #    voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
+        
+        total_voluntarios = voluntarios.count()
 
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página
@@ -486,8 +560,9 @@ def busca_voluntarios(request):
                'voluntarios': voluntarios,
                'get_params': get_params,
                'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
-    
+               'pagina_final': pagina_final,
+               'total_voluntarios': total_voluntarios}
+     
     template = loader.get_template('vol/busca_voluntarios.html')
     return HttpResponse(template.render(context, request))
 
@@ -535,13 +610,18 @@ def exibe_voluntario(request, id_voluntario):
         ultima_vaga_em_convite = None
         request.session['ultima_vaga_em_convite'] = None
 
+    seq = request.GET.get('seq')
+    get_params = request.GET.get('get_params')
+
     context = {'voluntario': voluntario,
                'agora': now,
                'areas_de_interesse': areas_de_interesse,
                'vagas_em_aberto': vagas_em_aberto,
                'vagas_com_convite': vagas_com_convite,
                'vagas_com_inscricao': vagas_com_inscricao,
-               'ultima_vaga_em_convite': ultima_vaga_em_convite}
+               'ultima_vaga_em_convite': ultima_vaga_em_convite,
+               'seq': seq,
+               'get_params': get_params}
     template = loader.get_template('vol/exibe_voluntario.html')
     return HttpResponse(template.render(context, request))
 
