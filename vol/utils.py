@@ -5,6 +5,8 @@
 # Como as rotinas aqui são usadas pelo models.py, não se pode importar modelos em novas rotinas pois dá erro.
 #
 
+import urllib.parse
+
 from django.db.models.signals import post_init
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -102,9 +104,18 @@ def notifica_aprovacao_entidade(entidade):
         if hasattr(settings, 'ONBOARDING_TEAM_EMAIL'):
              notify_email(settings.ONBOARDING_TEAM_EMAIL, '\o/ Nova entidade aprovada!', 'Ei! O cadastro da entidade ' + entidade.menor_nome() + ' acaba de ser aprovado no Voluntários. Você está recebendo esse e-mail porque faz parte da equipe de boas-vindas. Use esse link para recepcionar a entidade: https://voluntarios.com.br' + reverse('onboarding_entidades'))
 
+def monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken']):
+    '''Monta query string para ser usada em URLs a partir dos parâmetros GET,
+    excluindo parâmetros especificados'''
+    params = request.GET.copy()
+    for key in excluir:
+        if key in params:
+            del params[key]
+    return urllib.parse.urlencode(params)
+
 def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
     '''Determina variáveis de paginação para poder usar o template paginador.html'''
-    get_params = ''
+    get_params = monta_query_string(request)
     pagina_inicial = pagina_final = None
     paginador = Paginator(qs, registros_por_pagina)
     pagina = request.GET.get('page')
@@ -126,13 +137,5 @@ def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10)
     if pagina_final > paginador.num_pages:
         pagina_final = paginador.num_pages
         pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-
-    # Parâmetros GET
-    for k, v in request.GET.items():
-        if k in ('page', 'csrfmiddlewaretoken'):
-            continue
-        if len(get_params) > 0:
-            get_params += '&'
-        get_params += k + '=' + v
 
     return (new_qs, get_params, pagina_inicial, pagina_final)
