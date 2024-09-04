@@ -99,7 +99,7 @@
 
   <span class="dica" style="font-weight:300;margin-left:5px;margin-right:5px;">{{ seq }} de {{ total_voluntarios }}</span>
 
-  {% if seq|add:1 < total_voluntarios|add:0 %}
+  {% if seq|add:0 < total_voluntarios|add:0 %}
       <a href="{% url 'busca_voluntarios' %}?seq={{ seq|add:1 }}&{{ get_params }}" class="btn btn-primary">Próximo</a>
   {% else %}
       <span class="btn btn-primary disabled">Próximo</span>
