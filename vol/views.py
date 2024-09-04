@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario, elabora_paginacao
+from .utils import notifica_aprovacao_voluntario, elabora_paginacao, monta_query_string
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -473,13 +473,7 @@ def busca_voluntarios(request):
                 return HttpResponseBadRequest("Voluntário não encontrado")
 
             # Exibe o voluntário
-            context = {
-                'voluntario': voluntario,
-                'seq': seq + 1,
-                'total_voluntarios': total_voluntarios,
-                'get_params': get_params
-                }
-            return render(request, 'vol/exibe_voluntario.html', context)
+            return exibe_voluntario(request, str(voluntario.id), seq=seq + 1, total_voluntarios=total_voluntarios)
 
         # Caso contrário, prosseguimos com o resultado da busca em
         # forma de tabela com paginação
@@ -526,7 +520,7 @@ def busca_voluntarios(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def exibe_voluntario(request, id_voluntario):
+def exibe_voluntario(request, id_voluntario, seq=None, total_voluntarios=None):
     '''Página para exibir detalhes de um voluntário. Importante: mesmo que o voluntário tenha marcado
     que não quer aparecer em buscas, a página dele precisa ser exibida quando solicitada, pois ele
     pode se inscrever em vagas e as entidades precisam acessar as informações dele para contato.'''
@@ -569,8 +563,13 @@ def exibe_voluntario(request, id_voluntario):
         ultima_vaga_em_convite = None
         request.session['ultima_vaga_em_convite'] = None
 
-    seq = request.GET.get('seq')
-    get_params = request.GET.get('get_params')
+    # Caso a view não tenha sido chamada diretamente por outra view, tenta pegar
+    # os parâmetros da query string
+    if seq is None and total_voluntarios is None:
+        seq = request.GET.get('seq')
+        total_voluntarios = request.GET.get('total_voluntarios')
+
+    get_params = monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken', 'seq'])
 
     context = {'voluntario': voluntario,
                'agora': now,
@@ -580,6 +579,7 @@ def exibe_voluntario(request, id_voluntario):
                'vagas_com_inscricao': vagas_com_inscricao,
                'ultima_vaga_em_convite': ultima_vaga_em_convite,
                'seq': seq,
+               'total_voluntarios': total_voluntarios,
                'get_params': get_params}
     template = loader.get_template('vol/exibe_voluntario.html')
     return HttpResponse(template.render(context, request))
