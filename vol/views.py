@@ -633,7 +633,7 @@ def alternar_convite(request, codigo_processo, id_voluntario):
         return HttpResponse('Este voluntário já se inscreveu neste processo seletivo.', status=409)
 
     # Não permite convite se o voluntário for de outra cidade exigida no processo
-    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome != voluntario.cidade:
+    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome.lower() != voluntario.cidade.lower():
         return HttpResponse('Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem ser convidados para esta vaga.', status=403)
 
     try:
