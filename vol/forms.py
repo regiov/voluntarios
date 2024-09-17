@@ -727,7 +727,7 @@ class FormProcessoSeletivo(forms.ModelForm):
                              max_length=100,
                              widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}))
     resumo_entidade = forms.CharField(label=u'Resumo sobre a entidade',
-                                      max_length=100,
+                                      max_length=600,
                                       widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
     modo_trabalho = forms.ChoiceField(label=u'Modo de trabalho',
                                       choices=[('', u'-- Escolha uma opção --')] + list(MODO_TRABALHO),
