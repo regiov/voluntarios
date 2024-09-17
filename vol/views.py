@@ -2409,7 +2409,17 @@ def monitoramento_processos_seletivos(request):
     processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao'),
                                                   convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
 
-    context = {'processos': processos}
+    # Filtro por status de processo seletivo feito através do
+    # parâmetro GET 'status' contendo o código do status
+    opcoes_status = StatusProcessoSeletivo.opcoes()
+
+    if request.method == 'GET' and 'status' in request.GET:
+        status = request.GET['status']
+        if status.isdigit() and int(status) in opcoes_status:
+            processos = processos.filter(status=int(status))
+
+    context = {'opcoes_status': opcoes_status,
+               'processos': processos}
 
     template = loader.get_template('vol/monitoramento_processos_seletivos.html')
     

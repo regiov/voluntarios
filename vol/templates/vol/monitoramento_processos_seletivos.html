@@ -8,10 +8,31 @@
 
 {% include "vol/mensagens.html" %}
 
-{% if processos|length > 0 %}
+{% if processos|length > 0 or 'status' in request.GET %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th></th><th>Título/Entidade</th><th>Modo</th><th>Status</th><th>Inscrições</th><th>Visualizações</th><th>Convites</th><th>Inscritos</th><th>Selecionados</th><th>Não selecionados</th></thead>
+    <thead>
+      <tr>
+        <th></th>
+        <th style="vertical-align: top;">Título/Entidade</th>
+        <th style="vertical-align: top;">Modo</th>
+        <th style="vertical-align: top;">
+	  Status<br/>
+	  <select id="status" name="status" class="dica">
+	    <option value="todos"{% if request.GET.status == 'todos' or not request.GET.status %} selected{% endif %}>todos</option>
+            {% for cod, nome in opcoes_status.items %}
+	    <option value="{{ cod }}"{% if request.GET.status == cod|stringformat:"i" %} selected{% endif %}>{{ nome }}</option>
+	    {% endfor %}
+	  </select>
+        </th>
+        <th style="vertical-align: top;">Inscrições</th>
+        <th style="vertical-align: top;">Visualizações</th>
+        <th style="vertical-align: top;">Convites</th>
+        <th style="vertical-align: top;">Inscritos</th>
+        <th style="vertical-align: top;">Selecionados</th>
+        <th style="vertical-align: top;">Não selecionados</th>
+      </tr>
+    </thead>
   <tbody>
   {% for processo in processos %}
   {% with num_inscricoes_validas=processo.inscricoes_validas.count %}
@@ -51,3 +72,15 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block post_footer %}
+
+  <script type="text/javascript">
+
+    document.getElementById('status').onchange = function() {
+        window.location = "{% url 'monitoramento_processos_seletivos' %}?status=" + this.value;
+    };
+
+  </script>
+
+{% endblock post_footer %}

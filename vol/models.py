@@ -1732,6 +1732,17 @@ class StatusProcessoSeletivo(object):
             return u'Cancelado'
         return '?'
 
+    @classmethod
+    def opcoes(cls):
+        '''Retorna todas as opções de status sob a forma de um dicionário {código -> nome status}'''
+        dicionario = {}
+        for atributo in StatusProcessoSeletivo.__dict__.keys():
+            if atributo[:2] != '__':
+                valor = getattr(StatusProcessoSeletivo, atributo)
+                if not callable(valor):
+                    dicionario[valor] = StatusProcessoSeletivo.nome(valor)
+        return dicionario
+
 def codigo_aleatorio_processo_seletivo():
     return codigo_aleatorio('ProcessoSeletivo')
 
