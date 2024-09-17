@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h2 class="margin-bottom">Processos seletivos cadastrados</h2>
+<h2 class="margin-bottom">Processos seletivos cadastrados<span class="dica pull-right">ordenar por: <select id="ordem" name="ordem" class="dica"><option value="recente"{% if request.GET.ordem == 'recente' or not request.GET.ordem %} selected{% endif %}>mais recentes</option><option value="entidade"{% if request.GET.ordem == 'entidade' %} selected{% endif %}>nome da entidade</option></select></span></h2>
 
 {% include "vol/mensagens.html" %}
 
@@ -77,8 +77,12 @@
 
   <script type="text/javascript">
 
+    document.getElementById('ordem').onchange = function() {
+        window.location = "{% url 'monitoramento_processos_seletivos' %}?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}ordem=" + this.value;
+    };
+
     document.getElementById('status').onchange = function() {
-        window.location = "{% url 'monitoramento_processos_seletivos' %}?status=" + this.value;
+        window.location = "{% url 'monitoramento_processos_seletivos' %}?{% if request.GET.ordem %}ordem={{ request.GET.ordem }}&{% endif %}status=" + this.value;
     };
 
   </script>

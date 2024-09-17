@@ -2407,7 +2407,15 @@ def monitoramento_processos_seletivos(request):
     '''Página para monitorar todos os processos seletivos cadastrados'''
 
     processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao'),
-                                                  convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
+                                                  convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all()
+
+    # A ordenação é controlada pelo parâmetro GET 'ordem', que pode ter os valores:
+    # 'recente': ordem decrescente de cadastro
+    # 'entidade': ordem crescente de razão social da entidade
+    if request.method == 'GET' and 'ordem' in request.GET and request.GET['ordem'] == 'entidade':
+        processos = processos.order_by('entidade__razao_social', 'cadastrado_em')
+    else:
+        processos = processos.order_by('-cadastrado_em')
 
     # Filtro por status de processo seletivo feito através do
     # parâmetro GET 'status' contendo o código do status
