@@ -2227,6 +2227,9 @@ def painel(request):
     # Total de processos seletivos aguardando revisão
     total_procs_revisao = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).count()
 
+    # Total de processos seletivos abertos a inscrição
+    total_procs_abertos = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count()
+
     # Total de processos seletivos
     total_procs = ProcessoSeletivo.objects.filter().count()
 
@@ -2316,6 +2319,7 @@ def painel(request):
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'total_procs_revisao': total_procs_revisao,
+               'total_procs_abertos': total_procs_abertos,
                'total_procs': total_procs,
                'total_procs_pessoal': total_procs_pessoal,
                'tarefas': tarefas,

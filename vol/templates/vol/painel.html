@@ -11,6 +11,8 @@
 
 <h3>Aguardando revisão: <span style="margin-left:15px;">{% if total_procs_revisao %}<a href="{% url 'revisao_processos_seletivos' %}">{{ total_procs_revisao }}</a>{% else %}{{ total_procs_revisao }}{% endif %}</span></h3>
 
+<h3>Abertos a inscrições: <span style="margin-left:15px;"><a href="{% url 'busca_vagas' %}">{{ total_procs_abertos }}</a></span></h3>
+
 <h3>Cadastrados: <span style="margin-left:15px;">{% if total_procs %}<a href="{% url 'monitoramento_processos_seletivos' %}">{{ total_procs }}</a>{% else %}{{ total_procs }}{% endif %}</span></h3>
 
 <br/>
