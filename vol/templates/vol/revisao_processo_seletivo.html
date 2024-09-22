@@ -3,6 +3,19 @@
 
 {% block title %}Processo seletivo{% endblock title %}
 
+{% block head %}
+<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}">
+</script>
+{% comment %}É esse código que acrescenta os ícones de edição no formset{% endcomment %}
+<script type="text/javascript">
+
+    $(function() {
+        $('.formset').formset({deleteText: 'remover', addText: 'incluir outra área'});
+    });
+
+</script>
+{% endblock head %}
+
 {% block content %}
 
 <h1 class="margin-bottom">Processo seletivo aguardando revisão</h1>
@@ -22,7 +35,7 @@
     {% include "vol/campo_formulario.html" with campo=form.cidade required=False div_id="cidade" invisible=form.instance.trabalho_remoto %}
     {% include "vol/campo_formulario.html" with campo=form.somente_da_cidade div_id="somente_da_cidade" invisible=form.instance.trabalho_remoto after_field="Restringir inscrições a candidatos desta cidade" %}
 
-    <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
+    <div class="form-group required{% if area_trabalho_formset.non_form_errors %} has-error{% endif %}">
       <label for="id_area_trabalho" class="nowrap">* Área de trabalho na vaga</label>
       <table border="0" cellpadding="0" cellspacing="0">
         <tbody>

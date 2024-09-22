@@ -2357,42 +2357,74 @@ def revisao_processo_seletivo(request, codigo_processo):
 
     try:
 
+        FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, max_num=10, min_num=1, validate_min=True, can_delete=True)
+
         if request.method == 'POST':
             if 'aprovar' in request.POST:
                 qs = ProcessoSeletivo.objects.select_for_update().filter(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
                 with transaction.atomic():
                     for processo in qs:
-                        if processo.inscricoes_encerradas():
-                            messages.error(request, u'As inscrições para este processo já estão encerradas! Entre em contato com a entidade para atualizar as datas.')
-                        else:
-                            if processo.inscricoes_nao_iniciadas():
-                                processo.aprovar(by=request.user)
+                        form = FormProcessoSeletivo(request.POST, instance=processo)
+                        area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
+
+                        areas_preexistentes = list(AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).values_list('area_trabalho', flat=True))
+
+                        if form.is_valid() and area_trabalho_formset.is_valid():
+
+                            proc = form.save()
+
+                            areas_incluidas = []
+                            areas_selecionadas = []
+                            for area_trabalho_form in area_trabalho_formset:
+                                area_trabalho = area_trabalho_form.cleaned_data.get('area_trabalho')
+                                if area_trabalho:
+                                    areas_selecionadas.append(area_trabalho.id)
+                                    if area_trabalho.id not in areas_preexistentes and area_trabalho.id not in areas_incluidas:
+                                        areas_incluidas.append(area_trabalho.id)
+                                        area = AreaTrabalhoEmProcessoSeletivo(area_trabalho=area_trabalho,
+                                                                              processo_seletivo=processo)
+                                        area.save()
+                                    else:
+                                        # Ignora duplicidades e áreas já salvas
+                                        pass
+                                else:
+                                    # Ignora combos vazios
+                                    pass
+                            # Apaga áreas removidas
+                            for area_preexistente in areas_preexistentes:
+                                if area_preexistente not in areas_selecionadas:
+                                    try:
+                                        r_area = AreaTrabalhoEmProcessoSeletivo.objects.get(area_trabalho=area_preexistente, processo_seletivo=processo)
+                                        r_area.delete()
+                                    except AreaTrabalhoEmProcessoSeletivo.DoesNotExist:
+                                        pass
+                        
+                            if proc.inscricoes_encerradas():
+                                messages.error(request, u'As inscrições para este processo já estão encerradas!? Providencie a alteração nas datas.')
                             else:
-                                processo.aprovar_e_publicar(by=request.user)
-                            processo.save()
-                            return redirect(reverse('revisao_processos_seletivos'))
+                                if proc.inscricoes_nao_iniciadas():
+                                    proc.aprovar(by=request.user)
+                                    messages.info(request, u'Processo salvo e aprovado!')
+                                else:
+                                    proc.aprovar_e_publicar(by=request.user)
+                                    messages.info(request, u'Processo salvo, aprovado e publicado!')
+                                proc.save()
+                                return redirect(reverse('revisao_processos_seletivos'))
             else:
                 return redirect(reverse('painel'))
-        else:
+
+        else: # GET
             
             processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
-            messages.info(request, u'Atenção: Caso seja detectado qualquer problema nos dados desta vaga, entre em contato com a entidade para solicitar a correção (link com dados para contato logo abaixo) e avise no grupo Voluntários sobre isso para evitar que outra pessoa aprove a vaga enquanto o problema não for corrigido.')
-                
+            messages.info(request, u'Atenção: Se necessário, faça apenas pequenos ajustes (correções ortográficas, remoção de caixa alta, etc.) Em caso de querer fazer alterações significativas, melhor entrar em contato ou com a própria entidade (link com dados para contato logo abaixo) ou com pessoas mais experientes no Voluntários.')
+
+            form = FormProcessoSeletivo(instance=processo)
+            area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+
     except ProcessoSeletivo.DoesNotExist:
         messages.error(request, u'Este processo não existe ou já foi revisado...')
         return redirect(reverse('painel'))
 
-    # Em princípio, vamos deixar tudo desabilitado. Se houver algum problema será preciso
-    # entrar em contato com a entidade para que ela faça a alteração. Futuramente podemos pensar
-    # em permitir alterações na revisão ou então em criar um status novo "aguardando revisão", mas
-    # antes de complicar vamos tentar a solução mais simples.
-    form = FormProcessoSeletivo(instance=processo, disabled=True)
-
-    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, min_num=1, validate_min=True, can_delete=False)
-    area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
-    for subform in area_trabalho_formset:
-        subform.disable()
-        
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,
                'processo': processo}
