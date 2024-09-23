@@ -293,6 +293,7 @@ class Voluntario(models.Model):
     # tabelas cidade e estado.
     estado                = models.CharField(u'Estado', max_length=100)
     cidade                = models.CharField(u'Cidade', max_length=100)
+    bairro                = models.CharField(u'Bairro', max_length=60, null=True, blank=True) 
     empregado             = models.BooleanField(u'Empregado', null=True, blank=True)
     empresa               = models.CharField(u'Empresa', max_length=100, null=True, blank=True)
     foi_voluntario        = models.BooleanField(u'Foi voluntário', default=False)
