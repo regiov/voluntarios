@@ -10,13 +10,13 @@
 
 {% if processos|length > 0 or 'status' in request.GET %}
   <div class="table-responsive">
-  <table class="table table-striped table-condensed">
+  <table id="monitoramento" class="table table-striped table-condensed">
     <thead>
       <tr>
         <th></th>
-        <th style="vertical-align: top;">Título/Entidade</th>
-        <th style="vertical-align: top;">Modo</th>
-        <th style="vertical-align: top;">
+        <th>Título/Entidade</th>
+        <th>Modo</th>
+        <th>
 	  Status<br/>
 	  <select id="status" name="status" class="dica">
 	    <option value="todos"{% if request.GET.status == 'todos' or not request.GET.status %} selected{% endif %}>todos</option>
@@ -25,12 +25,12 @@
 	    {% endfor %}
 	  </select>
         </th>
-        <th style="vertical-align: top;">Inscrições</th>
-        <th style="vertical-align: top;">Visualizações</th>
-        <th style="vertical-align: top;">Convites</th>
-        <th style="vertical-align: top;">Inscritos</th>
-        <th style="vertical-align: top;">Selecionados</th>
-        <th style="vertical-align: top;">Não selecionados</th>
+        <th>Inscrições</th>
+        <th>Visualizações</th>
+        <th>Convites</th>
+        <th>Inscritos</th>
+        <th>Selecionados</th>
+        <th>Não selecionados</th>
       </tr>
     </thead>
   <tbody>
@@ -39,7 +39,7 @@
   <tr>
     <td><a href="mailto:{{ processo.cadastrado_por.email }}"><i class="fas fa-envelope" title="Enviar e-mail para {{ processo.cadastrado_por.nome }}"></i></a></td>
     <td>{% if processo.aberto_a_inscricoes %}<a href="{% url 'exibe_processo_seletivo' codigo_processo=processo.codigo %}">{{ processo.titulo }}</a>{% else %}{{ processo.titulo }}{% endif %}<br/>
-        <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}">{{ processo.entidade.menor_nome }}</a><br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
+        <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}"><i class="fas fa-house home" title="Página da entidade"></i> {{ processo.entidade.menor_nome }}</a><br/><i class="fas fa-eye dica" title="último acesso à página de gerenciamento dos processos seletivos" style="color: grey"> {{ processo.entidade.ultimo_acesso_proc|date:'SHORT_DATETIME_FORMAT'|default:'-' }}</i></td>
     <td>{{ processo.nome_modo_trabalho }}{% if processo.estado or processo.cidade %}<br/>{{ processo.cidade.nome }}-{{ processo.estado.sigla }}{% endif %}</td>
     <td{% if processo.aberto_a_inscricoes %} style="font-weight: 400;"{% else %}{% if processo.cancelado %} style="text-decoration: line-through;"{% endif %}{% endif %}>{% if processo.concluido %}[{{ processo.nome_status }}]{% else %}{{ processo.nome_status }}{% endif %}{% if processo.aguardando_selecao %}...{% endif %}</td>
     <td>{{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a <span{% if processo.dias_para_encerramento_inscricoes < 15 %} style="font-weight: 400;"{% endif %}>{{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}<span>{% else %} sem limite{% endif %}</td>
