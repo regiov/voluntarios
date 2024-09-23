@@ -76,7 +76,7 @@ class FormVoluntario(forms.ModelForm):
     bairro = forms.CharField(label=u'Bairro',
                              max_length=60,
                              widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
-                             help_text="",
+                             help_text="Recomendamos preencher o bairro, especialmente em grande cidades",
                              required=False)
     profissao = forms.CharField(label=u'Profissão',
                                 max_length=100,
