@@ -73,6 +73,11 @@ class FormVoluntario(forms.ModelForm):
     cidade = forms.ChoiceField(label=u'Cidade em que reside',
                                widget=forms.Select(attrs={'class': 'form-control'}),
                                choices=[]) # definido via init para validação. No form é carregado via ajax.
+    bairro = forms.CharField(label=u'Bairro',
+                             max_length=60,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
+                             help_text="",
+                             required=False)
     profissao = forms.CharField(label=u'Profissão',
                                 max_length=100,
                                 widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
@@ -140,7 +145,7 @@ class FormVoluntario(forms.ModelForm):
 
     class Meta:
         model = Voluntario
-        fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone", "empregado",
+        fields = ("data_aniversario", "estado", "cidade", "bairro", "profissao", "ddd", "telefone", "empregado",
                   "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho",
                   "area_interesse", "ciente_autorizacao", "invisivel")
 
@@ -164,6 +169,9 @@ class FormVoluntario(forms.ModelForm):
         if not val:
             raise forms.ValidationError(u'É obrigatório informar a data de nascimento.')
         return val
+
+    def clean_bairro(self):
+        return self.cleaned_data['bairro'].strip()
 
     def clean_profissao(self):
         val = self.cleaned_data['profissao'].strip()

@@ -55,8 +55,8 @@
 <p><label>Profissão:</label> {{ voluntario.profissao|default:"-" }}</p>
 <p><label>E-mail:</label> {{ voluntario.usuario.email|default:"-" }}</p>
 <p><label>Telefone:</label> {% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}{% else %}-{% endif %}</p>
-<p><label>Cidade:</label> {{ voluntario.cidade|default:"-" }}</p>
-<p><label>Estado:</label> {{ voluntario.estado|default:"-" }}</p>
+<p><label>Cidade:</label> {{ voluntario.cidade|default:"-" }}{% if voluntario.estado %} / {{ voluntario.estado }}{% endif %}</p>
+{% if voluntario.bairro %}<p><label>Bairro:</label> {{ voluntario.bairro }}</p>{% endif %}
 <p><label>Área{% if areas_de_interesse.count > 1 %}s{% endif %} em que gostaria de voluntariar:</label> {% if areas_de_interesse.count == 0 %}-{% else %}{% for area_de_interesse in areas_de_interesse %}{% if forloop.counter0 > 0 %}, {% endif %}{{ area_de_interesse.area_atuacao.nome }}{% endfor %}{% endif %}</p>
 {% if voluntario.foi_voluntario != None %}
 <p><label>Já fez trabalho voluntário:</label> {% if voluntario.foi_voluntario %}sim{% if voluntario.entidade_que_ajudou %} <br/><label>Entidade(s) que ajudou:</label> {{ voluntario.entidade_que_ajudou }}{% endif %}{% else %}não{% endif %}</p>

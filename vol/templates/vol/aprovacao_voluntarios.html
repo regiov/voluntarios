@@ -82,26 +82,31 @@
 <div class="col-sm-5">(não editável)</div>
 </div>
 <div class="row">
+<div class="col-sm-2"><b>Bairro:</b></div>
+<div class="col-sm-5">{{ rec.bairro|default:"" }}</div>
+<div class="col-sm-5">{% if rec.bairro %}<input class="form-control" type="text" name="bairro" value="{{ new_rec.bairro }}">{% endif %}</div>
+</div>
+<div class="row strip">
 <div class="col-sm-2"><b>Empresa:</b></div>
 <div class="col-sm-5">{{ rec.empresa|default:"" }}</div>
 <div class="col-sm-5">{% if rec.empresa %}<input class="form-control" type="text" name="empresa" value="{{ new_rec.empresa }}">{% endif %}</div>
 </div>
-<div class="row strip">
+<div class="row">
 <div class="col-sm-2"><b>Foi voluntario:</b></div>
 <div class="col-sm-5">{%if rec.foi_voluntario %}sim{% else %}não{% endif %}</div>
 <div class="col-sm-5">(não editável)</div>
 </div>
-<div class="row">
+<div class="row strip">
 <div class="col-sm-2"><b>Entidade que ajudou:</b></div>
 <div class="col-sm-5">{{ rec.entidade_que_ajudou|default:"" }}</div>
 <div class="col-sm-5">{% if rec.entidade_que_ajudou %}<input class="form-control" type="text" name="entidade_que_ajudou" value="{{ new_rec.entidade_que_ajudou }}">{% endif %}</div>
 </div>
-<div class="row strip">
+<div class="row">
 <div class="col-sm-2"><b>Área de trabalho:</b></div>
 <div class="col-sm-5">{{ rec.area_trabalho|default:"" }}</div>
 <div class="col-sm-5">(não editável)</div>
 </div>
-<div class="row">
+<div class="row strip">
 <div class="col-sm-2"><b>Descrição:</b></div>
 <div class="col-sm-5">{{ rec.descricao|default:"" }}</div>
 <div class="col-sm-5">{% if rec.descricao %}<textarea class="form-control" name="descricao" rows="4" cols="50">{{ new_rec.descricao }}</textarea>{% endif %}</div>
