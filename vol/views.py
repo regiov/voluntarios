@@ -1961,118 +1961,129 @@ def aprovacao_voluntarios(request):
     if request.method == 'POST':
 
         concurrency_error_msg = 'Sua análise não foi gravada, pois o mesmo cadastro acaba de ser analisado por outra pessoa. Pule alguns registros para evitar concorrência.'
-        
-        vol_id = int(request.POST.get('id'))
 
-        alteracoes_vol = {'resp_analise': request.user,
-                          'data_analise': timezone.now()}
+        param_id = request.POST.get('id')
 
-        # Este objeto não é mais usado na gravação, porém é usado na validação do formulário e como
-        # referência no template em caso de erro de preenchimento de dados
-        myvol = Voluntario.objects.get(pk=vol_id)
-        myvol.resp_analise = request.user
-        myvol.data_analise = timezone.now()
-        dif = ''
+        if param_id is None:
 
-        usuario_update_fields = []
+            # Na verdade não sei por que pode acontecer do parâmetro ser nulo.
+            # Imagino que seja algo relacionado a concorrência(?)
+            error = concurrency_error_msg
+            proximo = True
 
-        if 'aprovar' in request.POST:
+        else:
+            
+            vol_id = int(param_id)
 
-            if myvol.usuario.nome != request.POST.get('nome'):
-                dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
-                usuario_update_fields.append('nome')
-                myvol.usuario.nome = request.POST.get('nome')
+            alteracoes_vol = {'resp_analise': request.user,
+                              'data_analise': timezone.now()}
 
-            if myvol.usuario.email != request.POST.get('email'):
-                dif = dif + 'E-mail: ' + myvol.usuario.email + ' -> ' + request.POST.get('email') + "\n"
-                usuario_update_fields.append('email')
-                myvol.usuario.email = request.POST.get('email')
+            # Este objeto não é mais usado na gravação, porém é usado na validação do formulário e como
+            # referência no template em caso de erro de preenchimento de dados
+            myvol = Voluntario.objects.get(pk=vol_id)
+            myvol.resp_analise = request.user
+            myvol.data_analise = timezone.now()
+            dif = ''
 
-            campos_editaveis = ['bairro', 'profissao', 'ddd', 'telefone', 'empresa',  'entidade_que_ajudou',  'descricao']
+            usuario_update_fields = []
 
-            for campo in campos_editaveis:
-                if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
-                    dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
-                    alteracoes_vol[campo] = request.POST.get(campo)
-                    setattr(myvol, campo, request.POST.get(campo))
+            if 'aprovar' in request.POST:
 
-            form = FormVoluntario(request.POST, instance=myvol)
+                if myvol.usuario.nome != request.POST.get('nome'):
+                    dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
+                    usuario_update_fields.append('nome')
+                    myvol.usuario.nome = request.POST.get('nome')
 
-            email_repetido = Usuario.objects.filter(email=request.POST.get('email')).exclude(id=myvol.usuario.id).count() > 0
+                if myvol.usuario.email != request.POST.get('email'):
+                    dif = dif + 'E-mail: ' + myvol.usuario.email + ' -> ' + request.POST.get('email') + "\n"
+                    usuario_update_fields.append('email')
+                    myvol.usuario.email = request.POST.get('email')
 
-            if form.is_valid() and len(request.POST.get('nome')) > 0 and len(request.POST.get('email')) > 0 and not email_repetido:
+                campos_editaveis = ['bairro', 'profissao', 'ddd', 'telefone', 'empresa',  'entidade_que_ajudou',  'descricao']
 
-                alteracoes_vol['aprovado'] = True
-                alteracoes_vol['dif_analise'] = dif
+                for campo in campos_editaveis:
+                    if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
+                        dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
+                        alteracoes_vol[campo] = request.POST.get(campo)
+                        setattr(myvol, campo, request.POST.get(campo))
 
-                # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente.
-                # Importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+                form = FormVoluntario(request.POST, instance=myvol)
+
+                email_repetido = Usuario.objects.filter(email=request.POST.get('email')).exclude(id=myvol.usuario.id).count() > 0
+
+                if form.is_valid() and len(request.POST.get('nome')) > 0 and len(request.POST.get('email')) > 0 and not email_repetido:
+
+                    alteracoes_vol['aprovado'] = True
+                    alteracoes_vol['dif_analise'] = dif
+
+                    # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente.
+                    # Importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+                    updated = Voluntario.objects.filter(
+                        id=vol_id,
+                        data_analise__isnull=True,
+                    ).update(**alteracoes_vol)
+
+                    if updated > 0:
+
+                        # Assume que se conseguiu alterar os dados de voluntário, então não haverá mais problema
+                        # de concorrência na alteração de dados de usuário na sequência. Porém é preciso verificar
+                        # algum outro erro de gravação (unicidade de e-mail, campo vazio, etc).
+                        if len(usuario_update_fields) > 0:
+                            try:
+                                myvol.usuario.save(update_fields=usuario_update_fields)
+                            except Exception as e:
+                                notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
+                                error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
+
+                        # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
+                        try:
+                            notifica_aprovacao_voluntario(myvol.usuario)
+                        except Exception as e:
+                            notify_support(u'Erro ao notificar aprovação de voluntário',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
+                    else:
+                        error = concurrency_error_msg
+
+                    proximo = True
+
+                else:
+                    error = ''
+
+                    if len(request.POST.get('nome')) == 0:
+                        error = "O campo 'nome' deve ser preenchido!\n"
+
+                    if len(request.POST.get('email')) == 0:
+                        error = error + "O campo 'email' deve ser preenchido!\n"
+                    else:
+                        if email_repetido:
+                            error = error + "O campo 'email' foi preenchido com um valor que já existe no banco de dados!\n"
+
+                    for field in form:
+                        for e in field.errors:
+                            error = error + "Erro de preenchimento no campo '" + field.label + "'.\n"
+
+            elif 'rejeitar' in request.POST:
+
+                alteracoes_vol['aprovado'] = False
+
+                # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente
+                # importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
                 updated = Voluntario.objects.filter(
                     id=vol_id,
                     data_analise__isnull=True,
                 ).update(**alteracoes_vol)
 
-                if updated > 0:
-
-                    # Assume que se conseguiu alterar os dados de voluntário, então não haverá mais problema
-                    # de concorrência na alteração de dados de usuário na sequência. Porém é preciso verificar
-                    # algum outro erro de gravação (unicidade de e-mail, campo vazio, etc).
-                    if len(usuario_update_fields) > 0:
-                        try:
-                            myvol.usuario.save(update_fields=usuario_update_fields)
-                        except Exception as e:
-                            notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
-                            error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
-
-                    # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
-                    try:
-                        notifica_aprovacao_voluntario(myvol.usuario)
-                    except Exception as e:
-                        notify_support(u'Erro ao notificar aprovação de voluntário',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
-                else:
+                if updated == 0:
                     error = concurrency_error_msg
+                else:
+                    sender = Voluntario
+                    instance = myvol
+                    created = False
+                    raw = None
+                    using = None
+                    update_fields = None
+                    voluntario_post_save(sender, instance, created, raw, using, update_fields)
 
                 proximo = True
-
-            else:
-                error = ''
-
-                if len(request.POST.get('nome')) == 0:
-                    error = "O campo 'nome' deve ser preenchido!\n"
-
-                if len(request.POST.get('email')) == 0:
-                    error = error + "O campo 'email' deve ser preenchido!\n"
-                else:
-                    if email_repetido:
-                        error = error + "O campo 'email' foi preenchido com um valor que já existe no banco de dados!\n"
-
-                for field in form:
-                    for e in field.errors:
-                        error = error + "Erro de preenchimento no campo '" + field.label + "'.\n"
-
-        elif 'rejeitar' in request.POST:
-
-            alteracoes_vol['aprovado'] = False
-
-            # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente
-            # importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
-            updated = Voluntario.objects.filter(
-                id=vol_id,
-                data_analise__isnull=True,
-            ).update(**alteracoes_vol)
-
-            if updated == 0:
-                error = concurrency_error_msg
-            else:
-                sender = Voluntario
-                instance = myvol
-                created = False
-                raw = None
-                using = None
-                update_fields = None
-                voluntario_post_save(sender, instance, created, raw, using, update_fields)
-            
-            proximo = True
 
     # Total de voluntários que confirmaram o email e estão aguardando aprovação
     queue = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).order_by('data_cadastro')
