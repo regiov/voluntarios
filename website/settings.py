@@ -282,6 +282,8 @@ ONBOARDING_MAX_DAYS_WAITING_RESPONSE = 60 # número de dias em que se aguarda um
 ONBOARDING_NOTIFY_RESPONSE_ARRIVAL = 'SET IN LOCAL SETTINGS' # endereço de email a ser notificado quando chega uma resposta
 ONBOARDING_TEAM_EMAIL = 'SET IN LOCAL SETTINGS' # endereço(s) de email da(s) pessoa(s) do time de boas-vindas (separados por vírgula)
 
+RH_TEAM_EMAIL = 'SET IN LOCAL SETTINGS' # endereço(s) de email da(s) pessoa(s) do time de RH (separados por vírgula)
+
 ##############################################################
 
 # Sobrepõe configurações com configurações locais - caso existam

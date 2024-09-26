@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario, elabora_paginacao, monta_query_string
+from .utils import notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao, monta_query_string
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -3234,6 +3234,9 @@ def novo_processo_seletivo(request, id_entidade):
 
             processo_seletivo.save()
 
+            if 'solicitar_aprovacao' in request.POST:
+                notifica_processo_seletivo_aguardando_aprovacao(processo_seletivo)
+
             # áreas de trabalho
             areas_incluidas = []
             for area_trabalho_form in area_trabalho_formset:
@@ -3455,6 +3458,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                 if 'solicitar_aprovacao' in request.POST:
                     proc.solicitar_aprovacao(by=request.user)
                     proc.save()
+                    notifica_processo_seletivo_aguardando_aprovacao(proc)
                     return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': proc.entidade_id}))
 
                 msg = u'Alterações salvas com sucesso!'
