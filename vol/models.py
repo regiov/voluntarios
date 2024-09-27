@@ -24,6 +24,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -2224,3 +2225,18 @@ class ConviteProcessoSeletivo(models.Model):
             if opcao[0] == self.resposta:
                 return opcao[1]
         return None
+
+class HistoricoAlteracao(models.Model):
+    """Histórico de alteração em registro"""
+    id             = models.AutoField(primary_key=True)
+    content_type   = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
+    object_id      = models.PositiveIntegerField(null=True, blank=True)
+    registro       = GenericForeignKey('content_type', 'object_id')
+    dif            = models.TextField(u'Alterações', null=True, blank=True)
+    feito_em       = models.DateTimeField(u'Data da alteração', auto_now_add=True)
+    feito_por      = models.ForeignKey(Usuario, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        verbose_name = u'Histórico de alteração'
+        verbose_name_plural = u'Históricos de alteração'
+
