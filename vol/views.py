@@ -1983,29 +1983,29 @@ def aprovacao_voluntarios(request):
             myvol = Voluntario.objects.get(pk=vol_id)
             myvol.resp_analise = request.user
             myvol.data_analise = timezone.now()
-            dif = ''
-
-            usuario_update_fields = []
 
             if 'aprovar' in request.POST:
 
-                if myvol.usuario.nome != request.POST.get('nome'):
-                    dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
-                    usuario_update_fields.append('nome')
-                    myvol.usuario.nome = request.POST.get('nome')
+                dif = ''
+                usuario_update_fields = []
 
-                if myvol.usuario.email != request.POST.get('email'):
-                    dif = dif + 'E-mail: ' + myvol.usuario.email + ' -> ' + request.POST.get('email') + "\n"
-                    usuario_update_fields.append('email')
-                    myvol.usuario.email = request.POST.get('email')
+                campos_rastreados_usuario = ['nome', 'email']
+                alteracoes_usuario = detecta_alteracoes(campos_rastreados_usuario, myvol.usuario, request, atualiza=True)
+                usuario_update_fields = alteracoes_usuario.keys()
+                dif = resume_alteracoes(alteracoes_usuario)
 
-                campos_editaveis = ['bairro', 'profissao', 'ddd', 'telefone', 'empresa',  'entidade_que_ajudou',  'descricao']
+                campos_rastreados_voluntario = ['bairro', 'profissao', 'ddd', 'telefone', 'empresa', 'entidade_que_ajudou', 'descricao']
+                alteracoes_voluntario = detecta_alteracoes(campos_rastreados_voluntario, myvol, request, atualiza=True)
+                alteracoes_vol = {'resp_analise': request.user, 'data_analise': timezone.now()}
+                for campo, alteracao in alteracoes_voluntario.items():
+                    alteracoes_vol[campo] = alteracao['depois']
 
-                for campo in campos_editaveis:
-                    if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
-                        dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
-                        alteracoes_vol[campo] = request.POST.get(campo)
-                        setattr(myvol, campo, request.POST.get(campo))
+                dif_voluntario = resume_alteracoes(alteracoes_voluntario)
+
+                if len(dif_voluntario) > 0:
+                    if len(dif) > 0:
+                        dif = dif + "\n"
+                    dif = dif + dif_voluntario
 
                 form = FormVoluntario(request.POST, instance=myvol)
 
