@@ -38,7 +38,7 @@ from django.apps import apps
 
 from django_fsm_log.models import StateLog
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE, HistoricoAlteracao
 
 from .signals import voluntario_post_save
 
@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao, monta_query_string
+from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao, monta_query_string
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -2375,6 +2375,10 @@ def revisao_processo_seletivo(request, codigo_processo):
                 qs = ProcessoSeletivo.objects.select_for_update().filter(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
                 with transaction.atomic():
                     for processo in qs:
+                        # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
+                        # irá alterar os dados da instância
+                        processo_original = deepcopy(processo)
+
                         form = FormProcessoSeletivo(request.POST, instance=processo)
                         area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
 
@@ -2384,6 +2388,15 @@ def revisao_processo_seletivo(request, codigo_processo):
 
                             proc = form.save()
 
+                            # Registra histórico de alteração
+                            alteracoes = detecta_alteracoes(['titulo', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'somente_da_cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado'], processo_original, request)
+                            dif = resume_alteracoes(alteracoes)
+
+                            if len(dif) > 0:
+                                historico = HistoricoAlteracao(registro=proc, dif=dif, feito_por=request.user)
+                                historico.save()
+
+                            # Atualiza áreas de trabalho
                             areas_incluidas = []
                             areas_selecionadas = []
                             for area_trabalho_form in area_trabalho_formset:
@@ -2421,19 +2434,103 @@ def revisao_processo_seletivo(request, codigo_processo):
                                     messages.info(request, u'Processo salvo, aprovado e publicado!')
                                 proc.save()
                                 return redirect(reverse('revisao_processos_seletivos'))
+
+            elif 'alterar' in request.POST:
+
+                processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+                
+                if processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
+
+                    # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
+                    # irá alterar os dados da instância
+                    processo_original = deepcopy(processo)
+
+                    # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
+                    data = request.POST.dict()
+                    data['titulo'] = processo.titulo
+                    data['resumo_entidade'] = processo.resumo_entidade
+                    data['modo_trabalho'] = str(processo.modo_trabalho)
+                    data['estado'] = processo.estado
+                    data['cidade'] = processo.cidade
+                    data['somente_da_cidade'] = processo.somente_da_cidade
+                    data['atividades'] = processo.atividades
+                    data['carga_horaria'] = processo.carga_horaria
+                    data['requisitos'] = processo.requisitos
+                    if not processo.passivel_de_antecipar_inscricoes():
+                        data['inicio_inscricoes'] = processo.inicio_inscricoes
+
+                    form = FormProcessoSeletivo(data, instance=processo)
+
+                    if form.is_valid(): # atenção, este método altera a instância do processo seletivo
+
+                        if processo_original.passivel_de_antecipar_inscricoes():
+
+                            if processo_original.inicio_inscricoes != processo.inicio_inscricoes:
+                                processo.save(update_fields=['inicio_inscricoes'])
+                                messages.info(request, u'Início de inscrições alterado com sucesso!')
+
+                                if processo.aguardando_publicacao() and processo.inscricoes_abertas():
+                                    processo.publicar(by=request.user)
+                                    processo.save()
+
+                        if processo_original.passivel_de_estender_inscricoes():
+
+                            update_fields = []
+
+                            if processo_original.limite_inscricoes != processo.limite_inscricoes:
+                                update_fields.append('limite_inscricoes')
+                            if processo_original.previsao_resultado != processo.previsao_resultado:
+                                update_fields.append('previsao_resultado')
+
+                            if update_fields: 
+                                processo.save(update_fields=update_fields)
+
+                            if 'limite_inscricoes' in update_fields:
+
+                                if processo.aguardando_selecao() and processo.inscricoes_abertas():
+                                    obs = None
+                                    if processo_original.limite_inscricoes:
+                                        limite_anterior = processo_original.limite_inscricoes.strftime('%d/%m/%Y %H:%M:%S')
+                                        obs = u'Limite anterior para inscrições: ' + limite_anterior
+                                    processo.reabrir_inscricoes(by=request.user, description=obs)
+                                    processo.save()
+                                messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                            # Registra histórico de alteração
+                            alteracoes = detecta_alteracoes(['limite_inscricoes', 'previsao_resultado'], processo_original, processo)
+                            dif = resume_alteracoes(alteracoes)
+
+                            if len(dif) > 0:
+                                historico = HistoricoAlteracao(registro=processo, dif=dif, feito_por=request.user)
+                                historico.save()
+
+                        return redirect(reverse('monitoramento_processos_seletivos'))
+                    
+                    # Erro de validação
+                    else:
+                        # vai exibir o formulário novamente abaixo
+                        area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+                        for subform in area_trabalho_formset:
+                            subform.disable()
+
             else:
                 return redirect(reverse('painel'))
 
         else: # GET
             
-            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
-            messages.info(request, u'Atenção: Se necessário, faça apenas pequenos ajustes (correções ortográficas, remoção de caixa alta, etc.) Em caso de querer fazer alterações significativas, melhor entrar em contato ou com a própria entidade (link com dados para contato logo abaixo) ou com pessoas mais experientes no Voluntários.')
+            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status__in=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO, StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO])
+
+            if processo.status == StatusProcessoSeletivo.AGUARDANDO_APROVACAO:
+                messages.info(request, u'Atenção: Se necessário, faça apenas pequenos ajustes (correções ortográficas, remoção de caixa alta, etc.) Em caso de querer fazer alterações significativas, melhor entrar em contato ou com a própria entidade (link com dados para contato logo abaixo) ou com pessoas mais experientes no Voluntários.')
 
             form = FormProcessoSeletivo(instance=processo)
             area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+            if processo.status != StatusProcessoSeletivo.AGUARDANDO_APROVACAO:
+                for subform in area_trabalho_formset:
+                    subform.disable()
 
     except ProcessoSeletivo.DoesNotExist:
-        messages.error(request, u'Este processo não existe ou já foi revisado...')
+        messages.error(request, u'Ou este processo não existe, ou não está em condições de ser revisado/alterado.')
         return redirect(reverse('painel'))
 
     context = {'form': form,
@@ -3530,6 +3627,14 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                                 processo.reabrir_inscricoes(by=request.user, description=obs)
                                 processo.save()
                             messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                        # Registra histórico de alteração
+                        alteracoes = detecta_alteracoes(['limite_inscricoes', 'previsao_resultado'], processo_original, processo)
+                        dif = resume_alteracoes(alteracoes)
+
+                        if len(dif) > 0:
+                            historico = HistoricoAlteracao(registro=processo, dif=dif, feito_por=request.user)
+                            historico.save()
 
                     return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:

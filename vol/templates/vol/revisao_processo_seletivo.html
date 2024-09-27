@@ -4,6 +4,7 @@
 {% block title %}Processo seletivo{% endblock title %}
 
 {% block head %}
+{% if processo.aguardando_aprovacao %}
 <script type="text/javascript" src="{% static 'js/jquery.formset.js' %}">
 </script>
 {% comment %}É esse código que acrescenta os ícones de edição no formset{% endcomment %}
@@ -14,11 +15,12 @@
     });
 
 </script>
+{% endif %}
 {% endblock head %}
 
 {% block content %}
 
-<h1 class="margin-bottom">Processo seletivo aguardando revisão</h1>
+<h1 class="margin-bottom">Processo seletivo {{ processo.nome_status.lower }}</h1>
 
 {% include "vol/mensagens.html" %}
 
@@ -57,8 +59,12 @@
     {% include "vol/campo_formulario.html" with campo=form.previsao_resultado required=False div_class="combo-data" %}
 
     <div class="form-group">
-        <input class="btn btn-primary btn-warning" type="submit" name="pular"  value="Pular">
-        <input class="btn btn-primary" type="submit" name="aprovar"  value="Aprovar">
+      {% if processo.aguardando_aprovacao %}
+        <input class="btn btn-primary btn-warning" type="submit" name="pular" value="Pular">
+        <input class="btn btn-primary" type="submit" name="aprovar" value="Aprovar">
+      {% else %}
+        <input class="btn btn-primary" type="submit" name="alterar" value="Alterar">
+      {% endif %}
     </div>
 </form>
 

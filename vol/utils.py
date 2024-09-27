@@ -85,6 +85,40 @@ def track_data(*fields):
         return cls
     return inner
 
+def detecta_alteracoes(campos_rastreados, obj1, obj2, atualiza=False):
+    '''Detecta alterações entre obj1 e obj2 considerando os atributos passados como parâmetro.
+    obj1 é sempre a instância de um modelo. obj2 pode ser outra instância do mesmo modelo ou
+    request com dicionário POST. O parâmetro "atualiza" pode ser usado para atualizar os
+    campos em obj1 de acordo com os valores em obj2.'''
+    
+    alteracoes = {} # {campo: {'antes': val1, 'depois': val2}}
+
+    for campo in campos_rastreados:
+        if not hasattr(obj2, 'POST') or campo in obj2.POST:
+            antes = getattr(obj1, campo)
+            if hasattr(obj2, 'POST'):
+                depois = obj2.POST.get(campo)
+            else:
+                depois = getattr(obj2, campo)
+            # Comparação por string para evitar diferenças do tipo 0 x "0" em atributos
+            # numéricos passados como parâmetro POST
+            if str(antes) != str(depois):
+                alteracoes[campo] = {'antes': antes, 'depois': depois}
+                if atualiza:
+                    setattr(obj1, campo, depois)
+
+    return alteracoes
+
+def resume_alteracoes(alteracoes):
+    '''Retorna uma string representando as alteracoes retornadas pela função "detecta_alteracoes"
+    no formato: campo1: valor original -> valor novo\ncampo2: valor original -> valor novo'''
+    dif = ''
+    for campo, alteracao in alteracoes.items():
+        if len(dif) > 0:
+            dif = dif + "\n"
+        dif = dif + campo + ': ' + str(alteracao['antes']) + ' -> ' + str(alteracao['depois'])
+    return dif
+
 def notifica_aprovacao_voluntario(usuario):
     '''Envia e-mail comunicando ao usuário a aprovação do seu perfil'''
     # Se o usuário nunca recebeu o aviso de aprovação

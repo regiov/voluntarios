@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from django.contrib import admin, messages
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.contrib.gis.admin import GISModelAdmin
 from django.templatetags.static import static
 from django.db import transaction, DatabaseError
@@ -21,7 +22,7 @@ from tinymce.widgets import TinyMCE
 
 from mptt.admin import DraggableMPTTAdmin, TreeRelatedFieldListFilter
 
-from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao, PostagemBlog, TermoAdesao, ProcessoSeletivo, AreaTrabalhoEmProcessoSeletivo, StatusProcessoSeletivo
+from vol.models import Usuario, AreaTrabalho, AreaAtuacao, Voluntario, Entidade, VinculoEntidade, Necessidade, AreaInteresse, AnotacaoEntidade, TipoDocumento, Documento, Telefone, Email, FraseMotivacional, ForcaTarefa, Conteudo, AcessoAConteudo, TipoArtigo, NecessidadeArtigo, Funcao, PostagemBlog, TermoAdesao, ProcessoSeletivo, AreaTrabalhoEmProcessoSeletivo, StatusProcessoSeletivo, HistoricoAlteracao
 
 from notification.models import Message
 from notification.utils import notify_user_msg
@@ -31,7 +32,7 @@ from vol.views import envia_confirmacao_email_entidade
 from allauth.account.models import EmailAddress
 from allauth.account.utils import send_email_confirmation
 
-from .utils import notifica_aprovacao_voluntario
+from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario
 
 # Usuário customizado
 from django.contrib.auth.admin import UserAdmin
@@ -1016,17 +1017,46 @@ class AreaTrabalhoEmProcessoSeletivoInline(admin.TabularInline):
     fields = ['area_trabalho',]
     extra = 0
 
+class HistoricoAlteracaoInline(GenericTabularInline):
+    model = HistoricoAlteracao
+    fields = ['dif', 'feito_por', 'feito_em',]
+    readonly_fields = ['dif', 'feito_por', 'feito_em',]
+    extra = 0
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 @admin.register(ProcessoSeletivo)
 class ProcessoSeletivoAdmin(admin.ModelAdmin):
     '''Interface administrativa para processos seletivos'''
     list_display = ('titulo', 'entidade', 'inicio_inscricoes', 'limite_inscricoes', 'nome_status',)
     fields = ['codigo', 'titulo', 'entidade', 'cadastrado_por', 'cadastrado_em', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'somente_da_cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
     readonly_fields = ['codigo', 'cadastrado_por', 'cadastrado_em', 'entidade', 'estado', 'cidade', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado', 'qtde_visualiza']
-    inlines = [AreaTrabalhoEmProcessoSeletivoInline]
+    inlines = [AreaTrabalhoEmProcessoSeletivoInline, HistoricoAlteracaoInline]
     
     # Desabilita inclusão
     def has_add_permission(self, request):
         return False
+
+    def save_model(self, request, obj, form, change):
+        # Este método somente é chamado se a validação já estiver OK
+
+        if obj.id:
+
+            # Registra histórico de alteração
+            processo_original = ProcessoSeletivo.objects.get(pk=obj.id)
+            
+            alteracoes = detecta_alteracoes(['titulo', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'somente_da_cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado'], processo_original, obj)
+            dif = resume_alteracoes(alteracoes)
+
+            if len(dif) > 0:
+                historico = HistoricoAlteracao(registro=obj, dif=dif, feito_por=request.user)
+                historico.save()
+            
+        super().save_model(request, obj, form, change)
 
 @admin.register(Funcao)
 class FuncaoAdmin(DraggableMPTTAdmin):
