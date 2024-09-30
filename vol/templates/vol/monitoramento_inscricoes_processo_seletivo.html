@@ -13,7 +13,7 @@
 {% if inscricoes|length > 0 %}
   <div class="table-responsive">
   <table class="table table-striped table-condensed">
-  <thead><th>Inscrição</th><th>Nome</th><th>Local</th><th>Idade</th><th>Status</th></thead>
+  <thead><th>Inscrição</th><th>Nome</th><th>Local</th><th>Idade</th><th>Status</th><th>Obs</th></thead>
   <tbody>
   {% for inscricao in inscricoes %}
   <tr>
@@ -22,6 +22,7 @@
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade_str }}</td>
     <td>{{ inscricao.nome_status }}</td>
+    <td>{{ inscricao.obs_resumida|default:'' }}</td>
   </tr>
   {% endfor %}
   </tbody>
