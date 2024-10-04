@@ -31,7 +31,7 @@
   <tr>
     <td>{{ log.timestamp }}</td>
     <td>{% status_name status_proc log.source_state %} &rarr; {% status_name status_proc log.state %}</td>
-    <td>{{ log.by.nome }}</td>
+    <td>{{ log.by.nome|default:'[sistema]' }}</td>
     <td>{{ log.description|default:'' }}</td>
   </tr>
   {% endfor %}
