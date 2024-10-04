@@ -1,0 +1,42 @@
+{% extends "vol/base_admin.html" %}
+{% load fsm_extras %}
+
+{% block title %}Histórico{% endblock title %}
+
+{% block content %}
+
+<h2>Histórico de processo seletivo</h2>
+
+<h3>{{ processo.titulo }}</h3>
+<h4 class="margin-bottom">{{ processo.entidade.menor_nome }}</h4>
+
+  <div class="table-responsive">
+  <table class="table table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Situação</th>
+        <th>Responsável</th>
+        <th>Obs</th>
+      </tr>
+    </thead>
+  <tbody>
+  <tr>
+    <td>{{ processo.cadastrado_em }}</td>
+    <td>Registro criado{% if logs.count == 0 %} ({% status_name status_proc processo.status %}){% endif %}</td>
+    <td>{{ processo.cadastrado_por.nome }}</td>
+    <td></td>
+  </tr>
+  {% for log in logs %}
+  <tr>
+    <td>{{ log.timestamp }}</td>
+    <td>{% status_name status_proc log.source_state %} &rarr; {% status_name status_proc log.state %}</td>
+    <td>{{ log.by.nome }}</td>
+    <td>{{ log.description|default:'' }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  </div>
+
+{% endblock content %}
