@@ -2575,6 +2575,26 @@ def monitoramento_processos_seletivos(request):
 
 @login_required
 @staff_member_required
+def monitoramento_historico_processo_seletivo(request, codigo_processo):
+    '''Página para ver detalhes sobre o histórico de um processo seletivo'''
+
+    try:
+        processo = ProcessoSeletivo.objects.select_related('entidade', 'cadastrado_por').get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    logs = StateLog.objects.select_related('by').for_(processo).order_by('timestamp')
+
+    context = {'processo': processo,
+               'logs': logs,
+               'status_proc': StatusProcessoSeletivo}
+
+    template = loader.get_template('vol/monitoramento_historico_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
 def monitoramento_inscricoes_processo_seletivo(request, codigo_processo):
     '''Página para monitorar as inscrições de um processo seletivo'''
 
