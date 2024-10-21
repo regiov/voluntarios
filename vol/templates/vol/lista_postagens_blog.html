@@ -1,4 +1,9 @@
 {% extends "vol/base.html" %}
+
+{% comment %}
+{% extends "vol/paginador.html" %}  
+{% endcomment %}
+
 {% load static %}
 
 {% block title %}Blog{% endblock title %}
@@ -20,6 +25,8 @@
 </div>
 {% endfor %}
 <br>
+
+{% comment %}
 <div class="paginacao">
    <!-- botão << -->
    {% if page_obj.number > 1 %} 
@@ -53,5 +60,6 @@
    {% endif %}
    
 </div>
+{% endcomment %}
 
 {% endblock content %}

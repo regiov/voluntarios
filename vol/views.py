@@ -3046,7 +3046,8 @@ def busca_vagas(request):
             vagas = vagas.order_by('-inicio_inscricoes')
 
         # Paginação
-        (vagas, parametros, p_inicial, p_final) = elabora_paginacao(request, vagas)
+        (vagas, parametros, grupo_paginas_atual) = elabora_paginacao(request, vagas)
+        print("########### DEBUG MESSAGE ###############")
 
     else:
         # Avisa caso não exista nenhum processo em aberto
@@ -3062,14 +3063,15 @@ def busca_vagas(request):
             msg += u'Você pode tentar novamente dentro de alguns dias ou aguardar ser convidado por uma entidade.'
             messages.info(request, msg)
 
+    #inicialização de grupo_paginas_atual
+    grupo_paginas_atual = 0
     context = {'modos_de_trabalho': MODO_TRABALHO,
                'profissoes': profissoes,
                'causas': causas,
                'estados': estados,
                'vagas': vagas,
                'get_params': parametros,
-               'p_inicial': p_inicial,
-               'p_final': p_final}
+               'grupo_paginas_atual': grupo_paginas_atual}
     
     template = loader.get_template('vol/busca_vagas.html')
     return HttpResponse(template.render(context, request))
