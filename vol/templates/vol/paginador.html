@@ -17,17 +17,6 @@
       ">": vai para a página imediatamente posterior. Só faz sentido exibir qdo faltar pelo menos 1 página no fim.
       {% endcomment %}
 
-
-      {% comment %}
-      pages_group = (em algum lugar...) pp.page(some_i).object_list
-      
-      pagina_inicial = pages_group[0]
-      pagina_final = pages_group[-1]
-      {% endcomment %}
-
-      {% comment %}
-      TODO: Encontrar forma de encontrar o último 
-      {% endcomment %}
       {% with pagina_inicial=grupo_paginas_atual.start_index pagina_final=grupo_paginas_atual.end_index %}
       
       {% if pagina_inicial > 2 %}<a href="?pp=1&amp;page=1&amp;{{ parametros }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}
