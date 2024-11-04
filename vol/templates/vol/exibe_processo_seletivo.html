@@ -9,7 +9,7 @@
 <h1 class="margin-bottom">{{ processo.titulo }}</h1>
 
 {% if processo.cancelado %}
-<p class="lead text-danger">Atenção: este processo seletivo foi cancelado pela própria entidade.</p>
+<p class="lead text-danger">Atenção: este processo seletivo foi cancelado!</p>
 {% elif processo.em_elaboracao %}
 <p class="lead text-warning">&gt;&gt; Processo seletivo em elaboração! &lt;&lt;</p>
 {% elif processo.aguardando_aprovacao %}
@@ -31,15 +31,15 @@
   <p><label>Carga horária: </label> {{ processo.carga_horaria }}</p>
   <p><label>Modo de trabalho: </label> {{ processo.nome_modo_trabalho }} {% if not processo.trabalho_remoto %}<label style="margin-left: 10px;">Local: </label> {{ processo.cidade.nome }} - {{ processo.estado.sigla }}{% endif %}</p>
   <h3 class="secao"><span>Atividades</span></h3>
-  <p>{{ processo.atividades }}</p>
+  <p>{{ processo.atividades|linebreaksbr }}</p>
 
   {% if processo.requisitos %}
   <h3 class="secao"><span>Requisitos</span></h3>
-  <p>{{ processo.requisitos }}</p>
+  <p>{{ processo.requisitos|linebreaksbr }}</p>
   {% endif %}
 
   <h3 class="secao"><span>Entidade: <a href="{% url 'exibe_entidade' id_entidade=processo.entidade_id %}" target="_blank">{{ processo.entidade.menor_nome }}</a></span></h3>
-  <p>{{ processo.resumo_entidade }}</p>
+  <p>{{ processo.resumo_entidade|linebreaksbr }}</p>
 
   <h3 class="secao"><span>Inscrições</span></h3>
   <p><label>Prazo: </label> {{ processo.inicio_inscricoes|date:"SHORT_DATE_FORMAT" }}{% if processo.limite_inscricoes %} a {{ processo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}{% else %} sem data limite{% endif %}</p>

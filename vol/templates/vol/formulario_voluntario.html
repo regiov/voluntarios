@@ -99,6 +99,7 @@
 
                 {% include "vol/campo_formulario.html" with campo=form.estado required=True %}
                 {% include "vol/campo_formulario.html" with campo=form.cidade required=True loader=True %}
+                {% include "vol/campo_formulario.html" with campo=form.bairro %}
         
                 <div class="form-group required{% if form.area_trabalho.errors %} has-error{% endif %}">
                     <label for="{{ form.area_trabalho.id_for_label }}" class="nowrap">{{ form.area_trabalho.label }}</label>

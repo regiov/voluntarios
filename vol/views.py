@@ -38,7 +38,7 @@ from django.apps import apps
 
 from django_fsm_log.models import StateLog
 
-from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE
+from .models import Voluntario, AreaTrabalho, AreaAtuacao, Entidade, VinculoEntidade, Necessidade, AreaInteresse, Telefone, Email, RemocaoUsuario, AtividadeAdmin, Usuario, ForcaTarefa, Conteudo, AcessoAConteudo, FraseMotivacional, NecessidadeArtigo, TipoArtigo, AnotacaoEntidade, Funcao, UFS, TermoAdesao, PostagemBlog, Cidade, Estado, EntidadeFavorita, StatusProcessoSeletivo, ProcessoSeletivo, ParticipacaoEmProcessoSeletivo, StatusParticipacaoEmProcessoSeletivo, MODO_TRABALHO, AreaTrabalhoEmProcessoSeletivo, ConviteProcessoSeletivo, RESPOSTA_A_CONVITE, HistoricoAlteracao
 
 from .signals import voluntario_post_save
 
@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import notifica_aprovacao_voluntario, elabora_paginacao
+from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao, monta_query_string
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -386,10 +386,17 @@ def busca_voluntarios(request):
     areas_de_trabalho = AreaTrabalho.objects.all().order_by('nome')
     areas_de_interesse = AreaAtuacao.objects.all().order_by('indice')
     voluntarios = None
+    total_voluntarios = 0
     get_params = ''
     pagina_inicial = pagina_final = None
 
-    if 'Envia' in request.GET:
+    # Este parâmetro é usado para acessar um voluntário numa posição específica de uma busca
+    seq = request.GET.get('seq')
+
+    # Os filtros são necessários quando o usuário submete uma busca ou quando
+    # precisamos acessar um voluntário numa posição específica na busca (através
+    # dos botões anterior/próximo na página de detalhe do voluntário)
+    if 'Envia' in request.GET or seq is not None:
 
         # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
         voluntarios = Voluntario.objects.select_related('area_trabalho', 'usuario').filter(Q(invisivel=False) | Q(invisivel__isnull=True), aprovado=True)
@@ -451,6 +458,26 @@ def busca_voluntarios(request):
         #else: # interesse
         #    voluntarios = voluntarios.order_by('areainteresse__area_atuacao__nome', 'usuario__nome')
 
+        total_voluntarios = voluntarios.count()
+
+        # Caso seja necessário apenas acessar um voluntário numa posição específica
+        if seq is not None:
+            try:
+                seq = int(seq) - 1
+            except ValueError:
+                return HttpResponseBadRequest("Parâmetro seq inválido")
+
+            try:
+                voluntario = voluntarios[seq]
+            except IndexError:
+                return HttpResponseBadRequest("Voluntário não encontrado")
+
+            # Exibe o voluntário
+            return exibe_voluntario(request, str(voluntario.id), seq=seq + 1, total_voluntarios=total_voluntarios)
+
+        # Caso contrário, prosseguimos com o resultado da busca em
+        # forma de tabela com paginação
+        
         # Paginação
         paginador = Paginator(voluntarios, 20) # 20 pessoas por página
         pagina = request.GET.get('page')
@@ -486,13 +513,14 @@ def busca_voluntarios(request):
                'voluntarios': voluntarios,
                'get_params': get_params,
                'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
-    
+               'pagina_final': pagina_final,
+               'total_voluntarios': total_voluntarios}
+     
     template = loader.get_template('vol/busca_voluntarios.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
-def exibe_voluntario(request, id_voluntario):
+def exibe_voluntario(request, id_voluntario, seq=None, total_voluntarios=None):
     '''Página para exibir detalhes de um voluntário. Importante: mesmo que o voluntário tenha marcado
     que não quer aparecer em buscas, a página dele precisa ser exibida quando solicitada, pois ele
     pode se inscrever em vagas e as entidades precisam acessar as informações dele para contato.'''
@@ -535,13 +563,24 @@ def exibe_voluntario(request, id_voluntario):
         ultima_vaga_em_convite = None
         request.session['ultima_vaga_em_convite'] = None
 
+    # Caso a view não tenha sido chamada diretamente por outra view, tenta pegar
+    # os parâmetros da query string
+    if seq is None and total_voluntarios is None:
+        seq = request.GET.get('seq')
+        total_voluntarios = request.GET.get('total_voluntarios')
+
+    get_params = monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken', 'seq'])
+
     context = {'voluntario': voluntario,
                'agora': now,
                'areas_de_interesse': areas_de_interesse,
                'vagas_em_aberto': vagas_em_aberto,
                'vagas_com_convite': vagas_com_convite,
                'vagas_com_inscricao': vagas_com_inscricao,
-               'ultima_vaga_em_convite': ultima_vaga_em_convite}
+               'ultima_vaga_em_convite': ultima_vaga_em_convite,
+               'seq': seq,
+               'total_voluntarios': total_voluntarios,
+               'get_params': get_params}
     template = loader.get_template('vol/exibe_voluntario.html')
     return HttpResponse(template.render(context, request))
 
@@ -564,12 +603,12 @@ def alternar_convite(request, codigo_processo, id_voluntario):
         return HttpResponseNotAllowed(metodos)
 
     if not id_voluntario.isdigit():
-        raise SuspiciousOperation('Parâmetro id_voluntario inválido')
+        raise SuspiciousOperation('Parâmetro id_voluntario inválido.')
 
     try:
-        processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+        processo = ProcessoSeletivo.objects.select_related('cidade', 'estado').get(codigo=codigo_processo)
         if not processo.aberto_a_inscricoes():
-            return HttpResponse('Este processo seletivo não está aberto a inscrições', status=409)
+            return HttpResponse('Este processo seletivo não está aberto a inscrições.', status=409)
         voluntario = Voluntario.objects.get(pk=id_voluntario)
     except ProcessoSeletivo.DoesNotExist:
         # Não usamos "raise Http404" para poder especificar outro texto no corpo da mensagem
@@ -579,24 +618,28 @@ def alternar_convite(request, codigo_processo, id_voluntario):
 
     # Não permite convite a voluntário não aprovado
     if not voluntario.aprovado:
-        return HttpResponse('Não é possível convidar um voluntário cujo cadastro ainda não foi revisado', status=403)
+        return HttpResponse('Não é possível convidar um voluntário cujo cadastro ainda não foi revisado.', status=403)
 
     # Não permite convite a voluntário "invisível"
     if voluntario.invisivel:
-        return HttpResponse('Este voluntário não deseja ser contatado', status=403)
+        return HttpResponse('Este voluntário não deseja ser contatado.', status=403)
 
     # Não permite ação em processo seletivo alheio
     if codigo_processo not in [p[0] for p in request.user.vagas_em_aberto]:
-        return HttpResponse('Você está sem permissão para enviar convites deste processo seletivo', status=403)
+        return HttpResponse('Você está sem permissão para enviar convites deste processo seletivo.', status=403)
 
     # Não permite nenhuma ação caso voluntário já esteja inscrito no processo
     if ParticipacaoEmProcessoSeletivo.objects.filter(processo_seletivo=processo, voluntario_id=id_voluntario).count() > 0:
-        return HttpResponse('Este voluntário já se inscreveu neste processo seletivo', status=409)
+        return HttpResponse('Este voluntário já se inscreveu neste processo seletivo.', status=409)
+
+    # Não permite convite se o voluntário for de outra cidade exigida no processo
+    if processo.cidade and processo.somente_da_cidade and processo.cidade.nome.lower() != voluntario.cidade.lower():
+        return HttpResponse('Somente voluntários residentes em ' + processo.cidade.nome + '-' + processo.estado.sigla + ' podem ser convidados para esta vaga.', status=403)
 
     try:
         convite = ConviteProcessoSeletivo.objects.get(processo_seletivo=processo, voluntario=voluntario)
         if convite.enviado_em:
-            return HttpResponse('Já foi enviado um convite para este voluntário', status=409)
+            return HttpResponse(u'Já foi enviado um convite para este voluntário.', status=409)
         # Se convite já existe, desconvida
         convite.delete()
     except ConviteProcessoSeletivo.DoesNotExist:
@@ -1918,118 +1961,129 @@ def aprovacao_voluntarios(request):
     if request.method == 'POST':
 
         concurrency_error_msg = 'Sua análise não foi gravada, pois o mesmo cadastro acaba de ser analisado por outra pessoa. Pule alguns registros para evitar concorrência.'
-        
-        vol_id = int(request.POST.get('id'))
 
-        alteracoes_vol = {'resp_analise': request.user,
-                          'data_analise': timezone.now()}
+        param_id = request.POST.get('id')
 
-        # Este objeto não é mais usado na gravação, porém é usado na validação do formulário e como
-        # referência no template em caso de erro de preenchimento de dados
-        myvol = Voluntario.objects.get(pk=vol_id)
-        myvol.resp_analise = request.user
-        myvol.data_analise = timezone.now()
-        dif = ''
+        if param_id is None:
 
-        usuario_update_fields = []
+            # Na verdade não sei por que pode acontecer do parâmetro ser nulo.
+            # Imagino que seja algo relacionado a concorrência(?)
+            error = concurrency_error_msg
+            proximo = True
 
-        if 'aprovar' in request.POST:
+        else:
+            
+            vol_id = int(param_id)
 
-            if myvol.usuario.nome != request.POST.get('nome'):
-                dif = 'Nome: ' + myvol.usuario.nome + ' -> ' + request.POST.get('nome') + "\n" + dif
-                usuario_update_fields.append('nome')
-                myvol.usuario.nome = request.POST.get('nome')
+            alteracoes_vol = {'resp_analise': request.user,
+                              'data_analise': timezone.now()}
 
-            if myvol.usuario.email != request.POST.get('email'):
-                dif = dif + 'E-mail: ' + myvol.usuario.email + ' -> ' + request.POST.get('email') + "\n"
-                usuario_update_fields.append('email')
-                myvol.usuario.email = request.POST.get('email')
+            # Este objeto não é mais usado na gravação, porém é usado na validação do formulário e como
+            # referência no template em caso de erro de preenchimento de dados
+            myvol = Voluntario.objects.get(pk=vol_id)
+            myvol.resp_analise = request.user
+            myvol.data_analise = timezone.now()
 
-            campos_editaveis = ['profissao', 'ddd', 'telefone', 'empresa',  'entidade_que_ajudou',  'descricao']
+            if 'aprovar' in request.POST:
 
-            for campo in campos_editaveis:
-                if campo in request.POST and getattr(myvol, campo) != request.POST.get(campo):
-                    dif = dif + campo + ': ' + getattr(myvol, campo) + ' -> ' + request.POST.get(campo) + "\n"
-                    alteracoes_vol[campo] = request.POST.get(campo)
-                    setattr(myvol, campo, request.POST.get(campo))
+                dif = ''
+                usuario_update_fields = []
 
-            form = FormVoluntario(request.POST, instance=myvol)
+                campos_rastreados_usuario = ['nome', 'email']
+                alteracoes_usuario = detecta_alteracoes(campos_rastreados_usuario, myvol.usuario, request, atualiza=True)
+                usuario_update_fields = alteracoes_usuario.keys()
+                dif = resume_alteracoes(alteracoes_usuario)
 
-            email_repetido = Usuario.objects.filter(email=request.POST.get('email')).exclude(id=myvol.usuario.id).count() > 0
+                campos_rastreados_voluntario = ['bairro', 'profissao', 'ddd', 'telefone', 'empresa', 'entidade_que_ajudou', 'descricao']
+                alteracoes_voluntario = detecta_alteracoes(campos_rastreados_voluntario, myvol, request, atualiza=True)
+                alteracoes_vol = {'resp_analise': request.user, 'data_analise': timezone.now()}
+                for campo, alteracao in alteracoes_voluntario.items():
+                    alteracoes_vol[campo] = alteracao['depois']
 
-            if form.is_valid() and len(request.POST.get('nome')) > 0 and len(request.POST.get('email')) > 0 and not email_repetido:
+                dif_voluntario = resume_alteracoes(alteracoes_voluntario)
 
-                alteracoes_vol['aprovado'] = True
-                alteracoes_vol['dif_analise'] = dif
+                if len(dif_voluntario) > 0:
+                    if len(dif) > 0:
+                        dif = dif + "\n"
+                    dif = dif + dif_voluntario
 
-                # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente.
-                # Importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+                form = FormVoluntario(request.POST, instance=myvol)
+
+                email_repetido = Usuario.objects.filter(email=request.POST.get('email')).exclude(id=myvol.usuario.id).count() > 0
+
+                if form.is_valid() and len(request.POST.get('nome')) > 0 and len(request.POST.get('email')) > 0 and not email_repetido:
+
+                    alteracoes_vol['aprovado'] = True
+                    alteracoes_vol['dif_analise'] = dif
+
+                    # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente.
+                    # Importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
+                    updated = Voluntario.objects.filter(
+                        id=vol_id,
+                        data_analise__isnull=True,
+                    ).update(**alteracoes_vol)
+
+                    if updated > 0:
+
+                        # Assume que se conseguiu alterar os dados de voluntário, então não haverá mais problema
+                        # de concorrência na alteração de dados de usuário na sequência. Porém é preciso verificar
+                        # algum outro erro de gravação (unicidade de e-mail, campo vazio, etc).
+                        if len(usuario_update_fields) > 0:
+                            try:
+                                myvol.usuario.save(update_fields=usuario_update_fields)
+                            except Exception as e:
+                                notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
+                                error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
+
+                        # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
+                        try:
+                            notifica_aprovacao_voluntario(myvol.usuario)
+                        except Exception as e:
+                            notify_support(u'Erro ao notificar aprovação de voluntário',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
+                    else:
+                        error = concurrency_error_msg
+
+                    proximo = True
+
+                else:
+                    error = ''
+
+                    if len(request.POST.get('nome')) == 0:
+                        error = "O campo 'nome' deve ser preenchido!\n"
+
+                    if len(request.POST.get('email')) == 0:
+                        error = error + "O campo 'email' deve ser preenchido!\n"
+                    else:
+                        if email_repetido:
+                            error = error + "O campo 'email' foi preenchido com um valor que já existe no banco de dados!\n"
+
+                    for field in form:
+                        for e in field.errors:
+                            error = error + "Erro de preenchimento no campo '" + field.label + "'.\n"
+
+            elif 'rejeitar' in request.POST:
+
+                alteracoes_vol['aprovado'] = False
+
+                # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente
+                # importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
                 updated = Voluntario.objects.filter(
                     id=vol_id,
                     data_analise__isnull=True,
                 ).update(**alteracoes_vol)
 
-                if updated > 0:
-
-                    # Assume que se conseguiu alterar os dados de voluntário, então não haverá mais problema
-                    # de concorrência na alteração de dados de usuário na sequência. Porém é preciso verificar
-                    # algum outro erro de gravação (unicidade de e-mail, campo vazio, etc).
-                    if len(usuario_update_fields) > 0:
-                        try:
-                            myvol.usuario.save(update_fields=usuario_update_fields)
-                        except Exception as e:
-                            notify_support(u'Erro na aprovação de voluntários',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
-                            error = 'Houve um erro na gravação do nome e/ou email. Mesmo assim o cadastro foi aprovado e o suporte já foi automaticamente notificado para averiguar o que houve.'
-
-                    # Envia notificação de aprovação manualmente, pois o post_save não é disparado acima
-                    try:
-                        notifica_aprovacao_voluntario(myvol.usuario)
-                    except Exception as e:
-                        notify_support(u'Erro ao notificar aprovação de voluntário',  u'Usuário: ' + str(myvol.usuario.id) + "\n" + u'Nome: ' + myvol.usuario.nome + "\n" + u'E-mail: ' + myvol.usuario.email + "\n" + u'Exceção: ' + str(e), request)
-                else:
+                if updated == 0:
                     error = concurrency_error_msg
+                else:
+                    sender = Voluntario
+                    instance = myvol
+                    created = False
+                    raw = None
+                    using = None
+                    update_fields = None
+                    voluntario_post_save(sender, instance, created, raw, using, update_fields)
 
                 proximo = True
-
-            else:
-                error = ''
-
-                if len(request.POST.get('nome')) == 0:
-                    error = "O campo 'nome' deve ser preenchido!\n"
-
-                if len(request.POST.get('email')) == 0:
-                    error = error + "O campo 'email' deve ser preenchido!\n"
-                else:
-                    if email_repetido:
-                        error = error + "O campo 'email' foi preenchido com um valor que já existe no banco de dados!\n"
-
-                for field in form:
-                    for e in field.errors:
-                        error = error + "Erro de preenchimento no campo '" + field.label + "'.\n"
-
-        elif 'rejeitar' in request.POST:
-
-            alteracoes_vol['aprovado'] = False
-
-            # Só atualiza se objeto continuar aguardando análise, evitando sobrepor gravação de outro usuário concorrente
-            # importante: o método update não usa save, e portanto nenhum sinal é disparado (pre ou post save)
-            updated = Voluntario.objects.filter(
-                id=vol_id,
-                data_analise__isnull=True,
-            ).update(**alteracoes_vol)
-
-            if updated == 0:
-                error = concurrency_error_msg
-            else:
-                sender = Voluntario
-                instance = myvol
-                created = False
-                raw = None
-                using = None
-                update_fields = None
-                voluntario_post_save(sender, instance, created, raw, using, update_fields)
-            
-            proximo = True
 
     # Total de voluntários que confirmaram o email e estão aguardando aprovação
     queue = Voluntario.objects.filter(aprovado__isnull=True, usuario__emailaddress__verified=True).order_by('data_cadastro')
@@ -2184,6 +2238,9 @@ def painel(request):
     # Total de processos seletivos aguardando revisão
     total_procs_revisao = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO).count()
 
+    # Total de processos seletivos abertos a inscrição
+    total_procs_abertos = ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count()
+
     # Total de processos seletivos
     total_procs = ProcessoSeletivo.objects.filter().count()
 
@@ -2273,6 +2330,7 @@ def painel(request):
                'total_ents_pessoal': total_ents_pessoal,
                'total_emails_descobertos': total_emails_descobertos,
                'total_procs_revisao': total_procs_revisao,
+               'total_procs_abertos': total_procs_abertos,
                'total_procs': total_procs,
                'total_procs_pessoal': total_procs_pessoal,
                'tarefas': tarefas,
@@ -2310,42 +2368,171 @@ def revisao_processo_seletivo(request, codigo_processo):
 
     try:
 
+        FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, max_num=10, min_num=1, validate_min=True, can_delete=True)
+
         if request.method == 'POST':
             if 'aprovar' in request.POST:
                 qs = ProcessoSeletivo.objects.select_for_update().filter(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
                 with transaction.atomic():
                     for processo in qs:
-                        if processo.inscricoes_encerradas():
-                            messages.error(request, u'As inscrições para este processo já estão encerradas! Entre em contato com a entidade para atualizar as datas.')
-                        else:
-                            if processo.inscricoes_nao_iniciadas():
-                                processo.aprovar(by=request.user)
+                        # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
+                        # irá alterar os dados da instância
+                        processo_original = deepcopy(processo)
+
+                        form = FormProcessoSeletivo(request.POST, instance=processo)
+                        area_trabalho_formset = FormSetAreaTrabalho(request.POST, request.FILES)
+
+                        areas_preexistentes = list(AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).values_list('area_trabalho', flat=True))
+
+                        if form.is_valid() and area_trabalho_formset.is_valid():
+
+                            proc = form.save()
+
+                            # Registra histórico de alteração
+                            alteracoes = detecta_alteracoes(['titulo', 'resumo_entidade', 'modo_trabalho', 'estado', 'cidade', 'somente_da_cidade', 'atividades', 'carga_horaria', 'requisitos', 'inicio_inscricoes', 'limite_inscricoes', 'previsao_resultado'], processo_original, request)
+                            dif = resume_alteracoes(alteracoes)
+
+                            if len(dif) > 0:
+                                historico = HistoricoAlteracao(registro=proc, dif=dif, feito_por=request.user)
+                                historico.save()
+
+                            # Atualiza áreas de trabalho
+                            areas_incluidas = []
+                            areas_selecionadas = []
+                            for area_trabalho_form in area_trabalho_formset:
+                                area_trabalho = area_trabalho_form.cleaned_data.get('area_trabalho')
+                                if area_trabalho:
+                                    areas_selecionadas.append(area_trabalho.id)
+                                    if area_trabalho.id not in areas_preexistentes and area_trabalho.id not in areas_incluidas:
+                                        areas_incluidas.append(area_trabalho.id)
+                                        area = AreaTrabalhoEmProcessoSeletivo(area_trabalho=area_trabalho,
+                                                                              processo_seletivo=processo)
+                                        area.save()
+                                    else:
+                                        # Ignora duplicidades e áreas já salvas
+                                        pass
+                                else:
+                                    # Ignora combos vazios
+                                    pass
+                            # Apaga áreas removidas
+                            for area_preexistente in areas_preexistentes:
+                                if area_preexistente not in areas_selecionadas:
+                                    try:
+                                        r_area = AreaTrabalhoEmProcessoSeletivo.objects.get(area_trabalho=area_preexistente, processo_seletivo=processo)
+                                        r_area.delete()
+                                    except AreaTrabalhoEmProcessoSeletivo.DoesNotExist:
+                                        pass
+                        
+                            if proc.inscricoes_encerradas():
+                                messages.error(request, u'As inscrições para este processo já estão encerradas!? Providencie a alteração nas datas.')
                             else:
-                                processo.aprovar_e_publicar(by=request.user)
-                            processo.save()
-                            return redirect(reverse('revisao_processos_seletivos'))
+                                if proc.inscricoes_nao_iniciadas():
+                                    proc.aprovar(by=request.user)
+                                    messages.info(request, u'Processo salvo e aprovado!')
+                                else:
+                                    proc.aprovar_e_publicar(by=request.user)
+                                    messages.info(request, u'Processo salvo, aprovado e publicado!')
+                                proc.save()
+                                return redirect(reverse('revisao_processos_seletivos'))
+
+            elif 'alterar' in request.POST:
+
+                processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+                
+                if processo.passivel_de_antecipar_inscricoes() or processo.passivel_de_estender_inscricoes():
+
+                    # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
+                    # irá alterar os dados da instância
+                    processo_original = deepcopy(processo)
+
+                    # Estrutura customizada de dados preenchendo campos desabilitados com conteúdo do registro
+                    data = request.POST.dict()
+                    data['titulo'] = processo.titulo
+                    data['resumo_entidade'] = processo.resumo_entidade
+                    data['modo_trabalho'] = str(processo.modo_trabalho)
+                    data['estado'] = processo.estado
+                    data['cidade'] = processo.cidade
+                    data['somente_da_cidade'] = processo.somente_da_cidade
+                    data['atividades'] = processo.atividades
+                    data['carga_horaria'] = processo.carga_horaria
+                    data['requisitos'] = processo.requisitos
+                    if not processo.passivel_de_antecipar_inscricoes():
+                        data['inicio_inscricoes'] = processo.inicio_inscricoes
+
+                    form = FormProcessoSeletivo(data, instance=processo)
+
+                    if form.is_valid(): # atenção, este método altera a instância do processo seletivo
+
+                        if processo_original.passivel_de_antecipar_inscricoes():
+
+                            if processo_original.inicio_inscricoes != processo.inicio_inscricoes:
+                                processo.save(update_fields=['inicio_inscricoes'])
+                                messages.info(request, u'Início de inscrições alterado com sucesso!')
+
+                                if processo.aguardando_publicacao() and processo.inscricoes_abertas():
+                                    processo.publicar(by=request.user)
+                                    processo.save()
+
+                        if processo_original.passivel_de_estender_inscricoes():
+
+                            update_fields = []
+
+                            if processo_original.limite_inscricoes != processo.limite_inscricoes:
+                                update_fields.append('limite_inscricoes')
+                            if processo_original.previsao_resultado != processo.previsao_resultado:
+                                update_fields.append('previsao_resultado')
+
+                            if update_fields: 
+                                processo.save(update_fields=update_fields)
+
+                            if 'limite_inscricoes' in update_fields:
+
+                                if processo.aguardando_selecao() and processo.inscricoes_abertas():
+                                    obs = None
+                                    if processo_original.limite_inscricoes:
+                                        limite_anterior = processo_original.limite_inscricoes.strftime('%d/%m/%Y %H:%M:%S')
+                                        obs = u'Limite anterior para inscrições: ' + limite_anterior
+                                    processo.reabrir_inscricoes(by=request.user, description=obs)
+                                    processo.save()
+                                messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                            # Registra histórico de alteração
+                            alteracoes = detecta_alteracoes(['limite_inscricoes', 'previsao_resultado'], processo_original, processo)
+                            dif = resume_alteracoes(alteracoes)
+
+                            if len(dif) > 0:
+                                historico = HistoricoAlteracao(registro=processo, dif=dif, feito_por=request.user)
+                                historico.save()
+
+                        return redirect(reverse('monitoramento_processos_seletivos'))
+                    
+                    # Erro de validação
+                    else:
+                        # vai exibir o formulário novamente abaixo
+                        area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+                        for subform in area_trabalho_formset:
+                            subform.disable()
+
             else:
                 return redirect(reverse('painel'))
-        else:
+
+        else: # GET
             
-            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
-            messages.info(request, u'Atenção: Caso seja detectado qualquer problema nos dados desta vaga, entre em contato com a entidade para solicitar a correção (link com dados para contato logo abaixo) e avise no grupo Voluntários sobre isso para evitar que outra pessoa aprove a vaga enquanto o problema não for corrigido.')
-                
+            processo = ProcessoSeletivo.objects.get(codigo=codigo_processo, status__in=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO, StatusProcessoSeletivo.ABERTO_A_INSCRICOES, StatusProcessoSeletivo.AGUARDANDO_SELECAO])
+
+            if processo.status == StatusProcessoSeletivo.AGUARDANDO_APROVACAO:
+                messages.info(request, u'Atenção: Se necessário, faça apenas pequenos ajustes (correções ortográficas, remoção de caixa alta, etc.) Em caso de querer fazer alterações significativas, melhor entrar em contato ou com a própria entidade (link com dados para contato logo abaixo) ou com pessoas mais experientes no Voluntários.')
+
+            form = FormProcessoSeletivo(instance=processo)
+            area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
+            if processo.status != StatusProcessoSeletivo.AGUARDANDO_APROVACAO:
+                for subform in area_trabalho_formset:
+                    subform.disable()
+
     except ProcessoSeletivo.DoesNotExist:
-        messages.error(request, u'Este processo não existe ou já foi revisado...')
+        messages.error(request, u'Ou este processo não existe, ou não está em condições de ser revisado/alterado.')
         return redirect(reverse('painel'))
 
-    # Em princípio, vamos deixar tudo desabilitado. Se houver algum problema será preciso
-    # entrar em contato com a entidade para que ela faça a alteração. Futuramente podemos pensar
-    # em permitir alterações na revisão ou então em criar um status novo "aguardando revisão", mas
-    # antes de complicar vamos tentar a solução mais simples.
-    form = FormProcessoSeletivo(instance=processo, disabled=True)
-
-    FormSetAreaTrabalho = formset_factory(FormAreaTrabalho, formset=BaseFormSet, extra=0, min_num=1, validate_min=True, can_delete=False)
-    area_trabalho_formset = FormSetAreaTrabalho(initial=AreaTrabalhoEmProcessoSeletivo.objects.filter(processo_seletivo=processo).order_by('area_trabalho__nome').values('area_trabalho'))
-    for subform in area_trabalho_formset:
-        subform.disable()
-        
     context = {'form': form,
                'area_trabalho_formset': area_trabalho_formset,
                'processo': processo}
@@ -2360,11 +2547,49 @@ def monitoramento_processos_seletivos(request):
     '''Página para monitorar todos os processos seletivos cadastrados'''
 
     processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao'),
-                                                  convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all().order_by('-cadastrado_em')
+                                                  convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all()
 
-    context = {'processos': processos}
+    # A ordenação é controlada pelo parâmetro GET 'ordem', que pode ter os valores:
+    # 'recente': ordem decrescente de cadastro
+    # 'entidade': ordem crescente de razão social da entidade
+    if request.method == 'GET' and 'ordem' in request.GET and request.GET['ordem'] == 'entidade':
+        processos = processos.order_by('entidade__razao_social', 'cadastrado_em')
+    else:
+        processos = processos.order_by('-cadastrado_em')
+
+    # Filtro por status de processo seletivo feito através do
+    # parâmetro GET 'status' contendo o código do status
+    opcoes_status = StatusProcessoSeletivo.opcoes()
+
+    if request.method == 'GET' and 'status' in request.GET:
+        status = request.GET['status']
+        if status.isdigit() and int(status) in opcoes_status:
+            processos = processos.filter(status=int(status))
+
+    context = {'opcoes_status': opcoes_status,
+               'processos': processos}
 
     template = loader.get_template('vol/monitoramento_processos_seletivos.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def monitoramento_historico_processo_seletivo(request, codigo_processo):
+    '''Página para ver detalhes sobre o histórico de um processo seletivo'''
+
+    try:
+        processo = ProcessoSeletivo.objects.select_related('entidade', 'cadastrado_por').get(codigo=codigo_processo)
+    except ProcessoSeletivo.DoesNotExist:
+        raise Http404
+
+    logs = StateLog.objects.select_related('by').for_(processo).order_by('timestamp')
+
+    context = {'processo': processo,
+               'logs': logs,
+               'status_proc': StatusProcessoSeletivo}
+
+    template = loader.get_template('vol/monitoramento_historico_processo_seletivo.html')
     
     return HttpResponse(template.render(context, request))
 
@@ -2989,10 +3214,15 @@ def busca_vagas(request):
     parametros = ''
     p_inicial = p_final = None
 
-    if 'Envia' in request.GET:
+    # Queryset apenas para vagas abertas a inscrições
+    vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
 
-        # Apenas voluntários cujo cadastro já tenha sido revisado e aprovado, e sejam visíveis nas buscas
-        vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
+    # Totaliza vagas disponíveis
+    num_vagas = vagas.count()
+
+    # Não exibe filtros caso a quantidade de vagas seja pequena (até duas páginas),
+    # para evitar muitas buscas com resultados vazios
+    if 'Envia' in request.GET or num_vagas < 41:
 
         # Filtro por modo de trabalho
         modo_trabalho = request.GET.get('modo_trabalho')
@@ -3010,7 +3240,7 @@ def busca_vagas(request):
 
         # Filtro por causa
         fasocial = request.GET.get('fasocial')
-        if fasocial.isdigit() and fasocial not in [0, '0']:
+        if fasocial and fasocial.isdigit() and fasocial not in [0, '0']:
             try:
                 causa = AreaAtuacao.objects.get(pk=fasocial)
                 if '.' in causa.indice:
@@ -3022,7 +3252,7 @@ def busca_vagas(request):
 
         # Filtro por profissão
         fareatrabalho = request.GET.get('fareatrabalho')
-        if fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
+        if fareatrabalho and fareatrabalho.isdigit() and fareatrabalho not in [0, '0']:
             vagas = vagas.filter(areatrabalhoemprocessoseletivo__area_trabalho=fareatrabalho)
 
         # Filtro por palavras-chave
@@ -3051,7 +3281,7 @@ def busca_vagas(request):
 
     else:
         # Avisa caso não exista nenhum processo em aberto
-        if ProcessoSeletivo.objects.filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES).count() == 0:
+        if num_vagas == 0:
             msg = u'Ops! No momento estamos sem nenhum processo seletivo em aberto. '
             lancamento = datetime.datetime.strptime("06/04/2024 18:30:00-0300", "%d/%m/%Y %H:%M:%S%z")
             current_tz = timezone.get_current_timezone()
@@ -3121,6 +3351,9 @@ def novo_processo_seletivo(request, id_entidade):
                 processo_seletivo.somente_da_cidade = form.cleaned_data['somente_da_cidade']
 
             processo_seletivo.save()
+
+            if 'solicitar_aprovacao' in request.POST:
+                notifica_processo_seletivo_aguardando_aprovacao(processo_seletivo)
 
             # áreas de trabalho
             areas_incluidas = []
@@ -3343,6 +3576,7 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                 if 'solicitar_aprovacao' in request.POST:
                     proc.solicitar_aprovacao(by=request.user)
                     proc.save()
+                    notifica_processo_seletivo_aguardando_aprovacao(proc)
                     return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': proc.entidade_id}))
 
                 msg = u'Alterações salvas com sucesso!'
@@ -3414,6 +3648,14 @@ def editar_processo_seletivo(request, id_entidade, codigo_processo):
                                 processo.reabrir_inscricoes(by=request.user, description=obs)
                                 processo.save()
                             messages.info(request, u'Limite de inscrições alterado com sucesso!')
+
+                        # Registra histórico de alteração
+                        alteracoes = detecta_alteracoes(['limite_inscricoes', 'previsao_resultado'], processo_original, processo)
+                        dif = resume_alteracoes(alteracoes)
+
+                        if len(dif) > 0:
+                            historico = HistoricoAlteracao(registro=processo, dif=dif, feito_por=request.user)
+                            historico.save()
 
                     return redirect(reverse('processos_seletivos_entidade', kwargs={'id_entidade': processo.entidade_id}))
     else:

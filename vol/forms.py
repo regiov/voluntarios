@@ -73,6 +73,11 @@ class FormVoluntario(forms.ModelForm):
     cidade = forms.ChoiceField(label=u'Cidade em que reside',
                                widget=forms.Select(attrs={'class': 'form-control'}),
                                choices=[]) # definido via init para validação. No form é carregado via ajax.
+    bairro = forms.CharField(label=u'Bairro',
+                             max_length=60,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
+                             help_text="Recomendamos preencher o bairro, especialmente em grande cidades",
+                             required=False)
     profissao = forms.CharField(label=u'Profissão',
                                 max_length=100,
                                 widget=forms.TextInput(attrs={'class': 'form-control', 'size': 25}),
@@ -140,7 +145,7 @@ class FormVoluntario(forms.ModelForm):
 
     class Meta:
         model = Voluntario
-        fields = ("data_aniversario", "estado", "cidade", "profissao", "ddd", "telefone", "empregado",
+        fields = ("data_aniversario", "estado", "cidade", "bairro", "profissao", "ddd", "telefone", "empregado",
                   "empresa", "foi_voluntario", "entidade_que_ajudou", "descricao", "area_trabalho",
                   "area_interesse", "ciente_autorizacao", "invisivel")
 
@@ -164,6 +169,9 @@ class FormVoluntario(forms.ModelForm):
         if not val:
             raise forms.ValidationError(u'É obrigatório informar a data de nascimento.')
         return val
+
+    def clean_bairro(self):
+        return self.cleaned_data['bairro'].strip()
 
     def clean_profissao(self):
         val = self.cleaned_data['profissao'].strip()
@@ -727,7 +735,7 @@ class FormProcessoSeletivo(forms.ModelForm):
                              max_length=100,
                              widget=forms.TextInput(attrs={'class': 'form-control', 'size': 30}))
     resumo_entidade = forms.CharField(label=u'Resumo sobre a entidade',
-                                      max_length=100,
+                                      max_length=600,
                                       widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'cols': 30}))
     modo_trabalho = forms.ChoiceField(label=u'Modo de trabalho',
                                       choices=[('', u'-- Escolha uma opção --')] + list(MODO_TRABALHO),
@@ -909,7 +917,7 @@ class FormProcessoSeletivo(forms.ModelForm):
             if self.instance and self.instance.pk and self.instance.passivel_de_estender_inscricoes():
                 current_tz = timezone.get_current_timezone()
                 now = timezone.now().astimezone(current_tz)
-                if val and self.instance.previsao_resultado > val.date() and val < now.date():
+                if val and self.instance.previsao_resultado and self.instance.previsao_resultado > val.date() and val < now.date():
                     raise forms.ValidationError(u'A data de previsão do resultado deve ser maior ou igual a data de hoje')
 
         return val

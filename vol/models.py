@@ -24,6 +24,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin
@@ -293,6 +294,7 @@ class Voluntario(models.Model):
     # tabelas cidade e estado.
     estado                = models.CharField(u'Estado', max_length=100)
     cidade                = models.CharField(u'Cidade', max_length=100)
+    bairro                = models.CharField(u'Bairro', max_length=60, null=True, blank=True) 
     empregado             = models.BooleanField(u'Empregado', null=True, blank=True)
     empresa               = models.CharField(u'Empresa', max_length=100, null=True, blank=True)
     foi_voluntario        = models.BooleanField(u'Foi voluntário', default=False)
@@ -1732,6 +1734,17 @@ class StatusProcessoSeletivo(object):
             return u'Cancelado'
         return '?'
 
+    @classmethod
+    def opcoes(cls):
+        '''Retorna todas as opções de status sob a forma de um dicionário {código -> nome status}'''
+        dicionario = {}
+        for atributo in StatusProcessoSeletivo.__dict__.keys():
+            if atributo[:2] != '__':
+                valor = getattr(StatusProcessoSeletivo, atributo)
+                if not callable(valor):
+                    dicionario[valor] = StatusProcessoSeletivo.nome(valor)
+        return dicionario
+
 def codigo_aleatorio_processo_seletivo():
     return codigo_aleatorio('ProcessoSeletivo')
 
@@ -1929,7 +1942,7 @@ class ProcessoSeletivo(models.Model):
         self.save(update_fields=['qtde_visualiza'])
 
     def ultima_notificacao_sobre_ausencia_de_inscricoes(self):
-        codigos = ['AVISO_AUSENCIA_INSCRICOES_V1']
+        codigos = ['AVISO_AUSENCIA_INSCRICOES_V1', 'AVISO_AUSENCIA_INSCRICOES_V2']
         avisos = Event.objects.filter(object_id=self.id, content_type=ContentType.objects.get_for_model(self).id, message__code__in=codigos).order_by('-creation')
         if len(avisos) > 0:
             return avisos[0].creation
@@ -2176,6 +2189,22 @@ class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
     avaliacao      = models.CharField(u'Avaliação', max_length=100, null=True, blank=True)
     anotacoes      = models.TextField(u'Anotações', null=True, blank=True)
 
+# Sobre convites para processos seletivos, o que pode acontecer depois que um convite é enviado:
+#
+# Convite enviado
+#   ├ Não recebeu
+#   └ Recebeu
+#      ├ Não tem a ver (local longe, área sem relação, não preenche requisito, procura algo diferente)
+#      └ Tem a ver
+#          ├ Posso participar
+#          └ Não posso (não tenho tempo)
+#
+# Ou seja, aí vão algumas possibilidades de opções mais específicas de respostas:
+# * Legal, vou considerar
+# * Não preencho os requisitos
+# * Procuro algo diferente
+# * Não estou disponível no momento
+# * Não posso (outro motivo)
 RESPOSTA_A_CONVITE = (
     ('+','Vou considerar'),
     ('-','Não posso participar'),
@@ -2196,3 +2225,18 @@ class ConviteProcessoSeletivo(models.Model):
             if opcao[0] == self.resposta:
                 return opcao[1]
         return None
+
+class HistoricoAlteracao(models.Model):
+    """Histórico de alteração em registro"""
+    id             = models.AutoField(primary_key=True)
+    content_type   = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
+    object_id      = models.PositiveIntegerField(null=True, blank=True)
+    registro       = GenericForeignKey('content_type', 'object_id')
+    dif            = models.TextField(u'Alterações', null=True, blank=True)
+    feito_em       = models.DateTimeField(u'Data da alteração', auto_now_add=True)
+    feito_por      = models.ForeignKey(Usuario, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        verbose_name = u'Histórico de alteração'
+        verbose_name_plural = u'Históricos de alteração'
+

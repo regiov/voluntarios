@@ -3,67 +3,6 @@
 
 {% block title %}{% endblock title %}
 
-{% block body %}
-    <header id="header">
-
-        <div id="pre-navbar" class="navbar navbar-inverse">
-            <div id="pre-navbar-container" class="container">
-                   <div class="social-icons pull-right">
-                        <ul class="nav nav-pills">
-                            {% if user.is_authenticated %}<li><span style="white-space: nowrap;"><a href="{% url 'cadastro_usuario' %}" style="margin-right: 5px;" title="Alterar cadastro">{{ user.get_short_name }}</a> <a href="{% url 'account_logout' %}" title="Sair"><i class="fas fa-sign-out-alt"></i></a></span></li>{% else %}<li><span style="white-space: nowrap;"><a href="{% url 'account_login' %}">Olá! Quem é você? <i class="fas fa-sign-in-alt" title="Identificar-se no sistema"></i></a></span></li>{% endif %}
-                        </ul>
-                   </div>
-            </div>
-        </div>
-
-        <div class="navbar navbar-inverse" role="banner">
-            <div id="navbar-container" class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Menu de navegação</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-
-                    <a class="navbar-brand" href="/">
-                    	<table><tr><td class="logo-img"><img src="{% static '/images/logo.png' %}" alt="logo"><td><table class="hidden-sm hidden-xs"><tr><td class="logo-cell"><img src="{% static '/images/nome.png' %}" alt="Voluntários"></td></tr></table></td></tr></table>
-                    </a>
-                    
-                </div>
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown"><a href="{% url 'painel' %}">Painel</a></li>                  
-                        <li class="dropdown"><a href="#">Voluntários <i class="fa fa-angle-down"></i></a>
-                            <ul role="menu" class="sub-menu">
-                                <li><a href="{% url 'aprovacao_voluntarios' %}">Revisão de voluntários</a></li>
-                            </ul>
-                        </li>                  
-                        <li class="dropdown"><a href="#">Entidades <i class="fa fa-angle-down"></i></a>
-                            <ul role="menu" class="sub-menu">
-                                <li><a href="{% url 'revisao_entidades' %}">Revisão de entidades</a></li>
-                            </ul>
-                        </li>                  
-                        <li class="dropdown"><a href="#">Indicadores <i class="fa fa-angle-down"></i></a>
-                            <ul role="menu" class="sub-menu">
-                                <li><a href="{% url 'indicadores' %}">Indicadores do site</a></li>
-                            </ul>
-                        </li>                         
-                        <li class="dropdown"><a href="#">Orientações <i class="fa fa-angle-down"></i></a>
-                            <ul role="menu" class="sub-menu">
-                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='orientacoes-revisao-entidades/' %}">Sobre revisão de entidades</a></li>
-                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='orientacoes-aprovacao-voluntarios/' %}">Sobre revisão de voluntários</a></li>
-                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='orientacoes-boas-vindas-entidades/' %}">Sobre o serviço de boas vindas às entidades</a></li>
-                                <li><a href="{% url 'django.contrib.flatpages.views.flatpage' url='orientacoes-aprovacao-vagas/' %}">Sobre processos seletivos</a></li>
-                            </ul>
-                        </li>                         
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </header>
-    <!--/#header-->
-
 {% block content_container %}
     <section id="content">
         <div class="container">
@@ -77,22 +16,3 @@
     </section>
     <!--/#content-->
 {% endblock content_container %}
-
-    <footer id="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="copyright-text text-center">
-                        <p><a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a></p>
-                        <p><a href="{% url 'django.contrib.flatpages.views.flatpage' url='termos-de-uso/' %}">Termos de Uso</a> - <a href="{% url 'django.contrib.flatpages.views.flatpage' url='politica-de-privacidade/' %}">Política de Privacidade</a> - <a href="https://www.instagram.com/seja_um_voluntario/" target="_blank" title="instagram"><i class="fab fa-instagram"></i></a>&nbsp; </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <!--/#footer-->
-
-{% block post_footer %}
-{% endblock post_footer %}
-
-{% endblock body %}

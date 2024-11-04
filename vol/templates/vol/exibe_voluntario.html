@@ -55,8 +55,8 @@
 <p><label>Profissão:</label> {{ voluntario.profissao|default:"-" }}</p>
 <p><label>E-mail:</label> {{ voluntario.usuario.email|default:"-" }}</p>
 <p><label>Telefone:</label> {% if voluntario.telefone %}({{ voluntario.ddd }}){{ voluntario.telefone }}{% else %}-{% endif %}</p>
-<p><label>Cidade:</label> {{ voluntario.cidade|default:"-" }}</p>
-<p><label>Estado:</label> {{ voluntario.estado|default:"-" }}</p>
+<p><label>Cidade:</label> {{ voluntario.cidade|default:"-" }}{% if voluntario.estado %} / {{ voluntario.estado }}{% endif %}</p>
+{% if voluntario.bairro %}<p><label>Bairro:</label> {{ voluntario.bairro }}</p>{% endif %}
 <p><label>Área{% if areas_de_interesse.count > 1 %}s{% endif %} em que gostaria de voluntariar:</label> {% if areas_de_interesse.count == 0 %}-{% else %}{% for area_de_interesse in areas_de_interesse %}{% if forloop.counter0 > 0 %}, {% endif %}{{ area_de_interesse.area_atuacao.nome }}{% endfor %}{% endif %}</p>
 {% if voluntario.foi_voluntario != None %}
 <p><label>Já fez trabalho voluntário:</label> {% if voluntario.foi_voluntario %}sim{% if voluntario.entidade_que_ajudou %} <br/><label>Entidade(s) que ajudou:</label> {{ voluntario.entidade_que_ajudou }}{% endif %}{% else %}não{% endif %}</p>
@@ -76,10 +76,34 @@
     <table class="table table-condensed table-responsive">
       {% comment %}Caso haja alguma vaga na sessão, mostra somente ela{% endcomment %}
       {% for vaga in vagas_em_aberto %}
-      <tr id="vaga-{{ vaga.0 }}" class="convite"{% if ultima_vaga_em_convite and ultima_vaga_em_convite != vaga.0 %} style="display: none;"{% endif %}><td>{{ vaga.1 }}</td><td>{{ vaga.2 }}</td><td width="35">{% if vaga.0 in vagas_com_inscricao %}inscrito{% else %}<input type="checkbox" class="check-convite" id="convite-{{ vaga.0 }}"{% if vaga.0 in vagas_com_convite %} checked{% endif %} onclick="javascript:alternar_convite('{{ vaga.0 }}', '{{ voluntario.id }}');"><img id="loader-{{ vaga.0 }}" src="{% static 'images/ajax-loader-circle-small.gif' %}" width="10" style="display: none;">{% endif %}</td><td>{% if ultima_vaga_em_convite and ultima_vaga_em_convite == vaga.0 and vagas_em_aberto|length > 1 %}<button id="btn-show" type="button" class="btn btn-default btn-xs"><i class="fas fa-caret-down" title="ver outros processos seletivos" onclick="javascript:$('.convite').show();$('#explicacao-convite').show();$('#btn-show').hide();"></i></button>{% endif %}</td></tr>
+      <tr id="vaga-{{ vaga.0 }}" class="convite"{% if ultima_vaga_em_convite and ultima_vaga_em_convite != vaga.0 %} style="display: none;"{% endif %}>
+	<td>{{ vaga.1 }}</td>
+	<td>{{ vaga.2 }}</td>
+	<td width="35">{% if vaga.0 in vagas_com_inscricao %}inscrito{% else %}<input type="checkbox" class="check-convite" id="convite-{{ vaga.0 }}"{% if vaga.0 in vagas_com_convite %} checked{% endif %} onclick="javascript:alternar_convite('{{ vaga.0 }}', '{{ voluntario.id }}');"><img id="loader-{{ vaga.0 }}" src="{% static 'images/ajax-loader-circle-small.gif' %}" width="10" style="display: none;">{% endif %}</td>
+	<td>{% if ultima_vaga_em_convite and ultima_vaga_em_convite == vaga.0 and vagas_em_aberto|length > 1 %}<button id="btn-show" type="button" class="btn btn-default btn-xs"><i class="fas fa-caret-down" title="ver outros processos seletivos" onclick="javascript:$('.convite').show();$('#explicacao-convite').show();$('#btn-show').hide();"></i></button>{% endif %}</td>
+      </tr>
       {% endfor %}
     </table>
   </div>
+</div>
+{% endif %}
+
+{% if seq != None %}
+{% comment %}botões para navegar entre resultados de uma busca{% endcomment %}
+<div>
+  {% if seq|add:-1 > 0 %}
+      <a href="{% url 'busca_voluntarios' %}?seq={{ seq|add:-1 }}&{{ get_params }}" class="btn btn-primary">Anterior</a>
+  {% else %}
+      <span class="btn btn-primary disabled">Anterior</span>
+  {% endif %}
+
+  <span class="dica" style="font-weight:300;margin-left:5px;margin-right:5px;">{{ seq }} de {{ total_voluntarios }}</span>
+
+  {% if seq|add:0 < total_voluntarios|add:0 %}
+      <a href="{% url 'busca_voluntarios' %}?seq={{ seq|add:1 }}&{{ get_params }}" class="btn btn-primary">Próximo</a>
+  {% else %}
+      <span class="btn btn-primary disabled">Próximo</span>
+  {% endif %}
 </div>
 {% endif %}
 

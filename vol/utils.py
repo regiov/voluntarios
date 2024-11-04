@@ -5,6 +5,8 @@
 # Como as rotinas aqui são usadas pelo models.py, não se pode importar modelos em novas rotinas pois dá erro.
 #
 
+import urllib.parse
+
 from django.db.models.signals import post_init
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -83,6 +85,40 @@ def track_data(*fields):
         return cls
     return inner
 
+def detecta_alteracoes(campos_rastreados, obj1, obj2, atualiza=False):
+    '''Detecta alterações entre obj1 e obj2 considerando os atributos passados como parâmetro.
+    obj1 é sempre a instância de um modelo. obj2 pode ser outra instância do mesmo modelo ou
+    request com dicionário POST. O parâmetro "atualiza" pode ser usado para atualizar os
+    campos em obj1 de acordo com os valores em obj2.'''
+    
+    alteracoes = {} # {campo: {'antes': val1, 'depois': val2}}
+
+    for campo in campos_rastreados:
+        if not hasattr(obj2, 'POST') or campo in obj2.POST:
+            antes = getattr(obj1, campo)
+            if hasattr(obj2, 'POST'):
+                depois = obj2.POST.get(campo)
+            else:
+                depois = getattr(obj2, campo)
+            # Comparação por string para evitar diferenças do tipo 0 x "0" em atributos
+            # numéricos passados como parâmetro POST
+            if str(antes) != str(depois):
+                alteracoes[campo] = {'antes': antes, 'depois': depois}
+                if atualiza:
+                    setattr(obj1, campo, depois)
+
+    return alteracoes
+
+def resume_alteracoes(alteracoes):
+    '''Retorna uma string representando as alteracoes retornadas pela função "detecta_alteracoes"
+    no formato: campo1: valor original -> valor novo\ncampo2: valor original -> valor novo'''
+    dif = ''
+    for campo, alteracao in alteracoes.items():
+        if len(dif) > 0:
+            dif = dif + "\n"
+        dif = dif + campo + ': ' + str(alteracao['antes']) + ' -> ' + str(alteracao['depois'])
+    return dif
+
 def notifica_aprovacao_voluntario(usuario):
     '''Envia e-mail comunicando ao usuário a aprovação do seu perfil'''
     # Se o usuário nunca recebeu o aviso de aprovação
@@ -102,10 +138,24 @@ def notifica_aprovacao_entidade(entidade):
         if hasattr(settings, 'ONBOARDING_TEAM_EMAIL'):
              notify_email(settings.ONBOARDING_TEAM_EMAIL, '\o/ Nova entidade aprovada!', 'Ei! O cadastro da entidade ' + entidade.menor_nome() + ' acaba de ser aprovado no Voluntários. Você está recebendo esse e-mail porque faz parte da equipe de boas-vindas. Use esse link para recepcionar a entidade: https://voluntarios.com.br' + reverse('onboarding_entidades'))
 
+def notifica_processo_seletivo_aguardando_aprovacao(processo_seletivo):
+    '''Envia e-mail comunicando ao RH a existência de processo seletivo aguardando aprovação'''
+    if hasattr(settings, 'RH_TEAM_EMAIL'):
+        notify_email(settings.RH_TEAM_EMAIL, '\o/ Novo processo seletivo!', "Ei! Tem um novo processo seletivo aguardando aprovação:\n\nEntidade: " + processo_seletivo.entidade.menor_nome() + "\nVaga: " + processo_seletivo.titulo + "\n\nVocê está recebendo este e-mail porque faz parte da equipe de RH. Assim que puder, acesse o painel de controle para fazer a revisão: https://voluntarios.com.br" + reverse('revisao_processos_seletivos'))
+
+def monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken']):
+    '''Monta query string para ser usada em URLs a partir dos parâmetros GET,
+    excluindo parâmetros especificados'''
+    params = request.GET.copy()
+    for key in excluir:
+        if key in params:
+            del params[key]
+    return urllib.parse.urlencode(params)
+
 def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
     '''Determina variáveis de paginação para poder usar o template paginador.html'''
-    get_params = ''
-    #pagina_inicial = pagina_final = None
+    get_params = monta_query_string(request)
+    pagina_inicial = pagina_final = None
     paginador = Paginator(qs, registros_por_pagina)
     pagina = request.GET.get('page')
     try:
@@ -137,12 +187,4 @@ def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10)
     #     pagina_final = paginador.num_pages
     #     pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
 
-    # Parâmetros GET
-    for k, v in request.GET.items():
-        if k in ('page', 'csrfmiddlewaretoken', 'pp'):
-            continue
-        if len(get_params) > 0:
-            get_params += '&'
-        get_params += k + '=' + v
-
-    return (new_qs, get_params, grupo_paginas_atual)
+    return (new_qs, get_params, pagina_inicial, pagina_final)

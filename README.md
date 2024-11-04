@@ -186,13 +186,13 @@ Com Docker:
 
 ```
 cd docker
-docker-compose run web python3 manage.py gerar_registros (qtde_voluntarios) (qtde_entidades)
+docker-compose run web python3 manage.py gerar_registros --num-voluntarios X --num-entidades Y --num-vagas Z
 ```
 
 Sem Docker:
 
 ```
-python3 manage.py gerar_registros (qtde_voluntarios) (qtde_entidades)
+python3 manage.py gerar_registros --num-voluntarios X --num-entidades Y --num-vagas Z
 ``` 
 
 ### Login por redes sociais

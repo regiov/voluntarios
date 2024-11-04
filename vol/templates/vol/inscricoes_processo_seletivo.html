@@ -50,7 +50,7 @@
   {% with telefone_competo=inscricao.voluntario.telefone_completo processo=inscricao.processo_seletivo %}
   <tr>
     <td>{% if not inscricao.cancelada %}<a href="mailto:{{ inscricao.voluntario.usuario.email }}"><i class="fas fa-envelope" title="contatar por e-mail"></i></a>{% if telefone_completo %} <a href="https://api.whatsapp.com/send?phone={{ telefone_completo }}" style="margin-left:5px;"><i class="fab fa-whatsapp" title="contatar por zap"></i></a>{% endif %}{% endif %}</td>
-    <td>{% if inscricao.cancelada %}<s>{{ inscricao.voluntario.usuario.nome }}</s>{% else %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}" rel="nofollow">{{ inscricao.voluntario.usuario.nome }}</a>{% endif %}<br/><span class="dica cor-clara">{{ inscricao.data_inscricao }}</span></td>
+    <td>{% if inscricao.cancelada %}<s>{{ inscricao.voluntario.usuario.nome }}</s>{% else %}<a href="{% url 'exibe_voluntario' inscricao.voluntario.id %}">{{ inscricao.voluntario.usuario.nome }}</a>{% endif %}<br/><span class="dica cor-clara">{{ inscricao.data_inscricao }}</span></td>
     <td>{{ inscricao.voluntario.area_trabalho.nome|default:"-" }}<br><span class="dica cor-clara">{{ inscricao.voluntario.profissao }}</span></td>
     <td>{{ inscricao.voluntario.cidade }} - {{ inscricao.voluntario.estado }}</td>
     <td>{{ inscricao.voluntario.idade }} anos</td>
