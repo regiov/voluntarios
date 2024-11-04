@@ -16,16 +16,18 @@
       ">>": sempre vai para a última página. Só faz sentido exibir qdo faltar exibir mais de 2 páginas no fim.
       ">": vai para a página imediatamente posterior. Só faz sentido exibir qdo faltar pelo menos 1 página no fim.
       {% endcomment %}
-      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ parametros }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}
-      {% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ parametros }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;
-      {% for p in qs.paginator.page_range %}
-        {% if p >= pagina_inicial and p <= pagina_final %}
+
+      {% with pagina_inicial=grupo_paginas_atual.start_index pagina_final=grupo_paginas_atual.end_index %}
+      
+      {% if pagina_inicial > 2 %}<a href="?pp=1&amp;page=1&amp;{{ parametros }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}
+      {% if pagina_inicial > 1 %}<a href="?pp={{grupo_paginas_atual.previous_page_number}}&amp;page={{ pagina_inicial|add:-1 }}&amp;{{ parametros }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;
+      {% for p in grupo_paginas_atual.object_list %}
           {% if p == qs.number %}<b>{{p}}</b>{% comment %}página atual, não precisa de link{% endcomment %}
-          {% else %}<a href="?page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
-          {% endif %}
+          {% else %}<a href="?pp={{ grupo_paginas_atual.number}}&amp;page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
       {% endfor %}
-      {% if pagina_final < qs.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ parametros }}" rel="nofollow">&gt;</a>{% endif %}
-      {% if pagina_final < qs.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ qs.paginator.num_pages }}&amp;{{ parametros }}" rel="nofollow">&gt;&gt;</a>{% endif %}
+      {% if pagina_final < qs.paginator.num_pages %}&nbsp;<a href="?pp={{grupo_paginas_atual.next_page_number}}&amp;page={{ pagina_final|add:1 }}&amp;{{ parametros }}" rel="nofollow">&gt;</a>{% endif %}
+      {% if pagina_final < qs.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?pp={{ grupo_paginas_atual.paginator.num_pages}}&amp;page={{ qs.paginator.num_pages }}&amp;{{ parametros }}" rel="nofollow">&gt;&gt;</a>{% endif %}
+      {% endwith %}
       </span>
     </div>
     {% endif %}
