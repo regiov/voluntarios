@@ -47,7 +47,7 @@ from allauth.account.models import EmailAddress
 from .forms import FormVoluntario, FormEntidade, FormCriarTermoAdesao, FormAssinarTermoAdesaoVol, FormAreaInteresse, FormTelefone, FormEmail, FormOnboarding, FormProcessoSeletivo, FormAreaTrabalho
 from .auth import ChangeUserProfileForm
 
-from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao, monta_query_string
+from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario, notifica_processo_seletivo_aguardando_aprovacao, elabora_paginacao_completa, agrupa_paginacao, monta_query_string
 
 from notification.utils import notify_support, notify_email_template, notify_email_msg
 from notification.models import Message
@@ -3110,6 +3110,12 @@ class ListaDePostagensNoBlog(generic.ListView):
             status_list.append(0)
         return PostagemBlog.objects.filter(status__in=status_list).order_by('-data_criacao')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        grupo_paginas_atual = agrupa_paginacao(self.request, context['paginator'])
+        context['grupo_paginas_atual'] = grupo_paginas_atual
+        return context
+
 class PostagemNoBlog(generic.DetailView):
     model = PostagemBlog
     template_name = 'vol/postagem_blog.html'
@@ -3276,7 +3282,7 @@ def busca_vagas(request):
             vagas = vagas.order_by('-inicio_inscricoes')
 
         # Paginação
-        (vagas, parametros, grupo_paginas_atual) = elabora_paginacao(request, vagas)
+        (vagas, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, vagas)
 
     else:
         # Avisa caso não exista nenhum processo em aberto
@@ -3293,7 +3299,7 @@ def busca_vagas(request):
             messages.info(request, msg)
         else:
             # Paginação
-            (vagas, parametros, grupo_paginas_atual) = elabora_paginacao(request, vagas)
+            (vagas, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, vagas)
 
     context = {'modos_de_trabalho': MODO_TRABALHO,
                'profissoes': profissoes,

@@ -1,9 +1,4 @@
 {% extends "vol/base.html" %}
-
-{% comment %}
-{% extends "vol/paginador.html" %}  
-{% endcomment %}
-
 {% load static %}
 
 {% block title %}Blog{% endblock title %}
@@ -26,40 +21,6 @@
 {% endfor %}
 <br>
 
-{% comment %}
-<div class="paginacao">
-   <!-- botão << -->
-   {% if page_obj.number > 1 %} 
-      <a href="?page=1">&lt;&lt;&nbsp;</a>
-   {% endif %}
-
-   <!-- botão < -->
-   {% if page_obj.number > 5 %} 
-      <a href="?page={{page_obj.number|add:-5}}">&lt;&nbsp;</a>
-   {% endif %}
-
-   <!-- números -->
-   {% for p in page_obj.paginator.page_range %}
-      {% if p  <=  page_obj.number|add:5 and p >= page_obj.number|add:-5 %}
-         {% if p == page_obj.number %}
-            <b>{{p}}&nbsp;</b>
-         {% else %}
-            <a href = "?page={{p}}" >{{p}}</a>&nbsp;
-         {% endif %}
-      {% endif %}
-   {% endfor %}
-
-   <!-- botão > -->
-   {% if page_obj.number < page_obj.paginator.num_pages|add:-5 %}
-      <a href="?page={{page_obj.number|add:5}}">&gt;&nbsp;</a>
-   {% endif %}
-
-   <!-- botão >> -->
-   {% if page_obj.number < page_obj.paginator.num_pages %}
-      <a href="?page={{page_obj.paginator.num_pages}}">&gt;&gt;&nbsp;</a>
-   {% endif %}
-   
-</div>
-{% endcomment %}
+{% include "vol/paginador.html" with qs=page_obj parametros="" grupo_paginas_atual=grupo_paginas_atual %}
 
 {% endblock content %}

@@ -152,7 +152,18 @@ def monta_query_string(request, excluir=['page', 'pp', 'csrfmiddlewaretoken']):
             del params[key]
     return urllib.parse.urlencode(params)
 
-def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
+def agrupa_paginacao(request, paginador, paginas_visiveis=10):
+    paginador_do_paginador = Paginator(paginador.page_range, paginas_visiveis)
+    grupo_paginas = request.GET.get('pp')
+    try:
+        grupo_paginas_atual = paginador_do_paginador.page(grupo_paginas)
+    except PageNotAnInteger:
+        grupo_paginas_atual = paginador_do_paginador.page(1)
+    except EmptyPage:
+        grupo_paginas_atual = paginador_do_paginador.page(paginador_do_paginador.num_pages)
+    return grupo_paginas_atual
+
+def elabora_paginacao_completa(request, qs, registros_por_pagina=20, paginas_visiveis=10):
     '''Determina variáveis de paginação para poder usar o template paginador.html
     Retorna o queryset encapsulado por um Paginator configurado para exibir a qtde
     especificada de registros por página. Também retorna os parâmetros GET em forma
@@ -173,13 +184,6 @@ def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10)
         # Se a página está fora dos limites (ex 9999), exibe a última
         new_qs = paginador.page(paginador.num_pages)
 
-    paginador_do_paginador = Paginator(paginador.page_range, paginas_visiveis)
-    grupo_paginas = request.GET.get('pp')
-    try:
-        grupo_paginas_atual = paginador_do_paginador.page(grupo_paginas)
-    except PageNotAnInteger:
-        grupo_paginas_atual = paginador_do_paginador.page(1)
-    except EmptyPage:
-        grupo_paginas_atual = paginador_do_paginador.page(paginador_do_paginador.num_pages)
+    grupo_paginas_atual = agrupa_paginacao(request, paginador, paginas_visiveis=paginas_visiveis)
 
     return (new_qs, get_params, grupo_paginas_atual)
