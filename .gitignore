@@ -52,8 +52,9 @@ local_settings.py
 # Sphinx documentation
 docs/_build/
 
-# Emacs backups
+# backups
 *~
+*.bak
 
 # Custom
 cache/
