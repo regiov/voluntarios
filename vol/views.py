@@ -3212,7 +3212,7 @@ def busca_vagas(request):
     estados = Estado.objects.all().order_by('nome')
     vagas = None
     parametros = ''
-    p_inicial = p_final = None
+    grupo_paginas_atual = None
 
     # Queryset apenas para vagas abertas a inscrições
     vagas = ProcessoSeletivo.objects.select_related('entidade', 'entidade__area_atuacao', 'estado', 'cidade').filter(status=StatusProcessoSeletivo.ABERTO_A_INSCRICOES)
@@ -3277,7 +3277,6 @@ def busca_vagas(request):
 
         # Paginação
         (vagas, parametros, grupo_paginas_atual) = elabora_paginacao(request, vagas)
-        print("########### DEBUG MESSAGE ###############")
 
     else:
         # Avisa caso não exista nenhum processo em aberto
@@ -3292,14 +3291,16 @@ def busca_vagas(request):
                 msg += u'Essa funcionalidade é bastante recente no site. '
             msg += u'Você pode tentar novamente dentro de alguns dias ou aguardar ser convidado por uma entidade.'
             messages.info(request, msg)
+        else:
+            # Paginação
+            (vagas, parametros, grupo_paginas_atual) = elabora_paginacao(request, vagas)
 
-    #inicialização de grupo_paginas_atual
-    grupo_paginas_atual = 0
     context = {'modos_de_trabalho': MODO_TRABALHO,
                'profissoes': profissoes,
                'causas': causas,
                'estados': estados,
                'vagas': vagas,
+               'num_vagas': num_vagas,
                'get_params': parametros,
                'grupo_paginas_atual': grupo_paginas_atual}
     

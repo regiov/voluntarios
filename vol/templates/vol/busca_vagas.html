@@ -100,7 +100,7 @@
     </tbody>
     </table>
     </div>
-    {% include "vol/paginador.html" with qs=vagas parametros=get_params pagina_inicial=p_inicial pagina_final=p_final %}
+    {% include "vol/paginador.html" with qs=vagas parametros=get_params grupo_paginas_atual=grupo_paginas_atual %}
   {% else %}
   <h2>Nenhuma vaga encontrada com estes critérios.</h2>
   {% endif %}

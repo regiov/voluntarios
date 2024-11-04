@@ -143,7 +143,7 @@ def notifica_processo_seletivo_aguardando_aprovacao(processo_seletivo):
     if hasattr(settings, 'RH_TEAM_EMAIL'):
         notify_email(settings.RH_TEAM_EMAIL, '\o/ Novo processo seletivo!', "Ei! Tem um novo processo seletivo aguardando aprovação:\n\nEntidade: " + processo_seletivo.entidade.menor_nome() + "\nVaga: " + processo_seletivo.titulo + "\n\nVocê está recebendo este e-mail porque faz parte da equipe de RH. Assim que puder, acesse o painel de controle para fazer a revisão: https://voluntarios.com.br" + reverse('revisao_processos_seletivos'))
 
-def monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken']):
+def monta_query_string(request, excluir=['page', 'pp', 'csrfmiddlewaretoken']):
     '''Monta query string para ser usada em URLs a partir dos parâmetros GET,
     excluindo parâmetros especificados'''
     params = request.GET.copy()
@@ -153,9 +153,15 @@ def monta_query_string(request, excluir=['page', 'csrfmiddlewaretoken']):
     return urllib.parse.urlencode(params)
 
 def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10):
-    '''Determina variáveis de paginação para poder usar o template paginador.html'''
+    '''Determina variáveis de paginação para poder usar o template paginador.html
+    Retorna o queryset encapsulado por um Paginator configurado para exibir a qtde
+    especificada de registros por página. Também retorna os parâmetros GET em forma
+    de query string, e por fim retorna um segundo paginador para paginar a própria
+    paginação, ou seja, se a quantidade de páginas for muito grande, não tem
+    sentido querer exibir toda a sequência de links para todas as páginas. Neste
+    caso exibe-se apenas o grupo de paginas em questão, podendo mover entre grupos
+    através do parâmetro "pp".'''
     get_params = monta_query_string(request)
-    pagina_inicial = pagina_final = None
     paginador = Paginator(qs, registros_por_pagina)
     pagina = request.GET.get('page')
     try:
@@ -167,7 +173,7 @@ def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10)
         # Se a página está fora dos limites (ex 9999), exibe a última
         new_qs = paginador.page(paginador.num_pages)
 
-    paginador_do_paginador = Paginator(paginador.page_range, 10)
+    paginador_do_paginador = Paginator(paginador.page_range, paginas_visiveis)
     grupo_paginas = request.GET.get('pp')
     try:
         grupo_paginas_atual = paginador_do_paginador.page(grupo_paginas)
@@ -176,15 +182,4 @@ def elabora_paginacao(request, qs, registros_por_pagina=20, paginas_visiveis=10)
     except EmptyPage:
         grupo_paginas_atual = paginador_do_paginador.page(paginador_do_paginador.num_pages)
 
-    # pagina_atual = new_qs.number
-    # intervalo = paginas_visiveis/2
-    # pagina_inicial = pagina_atual - intervalo
-    # pagina_final = pagina_atual + intervalo -1
-    # if pagina_inicial <= 0:
-    #     pagina_final = pagina_final - pagina_inicial + 1
-    #     pagina_inicial = 1
-    # if pagina_final > paginador.num_pages:
-    #     pagina_final = paginador.num_pages
-    #     pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-
-    return (new_qs, get_params, pagina_inicial, pagina_final)
+    return (new_qs, get_params, grupo_paginas_atual)
