@@ -15,6 +15,13 @@ class Command(BaseCommand):
     help = u"Encerra processos seletivos cujo limite de inscrições já passou mas que ainda se encontram ABERTO_A_INSCRICOES, bem como abre para inscrições processos seletivos cujo início de inscrições já começõu mas que ainda se encontram AGUARDANDO_PUBLICACAO."
     usage_str = "Uso: ./manage.py atualizar_processos_seletivos"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--com-notificacao',
+            action='store_true',
+            help='Habilita envio de notificações.'
+            )
+
     @transaction.atomic
     def handle(self, *args, **options):
 
@@ -29,10 +36,11 @@ class Command(BaseCommand):
         for processo in processos_em_aberto:
             processo.encerrar_inscricoes()
             processo.save()
-            notify_email_msg(processo.cadastrado_por.email,
-                             msg,
-                             context={'processo': processo},
-                             content_obj=processo)
+            if options['com_notificacao']:
+                notify_email_msg(processo.cadastrado_por.email,
+                                msg,
+                                context={'processo': processo},
+                                content_obj=processo)
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) encerrado(s).'))
@@ -48,10 +56,11 @@ class Command(BaseCommand):
         for processo in processos_nao_iniciados:
             processo.publicar()
             processo.save()
-            notify_email_msg(processo.cadastrado_por.email,
-                             msg,
-                             context={'processo': processo},
-                             content_obj=processo)
+            if options['com_notificacao']:
+                notify_email_msg(processo.cadastrado_por.email,
+                                msg,
+                                context={'processo': processo},
+                                content_obj=processo)
             i = i + 1
 
         self.stdout.write(self.style.NOTICE(str(i) + ' processo(s) seletivo(s) iniciado(s).'))
@@ -66,6 +75,8 @@ class Command(BaseCommand):
 
         i = 0
 
+        aviso_sobre_notificacao_desabilitada = ''
+        
         msg_novas_inscricoes = Message.objects.get(code='AVISO_NOVAS_INSCRICOES_V1')
         for entidade in entidades_com_processos_em_aberto:
 
@@ -97,14 +108,17 @@ class Command(BaseCommand):
             email_para_notificacoes = entidade.email_para_notificacoes()
 
             if qtde_novas_inscricoes > 0 and email_para_notificacoes:
-                notify_email_msg(email_para_notificacoes,
-                                 msg_novas_inscricoes,
-                                 context={'entidade': entidade,
-                                          'link_processos_seletivos_entidade': reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id})},
-                                 content_obj=entidade)
-                i = i + 1
+                if options['com_notificacao']:
+                    notify_email_msg(email_para_notificacoes,
+                                     msg_novas_inscricoes,
+                                     context={'entidade': entidade,
+                                              'link_processos_seletivos_entidade': reverse('processos_seletivos_entidade', kwargs={'id_entidade': entidade.id})},
+                                     content_obj=entidade)
+                    i = i + 1
+                else:
+                    aviso_sobre_notificacao_desabilitada = ' (NOTIFICAÇÕES DESABILITADAS)'
 
-        self.stdout.write(self.style.NOTICE(str(i) + ' entidade(s) notificada(s) sobre novas inscrições em processos seletivos.'))
+        self.stdout.write(self.style.NOTICE(str(i) + ' entidade(s) notificada(s) sobre novas inscrições em processos seletivos' + aviso_sobre_notificacao_desabilitada + '.'))
 
         ####################################################################
         # Notifica entidades sobre processos seletivos sem nenhuma inscrição
@@ -114,6 +128,8 @@ class Command(BaseCommand):
         msg_ausencia_inscricoes = Message.objects.get(code='AVISO_AUSENCIA_INSCRICOES_V2')
 
         now = timezone.now().astimezone(current_tz)
+
+        aviso_sobre_notificacao_desabilitada = ''
 
         i = 0
 
@@ -137,16 +153,19 @@ class Command(BaseCommand):
 
                 email_para_notificacoes = processo.entidade.email_para_notificacoes()
                 
-                notify_email_msg(email_para_notificacoes,
-                                 msg_ausencia_inscricoes,
-                                 context={'intervalo_em_dias': intervalo_em_dias,
-                                          'titulo_vaga': processo.titulo,
-                                          'link_vaga': reverse('exibe_processo_seletivo', kwargs={'codigo_processo': processo.codigo}),
-                                          'link_busca_voluntarios': reverse('busca_voluntarios')},
-                                 content_obj=processo)
-                i = i + 1
+                if options['com_notificacao']:
+                    notify_email_msg(email_para_notificacoes,
+                                     msg_ausencia_inscricoes,
+                                     context={'intervalo_em_dias': intervalo_em_dias,
+                                              'titulo_vaga': processo.titulo,
+                                              'link_vaga': reverse('exibe_processo_seletivo', kwargs={'codigo_processo': processo.codigo}),
+                                              'link_busca_voluntarios': reverse('busca_voluntarios')},
+                                     content_obj=processo)
+                    i = i + 1
+                else:
+                    aviso_sobre_notificacao_desabilitada = ' (NOTIFICAÇÕES DESABILITADAS)'
 
-        self.stdout.write(self.style.NOTICE(str(i) + ' notificações(s) sobre ausência inscrições em processos seletivos.'))
+        self.stdout.write(self.style.NOTICE(str(i) + ' notificações(s) sobre ausência inscrições em processos seletivos' + aviso_sobre_notificacao_desabilitada + '.'))
 
         ############################################################
         # Encerra processos cujas inscrições terminaram há 10 dias
