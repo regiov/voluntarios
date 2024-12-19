@@ -26,7 +26,7 @@
         {% if inscricao.processo_seletivo.limite_inscricoes %}<br/><span class="dica">limite das inscrições: {{ inscricao.processo_seletivo.limite_inscricoes|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
         {% if inscricao.processo_seletivo.previsao_resultado %}<br/><span class="dica">previsão de resultado: {{ inscricao.processo_seletivo.previsao_resultado|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
       {% endif %}</td>
-    <td>{{ inscricao.nome_status_para_voluntario }}</td>
+    <td>{{ inscricao.nome_status_para_voluntario }}{% if inscricao.indefinida %} <i class="fas fa-info-circle" style="color: #CCCCCC;" title="não houve definição por parte da entidade"></i>{% endif %}</td>
     <td>{{ inscricao.data_inscricao|date:"SHORT_DATETIME_FORMAT" }}</td>
   {% endfor %}
   </tbody>

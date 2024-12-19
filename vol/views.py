@@ -2513,6 +2513,18 @@ def revisao_processo_seletivo(request, codigo_processo):
                         for subform in area_trabalho_formset:
                             subform.disable()
 
+            elif 'concluir' in request.POST:
+
+                processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+                
+                if processo.passivel_de_encerramento_administrativo():
+                    processo.concluir(by=request.user)
+                    processo.save()
+                    for inscricao in processo.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO]):
+                        inscricao.ignorar()
+                        inscricao.save()
+                    messages.info(request, u'Processo encerrado com sucesso!')
+                    return redirect(reverse('monitoramento_processos_seletivos'))
             else:
                 return redirect(reverse('painel'))
 

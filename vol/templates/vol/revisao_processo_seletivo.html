@@ -64,6 +64,9 @@
         <input class="btn btn-primary" type="submit" name="aprovar" value="Aprovar">
       {% else %}
         <input class="btn btn-primary" type="submit" name="alterar" value="Alterar">
+        {% if processo.passivel_de_encerramento_administrativo %}
+          <input class="btn btn-danger" type="submit" name="concluir" value="Encerrar">
+        {% endif %}
       {% endif %}
     </div>
 </form>

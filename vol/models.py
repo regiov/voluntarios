@@ -1891,6 +1891,27 @@ class ProcessoSeletivo(models.Model):
             return True
         return False
 
+    def passivel_de_encerramento_administrativo(self):
+        '''Indica se o processo pode ser encerrado via painel de controle pela equipe Voluntários'''
+        if self.status == StatusProcessoSeletivo.ABERTO_A_INSCRICOES and self.limite_inscricoes is None:
+            agora = timezone.now()
+            # Caso a entidade não acesse a interface adm de processos seletivos há mais de 30 dias
+            if self.entidade.ultimo_acesso_proc is None: # nunca acessou
+                delta = agora - self.inicio_inscricoes
+            else:
+                delta = agora - self.entidade.ultimo_acesso_proc
+            if delta.days > 30:
+                return True
+        if self.status == StatusProcessoSeletivo.AGUARDANDO_SELECAO and self.inscricoes_encerradas():
+            # Caso tenha candidato aguardando seleção mesmo depois de 2 semanas
+            # após o encerramento das inscrições
+            if self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO]).count() > 0:
+                agora = timezone.now()
+                delta = agora - self.limite_inscricoes
+                if delta.days > 15:
+                    return True
+        return False
+
     def cancelado(self):
         '''Indica se o processo foi cancelado'''
         return self.status == StatusProcessoSeletivo.CANCELADO
@@ -1919,7 +1940,8 @@ class ProcessoSeletivo(models.Model):
         return qs
 
     def inscricoes_validas(self):
-        return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO])
+        # Exclui-se cancelamentos e desistências
+        return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SEM_DEFINICAO])
 
     def selecionados(self):
         return self.inscricoes(status=[StatusParticipacaoEmProcessoSeletivo.SELECIONADO])
@@ -2056,10 +2078,12 @@ class StatusParticipacaoEmProcessoSeletivo(object):
     CANCELAMENTO       = 30
     NAO_SELECIONADO    = 40
     SELECIONADO        = 100
+    SEM_DEFINICAO      = 110
 
     @classmethod
     def nome(cls, code):
         if code == 10:
+            # Apenas enquanto o processo estiver ativo
             return u'Aguardando seleção'
         elif code == 20:
             return u'Desistência'
@@ -2070,6 +2094,9 @@ class StatusParticipacaoEmProcessoSeletivo(object):
             return u'Não selecionado'
         elif code == 100:
             return u'Selecionado'
+        elif code == 110:
+            # Só depois que o processo for concluído ou cancelado
+            return u'Sem definição'
         return '?'
 
 class ParticipacaoEmProcessoSeletivo(models.Model):
@@ -2129,6 +2156,9 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     def cancelada(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO
 
+    def indefinida(self):
+        return self.status == StatusParticipacaoEmProcessoSeletivo.SEM_DEFINICAO
+
     def passivel_de_desistencia(self):
         return self.status == StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO
 
@@ -2175,6 +2205,10 @@ class ParticipacaoEmProcessoSeletivo(models.Model):
     @fsm_log_by
     @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO, StatusParticipacaoEmProcessoSeletivo.DESISTENCIA, StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO, StatusParticipacaoEmProcessoSeletivo.SELECIONADO], target=StatusParticipacaoEmProcessoSeletivo.CANCELAMENTO)
     def cancelar(self, by=None, description=None):
+        pass
+
+    @transition(field=status, source=[StatusParticipacaoEmProcessoSeletivo.AGUARDANDO_SELECAO], target=StatusParticipacaoEmProcessoSeletivo.SEM_DEFINICAO)
+    def ignorar(self):
         pass
 
 class ParticipacaoEmEtapaDeProcessoSeletivo(models.Model):
