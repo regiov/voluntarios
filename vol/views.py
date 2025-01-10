@@ -1540,6 +1540,8 @@ def busca_entidades(request):
 
         # Filtro por cidade
         if fcidade is not None:
+            if '\x00' in fcidade:
+                return HttpResponseBadRequest("Parâmetro 'cidade' inválido")
             fcidade = fcidade.strip()
             if len(fcidade) > 0:
                 # Obs: unaccent deve vir antes dos outros operadores!
@@ -1550,12 +1552,16 @@ def busca_entidades(request):
 
         # Filtro por bairro
         if fbairro is not None:
+            if '\x00' in fbairro:
+                return HttpResponseBadRequest("Parâmetro 'bairro' inválido")
             fbairro = fbairro.strip()
             if len(fbairro) > 0:
                 entidades = entidades.filter(bairro__unaccent__icontains=fbairro)
 
         # Filtro por nome
         if fentidade is not None:
+            if '\x00' in fentidade:
+                return HttpResponseBadRequest("Parâmetro 'entidade' inválido")
             fentidade = fentidade.strip()
             if len(fentidade) > 0:
                 entidades = entidades.filter(Q(nome_fantasia__unaccent__icontains=fentidade) | Q(razao_social__unaccent__icontains=fentidade))
@@ -1695,6 +1701,8 @@ def busca_doacoes(request):
             # Filtro por descrição
             fpalavra = request.GET.get('fpalavra')
             if fpalavra is not None:
+                if '\x00' in fpalavra:
+                    return HttpResponseBadRequest("Parâmetro 'palavra-chave' inválido")
                 fpalavra = fpalavra.strip()
                 if len(fpalavra) > 0:
                     doacoes = doacoes.filter(descricao__icontains=fpalavra)
@@ -1702,6 +1710,8 @@ def busca_doacoes(request):
             # Filtro por cidade
             fcidade = request.GET.get('fcidade')
             if fcidade is not None:
+                if '\x00' in fcidade:
+                    return HttpResponseBadRequest("Parâmetro 'cidade' inválido")
                 fcidade = fcidade.strip()
                 if len(fcidade) > 0:
                     doacoes = doacoes.filter(entidade__cidade__iexact=fcidade)
@@ -1711,6 +1721,8 @@ def busca_doacoes(request):
             # Filtro por nome
             fentidade = request.GET.get('fentidade')
             if fentidade is not None:
+                if '\x00' in fentidade:
+                    return HttpResponseBadRequest("Parâmetro 'entidade' inválido")
                 fentidade = fentidade.strip()
                 if len(fentidade) > 0:
                     doacoes = doacoes.filter(entidade__nome_fantasia__icontains=fentidade)
@@ -1718,6 +1730,8 @@ def busca_doacoes(request):
             # Filtro por cidade
             fcidade = request.GET.get('fcidade2')
             if fcidade is not None:
+                if '\x00' in fcidade:
+                    return HttpResponseBadRequest("Parâmetro 'cidade' inválido")
                 fcidade = fcidade.strip()
                 if len(fcidade) > 0:
                     doacoes = doacoes.filter(entidade__cidade__iexact=fcidade)
