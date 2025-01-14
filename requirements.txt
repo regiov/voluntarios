@@ -1,4 +1,4 @@
-django == 5.0.10
+django == 5.0.11
 django-crispy-forms == 1.14
 django-tinymce == 4.1.0
 django-allauth == 0.52.0
