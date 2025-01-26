@@ -409,6 +409,11 @@ class Voluntario(models.Model):
             if len(self.ddd) > 2 and self.ddd[0] == '0':
                 # Remove eventual zero inicial
                 self.ddd = self.ddd.replace('0', '')
+            # Remove DDD do número, se necessário
+            if self.telefone:
+                if len(self.telefone) > 9: # no Brasil telefones fixos tem 8 dígitos e celulares 9
+                    if self.telefone[:2] == self.ddd:
+                        self.telefone = self.telefone[2:]
                 
         if self.usuario.nome == self.usuario.nome.upper() or self.usuario.nome == self.usuario.nome.lower():
             self.usuario.nome = self.usuario.nome.title().replace(' Do ', ' do ').replace(' Da ', ' da ').replace(' Dos ', ' dos ').replace(' Das ', ' das ').replace(' De ', ' de ')
