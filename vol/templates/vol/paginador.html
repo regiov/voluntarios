@@ -22,7 +22,7 @@
       {% if pagina_inicial > 1 %}<a href="?pp={{grupo_paginas_atual.previous_page_number}}&amp;page={{ pagina_inicial|add:-1 }}&amp;{{ parametros }}" rel="nofollow">&lt;</a>&nbsp;{% endif %}&nbsp;
       {% for p in grupo_paginas_atual.object_list %}
           {% if p == qs.number %}<b>{{p}}</b>{% comment %}página atual, não precisa de link{% endcomment %}
-          {% else %}<a href="?pp={{ grupo_paginas_atual.number}}&amp;page={{ p }}&amp;{{ get_params }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
+          {% else %}<a href="?pp={{ grupo_paginas_atual.number}}&amp;page={{ p }}&amp;{{ parametros }}" rel="nofollow">{{p}}</a>{% endif %}&nbsp;
       {% endfor %}
       {% if pagina_final < qs.paginator.num_pages %}&nbsp;<a href="?pp={{grupo_paginas_atual.next_page_number}}&amp;page={{ pagina_final|add:1 }}&amp;{{ parametros }}" rel="nofollow">&gt;</a>{% endif %}
       {% if pagina_final < qs.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?pp={{ grupo_paginas_atual.paginator.num_pages}}&amp;page={{ qs.paginator.num_pages }}&amp;{{ parametros }}" rel="nofollow">&gt;&gt;</a>{% endif %}
