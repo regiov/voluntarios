@@ -80,14 +80,8 @@ Se você não souber o nome da entidade deixe em branco e apenas digite sua cida
     </table>
     </div>
 
-    {% if entidades.paginator.num_pages > 1 %}
-    <br>
-    <div>
-      <span>
-      {% if pagina_inicial > 2 %}<a href="?page=1&amp;{{ get_params }}">&lt;&lt;</a>&nbsp;&nbsp;{% endif %}{% if pagina_inicial > 1 %}<a href="?page={{ pagina_inicial|add:-1 }}&amp;{{ get_params }}">&lt;</a>&nbsp;{% endif %}&nbsp;{% for p in entidades.paginator.page_range %}{% if p >= pagina_inicial and p <= pagina_final %}{% if p == entidades.number %}<b>{{p}}</b>{% else %}<a href="?page={{ p }}&amp;{{ get_params }}">{{p}}</a>{% endif %}&nbsp;{% endif %}{% endfor %}{% if pagina_final < entidades.paginator.num_pages %}&nbsp;<a href="?page={{ pagina_final|add:1 }}&amp;{{ get_params }}">&gt;</a>{% endif %}{% if pagina_final < entidades.paginator.num_pages|add:-1 %}&nbsp;&nbsp;<a href="?page={{ entidades.paginator.num_pages }}&amp;{{ get_params }}">&gt;&gt;</a>{% endif %}
-      </span>
-    </div>
-    {% endif %}
+    {% include "vol/paginador.html" with qs=entidades parametros=get_params grupo_paginas_atual=grupo_paginas_atual %}
+
   {% else %}
   <h2>Nenhuma entidade encontrada com estes critérios.</h2>
   {% endif %}

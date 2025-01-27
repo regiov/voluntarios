@@ -13,7 +13,6 @@ from django.shortcuts import render, redirect
 from django.template import loader, engines
 from django.http import HttpResponse, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.core.exceptions import ValidationError, SuspiciousOperation, PermissionDenied, ObjectDoesNotExist
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import mail
 from django.core.validators import URLValidator
 from django.core.signing import SignatureExpired
@@ -387,8 +386,8 @@ def busca_voluntarios(request):
     areas_de_interesse = AreaAtuacao.objects.all().order_by('indice')
     voluntarios = None
     total_voluntarios = 0
-    get_params = ''
-    pagina_inicial = pagina_final = None
+    parametros = ''
+    grupo_paginas_atual = None
 
     # Este parâmetro é usado para acessar um voluntário numa posição específica de uma busca
     seq = request.GET.get('seq')
@@ -477,43 +476,13 @@ def busca_voluntarios(request):
 
         # Caso contrário, prosseguimos com o resultado da busca em
         # forma de tabela com paginação
-        
-        # Paginação
-        paginador = Paginator(voluntarios, 20) # 20 pessoas por página
-        pagina = request.GET.get('page')
-        try:
-            voluntarios = paginador.page(pagina)
-        except PageNotAnInteger:
-            # Se a página não é um número inteiro, exibe a primeira
-            voluntarios = paginador.page(1)
-        except EmptyPage:
-            # Se a página está fora dos limites (ex 9999), exibe a última
-            voluntarios = paginador.page(paginador.num_pages)
-        pagina_atual = voluntarios.number
-        max_links_visiveis = 10
-        intervalo = 10/2
-        pagina_inicial = pagina_atual - intervalo
-        pagina_final = pagina_atual + intervalo -1
-        if pagina_inicial <= 0:
-            pagina_final = pagina_final - pagina_inicial + 1
-            pagina_inicial = 1
-        if pagina_final > paginador.num_pages:
-            pagina_final = paginador.num_pages
-            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET
-        for k, v in request.GET.items():
-            if k in ('page', 'csrfmiddlewaretoken'):
-                continue
-            if len(get_params) > 0:
-                get_params += '&'
-            get_params += k + '=' + v
+        (voluntarios, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, voluntarios)
 
     context = {'areas_de_trabalho': areas_de_trabalho,
                'areas_de_interesse': areas_de_interesse,
                'voluntarios': voluntarios,
-               'get_params': get_params,
-               'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final,
+               'get_params': parametros,
+               'grupo_paginas_atual': grupo_paginas_atual,
                'total_voluntarios': total_voluntarios}
      
     template = loader.get_template('vol/busca_voluntarios.html')
@@ -1486,8 +1455,8 @@ def busca_entidades(request):
 
     buscar = False
     fasocial = fcidade = fbairro = fentidade = boxexato = entidades = params = atualiza = None
-    get_params = ''
-    pagina_inicial = pagina_final = None
+    parametros = ''
+    grupo_paginas_atual = None
 
     if request.method == 'GET':
 
@@ -1579,42 +1548,14 @@ def busca_entidades(request):
         entidades = entidades.order_by('estado', 'cidade', 'bairro', 'nome_fantasia')
 
         # Paginação
-        paginador = Paginator(entidades, 20) # 20 entidades por página
-        pagina = request.GET.get('page')
-        try:
-            entidades = paginador.page(pagina)
-        except PageNotAnInteger:
-            # Se a página não é um número inteiro, exibe a primeira
-            entidades = paginador.page(1)
-        except EmptyPage:
-            # Se a página está fora dos limites (ex 9999), exibe a última
-            entidades = paginador.page(paginador.num_pages)
-        pagina_atual = entidades.number
-        max_links_visiveis = 10
-        intervalo = 10/2
-        pagina_inicial = pagina_atual - intervalo
-        pagina_final = pagina_atual + intervalo -1
-        if pagina_inicial <= 0:
-            pagina_final = pagina_final - pagina_inicial + 1
-            pagina_inicial = 1
-        if pagina_final > paginador.num_pages:
-            pagina_final = paginador.num_pages
-            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET na paginação
-        for k, v in params:
-            if k in ('page', 'csrfmiddlewaretoken'):
-                continue
-            if len(get_params) > 0:
-                get_params += '&'
-            get_params += k + '=' + v
+        (entidades, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, entidades)
 
     context = {'areas_de_atuacao': areas_de_atuacao,
                'entidades': entidades,
                'tipos_de_artigo': tipos_de_artigo,
-               'get_params': get_params,
-               'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
-    
+               'get_params': parametros,
+               'grupo_paginas_atual': grupo_paginas_atual}
+
     template = loader.get_template('vol/busca_entidades.html')
     return HttpResponse(template.render(context, request))
 
@@ -1689,8 +1630,8 @@ def busca_doacoes(request):
         return HttpResponseNotAllowed(metodos)
 
     doacoes = None
-    get_params = ''
-    pagina_inicial = pagina_final = None
+    parametros = ''
+    grupo_paginas_atual = None
 
     if 'pesquisa_ajuda' in request.GET or 'pesquisa_entidade' in request.GET:
 
@@ -1740,39 +1681,11 @@ def busca_doacoes(request):
         doacoes = doacoes.order_by('entidade__razao_social', 'descricao')
 
         # Paginação
-        paginador = Paginator(doacoes, 20) # 20 doações por página
-        pagina = request.GET.get('page')
-        try:
-            doacoes = paginador.page(pagina)
-        except PageNotAnInteger:
-            # Se a página não é um número inteiro, exibe a primeira
-            doacoes = paginador.page(1)
-        except EmptyPage:
-            # Se a página está fora dos limites (ex 9999), exibe a última
-            doacoes = paginador.page(paginador.num_pages)
-        pagina_atual = doacoes.number
-        max_links_visiveis = 10
-        intervalo = 10/2
-        pagina_inicial = pagina_atual - intervalo
-        pagina_final = pagina_atual + intervalo -1
-        if pagina_inicial <= 0:
-            pagina_final = pagina_final - pagina_inicial + 1
-            pagina_inicial = 1
-        if pagina_final > paginador.num_pages:
-            pagina_final = paginador.num_pages
-            pagina_inicial = max(pagina_final - (2*intervalo) + 1, 1)
-        # Parâmetros GET
-        for k, v in request.GET.items():
-            if k in ('page', 'csrfmiddlewaretoken'):
-                continue
-            if len(get_params) > 0:
-                get_params += '&'
-            get_params += k + '=' + v
+        (doacoes, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, doacoes)
 
     context = {'doacoes': doacoes,
-               'get_params': get_params,
-               'pagina_inicial': pagina_inicial,
-               'pagina_final': pagina_final}
+               'get_params': parametros,
+               'grupo_paginas_atual': grupo_paginas_atual}
     
     template = loader.get_template('vol/busca_doacoes.html')
     return HttpResponse(template.render(context, request))
