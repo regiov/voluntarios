@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.core.exceptions import MultipleObjectsReturned
 
-from vol.models import Usuario, Voluntario, Entidade, Telefone, Email, VinculoEntidade, ProcessoSeletivo, Estado, Cidade, MODO_TRABALHO
+from vol.models import Usuario, Voluntario, Entidade, AreaAtuacao, Telefone, Email, VinculoEntidade, ProcessoSeletivo, Estado, Cidade, MODO_TRABALHO
 
 class Command(BaseCommand):
     help = u"Gera registros fictícios para teste."
@@ -126,6 +126,7 @@ class Command(BaseCommand):
                 logradouro=logradouro_aleatorio,
                 aprovado=True
                 )
+            entidade.bloquear_notificacoes_automaticas()
             entidade.save()
             
             tel = Telefone(
@@ -208,9 +209,9 @@ class Command(BaseCommand):
             length_senha = randint(8, 12)
             senha_aleatoria = ''.join(random.choices(string.ascii_letters, k=length_senha)) + str(randint(1, 999))
 
-            agora = datetime.datetime.now()
-            ini = agora - datetime.timedelta(days=80*365)
-            fim = agora - datetime.timedelta(days=18*365)
+            agora = timezone.now()
+            ini = agora - timedelta(days=80*365)
+            fim = agora - timedelta(days=18*365)
             data = ini + random.random()*(fim-ini)
 
             usuario = Usuario(

@@ -628,6 +628,11 @@ class Entidade(StatusCnpj):
             return signing.dumps(obj=self.pk, salt=ENTIDADE_SALT)
         raise ValueError(u'Entidade sem chave primária')
 
+    def bloquear_notificacoes_automaticas(self):
+        # Flag que pode ser usado em rotinas de envio de notificação, como a
+        # mensagem de aprovação de entidade
+        self.bloquear_notificacoes = True
+    
     def esconder_obs_doacoes(self):
         '''Indica se o campo de observações sobre doações deve ser escondido (usado no formulário da entidade)'''
         if self.pk:

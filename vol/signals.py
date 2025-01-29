@@ -59,5 +59,7 @@ def entidade_post_save(sender, instance, created, raw, using, update_fields, **k
     '''Post save de entidades. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
     # Se o atributo "aprovado" passou de nulo a verdadeiro
     if instance.old_value('aprovado') is None and instance.aprovado:
+        if hasattr(instance, 'bloquear_notificacoes') and instance.bloquear_notificacoes:
+            return
         notifica_aprovacao_entidade(instance)
         #instance.notifica_aprovacao()
