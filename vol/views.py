@@ -3177,10 +3177,14 @@ def busca_vagas(request):
         # Filtro por estado
         estado = request.GET.get('estado')
         if estado:
+            if '\x00' in estado:
+                return HttpResponseBadRequest("Parâmetro 'estado' inválido")
             vagas = vagas.filter(estado__sigla=estado)
             # Filtro por cidade
             cidade = request.GET.get('cidade')
             if cidade:
+                if '\x00' in fcidade:
+                    return HttpResponseBadRequest("Parâmetro 'cidade' inválido")
                 vagas = vagas.filter(cidade__nome=cidade, cidade__uf=estado)
 
         # Filtro por causa
