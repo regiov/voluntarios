@@ -75,7 +75,7 @@ class MyAccountAdapter(DefaultAccountAdapter):
         # Remoção do filtro "verified", pois se alguém se cadastrou no passado, não validou o email
         # e depois tenta se cadastrar novamente, dá erro.
         #if EmailAddress.objects.filter(email=email, verified=True).exclude(user=user).count() > 0:
-        if EmailAddress.objects.filter(email=email).exclude(user=user).count() > 0:
+        if EmailAddress.objects.filter(email__iexact=email).exclude(user=user).count() > 0:
             raise forms.ValidationError(self.error_messages["email_taken"])
         return email
 
