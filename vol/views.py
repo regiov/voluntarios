@@ -3183,7 +3183,7 @@ def busca_vagas(request):
             # Filtro por cidade
             cidade = request.GET.get('cidade')
             if cidade:
-                if '\x00' in fcidade:
+                if '\x00' in cidade:
                     return HttpResponseBadRequest("Parâmetro 'cidade' inválido")
                 vagas = vagas.filter(cidade__nome=cidade, cidade__uf=estado)
 
