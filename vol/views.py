@@ -3129,7 +3129,7 @@ def processos_seletivos_entidade(request, id_entidade):
     entidade.ultimo_acesso_proc = timezone.now()
     entidade.save(update_fields=['ultimo_acesso_proc'])
 
-    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_convites=Count('conviteprocessoseletivo'), num_inscricoes=Count('participacaoemprocessoseletivo')).order_by('-cadastrado_em')
+    processos = ProcessoSeletivo.objects.filter(entidade_id=id_entidade).annotate(num_convites=Count('conviteprocessoseletivo', distinct=True), num_inscricoes=Count('participacaoemprocessoseletivo', distinct=True)).order_by('-cadastrado_em')
 
     context = {'entidade': entidade, # este parâmetro é importante, pois é usado no template pai
                'processos': processos}
