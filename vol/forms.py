@@ -913,7 +913,7 @@ class FormProcessoSeletivo(forms.ModelForm):
             if self.instance and self.instance.pk and self.instance.passivel_de_estender_inscricoes():
                 current_tz = timezone.get_current_timezone()
                 now = timezone.now().astimezone(current_tz)
-                if val and self.instance.previsao_resultado and self.instance.previsao_resultado > val.date() and val < now.date():
+                if val and self.instance.previsao_resultado and self.instance.previsao_resultado.date() > val.date() and val < now.date():
                     raise forms.ValidationError(u'A data de previsão do resultado deve ser maior ou igual a data de hoje')
 
         return val
