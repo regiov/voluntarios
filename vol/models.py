@@ -2101,7 +2101,7 @@ class StatusParticipacaoEmProcessoSeletivo(object):
             # rejeição de cadastro de voluntário
             return u'Cancelada'
         elif code == 40:
-            return u'Não selecionado'
+            return u'Não rolou'
         elif code == 100:
             return u'Selecionado'
         elif code == 110:
