@@ -2284,3 +2284,25 @@ class HistoricoAlteracao(models.Model):
         verbose_name = u'Histórico de alteração'
         verbose_name_plural = u'Históricos de alteração'
 
+class Notificacao(models.Model):
+    """Fila de notificações, em princípio usadas apenas para envio de
+    notificações automáticas para o canal feed no discord"""
+    id        = models.AutoField(primary_key=True)
+    # Para incluir links, use a sintaxe do Markdown. Exemplo: [Click Here](https://example.com)
+    conteudo  = models.TextField(u'Conteúdo')
+    criada_em = models.DateTimeField(u'Data/hora de criação', auto_now_add=True)
+
+    def enviar(self):
+        webhook_url = settings.DISCORD_FEED_WEBHOOK_URL
+        if webhook_url and webhook_url != 'SET IN LOCAL SETTINGS':
+            data = {"content": self.conteudo}
+            json_data = json.dumps(data).encode("utf-8")
+            req = urllib.request.Request(webhook_url, data=json_data, headers={"Content-Type": "application/json"})
+            try:
+                with urllib.request.urlopen(req) as response:
+                    if response.status == 204:
+                        self.delete()
+                    else:
+                        notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nStatus: {response.status}")
+            except urllib.error.HTTPError as e:
+                notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nCódigo: {e.code}\nErro: {e.reason}")

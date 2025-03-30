@@ -271,6 +271,9 @@ NOTIFY_SUPPORT_TO = 'SET IN LOCAL SETTINGS'
 NOTIFY_USER_FROM = 'SET IN LOCAL SETTINGS'
 NOTIFY_CSRF_ERROR = True
 
+# Webhook para envio de notificaçoes automáticas na nossa comunidade no Discord
+DISCORD_FEED_WEBHOOK_URL = 'SET IN LOCAL SETTINGS'
+
 CONTACT_EMAIL = 'SET IN LOCAL SETTINGS'
 
 # Configurações do serviço de recepção de entidades
