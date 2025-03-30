@@ -1047,6 +1047,22 @@ class Entidade(StatusCnpj):
             return self.cancelamento_onboarding
         return ONBOARDING_STATUS[status]
 
+    def agendar_notificacao_de_aprovacao(self):
+        # Agenda notificação no Discord sobre a aprovação da entidade
+        nome = self.menor_nome()
+        link = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.id})
+        nome_com_link = f"[{nome}]({link})"
+        msg = f"Nova entidade aprovada no site: {nome_com_link}"
+        local = self.cidade + " - " + self.estado
+        msg = msg + "\n" + f"Local: {local}"
+        area_atuacao = self.area_atuacao.nome
+        msg = msg + "\n" + f"Área de atuação: {area_atuacao}"
+        try:
+            Notificacao.objects.get(conteudo=msg)
+        except Notificacao.DoesNotExist:
+            notificacao = Notificacao(conteudo=msg)
+            notificacao.save()
+
 class AnotacaoEntidade(models.Model):
     """Anotação sobre entidade"""
     id        = models.AutoField(primary_key=True)
@@ -1998,6 +2014,27 @@ class ProcessoSeletivo(models.Model):
             return True
         return False
 
+    def agendar_notificacao_de_publicacao(self):
+        # Agenda notificação no Discord sobre a publicação da vaga
+        titulo = self.titulo
+        link_titulo = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.id})
+        titulo_com_link = f"[{titulo}]({link_titulo})"
+        nome_entidade = self.entidade.menor_nome()
+        link_entidade = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.entidade.id})
+        nome_entidade_com_link = f"[{nome_entidade}]({link_entidade})"
+        msg = f"Nova vaga publicada no site: {titulo_com_link}"
+        msg = msg + "\n" + f"Entidade: {nome_entidade_com_link}"
+        modo_trabalho = self.nome_modo_trabalho()
+        msg = msg + "\n" + f"Modalidade: {modo_trabalho}"
+        if not self.trabalho_remoto():
+            local = self.cidade.nome + " - " + self.estado.sigla
+            msg = msg + "\n" + f"Local: {local}"
+        try:
+            Notificacao.objects.get(conteudo=msg)
+        except Notificacao.DoesNotExist:
+            notificacao = Notificacao(conteudo=msg)
+            notificacao.save()
+
     # Transições de estado
 
     @fsm_log_by
@@ -2019,14 +2056,14 @@ class ProcessoSeletivo(models.Model):
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_APROVACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
     def aprovar_e_publicar(self, by=None):
-        pass
+        self.agendar_notificacao_de_publicacao()
 
     # Transição normalmente automática feita por cron diário, mas também pode ocorrer caso a entidade antecipe
     # as inscrições editando a data de início
     @fsm_log_by
     @transition(field=status, source=[StatusProcessoSeletivo.AGUARDANDO_PUBLICACAO], target=StatusProcessoSeletivo.ABERTO_A_INSCRICOES, conditions=[inscricoes_abertas])
     def publicar(self, by=None):
-        pass
+        self.agendar_notificacao_de_publicacao()
 
     # Transição automática feita por cron diário
     @transition(field=status, source=[StatusProcessoSeletivo.ABERTO_A_INSCRICOES], target=StatusProcessoSeletivo.AGUARDANDO_SELECAO, conditions=[inscricoes_encerradas])

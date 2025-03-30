@@ -132,6 +132,8 @@ def notifica_aprovacao_entidade(entidade):
     # Se a entidade nunca recebeu o aviso de aprovação
     msg = Message.objects.get(code='AVISO_APROVACAO_ENTIDADE')
     if Event.objects.filter(object_id=entidade.id, content_type=ContentType.objects.get_for_model(entidade).id, message=msg).count() == 0:
+        # Agenda notificação no Discord
+        entidade.agendar_notificacao_de_aprovacao()
         # Envia notificação para a entidade
         notify_email_msg(entidade.email_principal, msg, content_obj=entidade)
         # Envia notificação para responsáveis pelo onboarding
