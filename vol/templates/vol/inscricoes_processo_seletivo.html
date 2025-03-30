@@ -72,8 +72,8 @@
         {% if inscricao.passivel_de_selecao %}
         <select class="inscricao" name="{{ inscricao.id }}" prevIndex="{% if inscricao.selecionado %}1{% else %}{% if inscricao.nao_selecionado %}2{% else %}0{% endif %}{% endif %}">
         <option value="aguardando_selecao"{% if inscricao.agurdando_selecao %} selected{% endif %}>-- aguardando seleção --</option>
-        <option value="selecionado"{% if inscricao.selecionado %}  selected{% endif %}>selecionado</option>
-        <option value="nao_selecionado"{% if inscricao.nao_selecionado %}  selected{% endif %}>não selecionado</option>
+        <option value="selecionado"{% if inscricao.selecionado %}  selected{% endif %}>{{ selecionado }}</option>
+        <option value="nao_selecionado"{% if inscricao.nao_selecionado %}  selected{% endif %}>{{ nao_selecionado }}</option>
         </select>
         <img id="{{ inscricao.id }}_icon" src=""/>{% comment %}local de exibição do ícone de ajax{% endcomment %}
         {% else %}{{ inscricao.nome_status }}{% if inscricao.cancelada %} <img src="{% static 'images/misc/icon-unknown.svg' %}" title="cadastro rejeitado ou processo seletivo cancelado"/>{% endif %}{% endif %}

@@ -3691,10 +3691,15 @@ def inscricoes_processo_seletivo(request, id_entidade, codigo_processo):
 
     inscricoes = processo.inscricoes().order_by(ordenacoes_validas[ordenacao])
 
+    selecionado = StatusParticipacaoEmProcessoSeletivo.nome(StatusParticipacaoEmProcessoSeletivo.SELECIONADO)
+    nao_selecionado = StatusParticipacaoEmProcessoSeletivo.nome(StatusParticipacaoEmProcessoSeletivo.NAO_SELECIONADO)
+
     context = {'entidade': processo.entidade, # este parâmetro é importante, pois é usado no template pai
                'processo': processo,
                'inscricoes': inscricoes,
-               'ordenacao': ordenacao}
+               'ordenacao': ordenacao,
+               'selecionado': selecionado,
+               'nao_selecionado': nao_selecionado}
 
     template = loader.get_template('vol/inscricoes_processo_seletivo.html')
     
