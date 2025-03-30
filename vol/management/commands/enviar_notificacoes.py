@@ -22,4 +22,4 @@ class Command(BaseCommand):
         if n == 1:
             texto = 'notificação enviada'
             
-        self.stdout.write(self.style.NOTICE(f"{n} {texto}.'))
+        self.stdout.write(self.style.NOTICE(f"{n} {texto}."))
