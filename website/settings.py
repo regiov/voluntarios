@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.gis',
     'django.contrib.postgres',
+    'django.contrib.humanize',
     'mptt',          # para representações hierárquicas no banco
     'crispy_forms',  # para renderizar formulários (substituto do bootstrap_forms)
     'django_fsm_log',# para armazenar logs de máquinas de estado

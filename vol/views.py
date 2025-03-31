@@ -2488,6 +2488,11 @@ def monitoramento_processos_seletivos(request):
     processos = ProcessoSeletivo.objects.annotate(ultima_inscricao=Max('participacaoemprocessoseletivo__data_inscricao'),
                                                   convites=Count('conviteprocessoseletivo', distinct=True)).select_related('entidade', 'cadastrado_por', 'estado', 'cidade').all()
 
+    # Filtro por nome da entidade
+    entidade = request.GET.get('entidade')
+    if entidade:
+        processos = processos.filter(Q(entidade__nome_fantasia__unaccent__icontains=entidade) | Q(entidade__razao_social__unaccent__icontains=entidade))
+        
     # A ordenação é controlada pelo parâmetro GET 'ordem', que pode ter os valores:
     # 'recente': ordem decrescente de cadastro
     # 'entidade': ordem crescente de razão social da entidade
@@ -2548,6 +2553,24 @@ def monitoramento_inscricoes_processo_seletivo(request, codigo_processo):
                'inscricoes': inscricoes}
 
     template = loader.get_template('vol/monitoramento_inscricoes_processo_seletivo.html')
+    
+    return HttpResponse(template.render(context, request))
+
+@login_required
+@staff_member_required
+def monitoramento_processos_seletivos_entidades(request):
+    '''Página para monitorar processos seletivos no contexto do histórico de cadastro de entidades'''
+
+    entidades = Entidade.objects.annotate(num_vagas=Count('processoseletivo_set', distinct=True)).filter(aprovado=True).order_by(F('data_cadastro').desc(nulls_last=True))
+
+    parametros = ''
+    grupo_paginas_atual = None
+    
+    (entidades, parametros, grupo_paginas_atual) = elabora_paginacao_completa(request, entidades, registros_por_pagina=50)
+    
+    context = {'entidades': entidades, 'parametros': parametros, 'grupo_paginas_atual': grupo_paginas_atual}
+
+    template = loader.get_template('vol/monitoramento_processos_seletivos_entidades.html')
     
     return HttpResponse(template.render(context, request))
 

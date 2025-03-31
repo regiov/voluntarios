@@ -17,6 +17,8 @@
 
 <h3>Monitoramento geral: <span style="margin-left:15px;">{% if total_procs %}<a href="{% url 'monitoramento_processos_seletivos' %}">{{ total_procs }}</a>{% else %}{{ total_procs }}{% endif %}</span></h3>
 
+<h3><a href="{% url 'monitoramento_processos_seletivos_entidades' %}">Histórico de cadastro de entidades</a></h3>
+
 <br/>
 
 {% if perms.vol.view_voluntario %}
