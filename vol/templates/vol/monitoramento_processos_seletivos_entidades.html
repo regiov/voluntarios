@@ -17,7 +17,7 @@
   <tbody>
   {% for entidade in entidades %}
   <tr>
-    <td class="cadastro">{{ entidade.data_cadastro|naturaltime|default:'jurássica' }}</td>
+    <td class="cadastro">{{ entidade.data_cadastro|naturaltime|default:'era jurássica' }}</td>
     <td><a href="{% url 'exibe_entidade' id_entidade=entidade.id %}">{{ entidade.menor_nome }}</a></td>
     <td>{% if entidade.num_vagas %}<a href="{% url 'monitoramento_processos_seletivos' %}?entidade={{ entidade.menor_nome }}">{{ entidade.num_vagas }}</a>{% else %}0{% endif %}</td>
   </tr>
