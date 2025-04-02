@@ -2334,7 +2334,12 @@ class Notificacao(models.Model):
         if webhook_url and webhook_url != 'SET IN LOCAL SETTINGS':
             data = {"content": self.conteudo}
             json_data = json.dumps(data).encode("utf-8")
-            req = urllib.request.Request(webhook_url, data=json_data, headers={"Content-Type": "application/json"})
+            # O user-agent é importante para evitar erro de permissão devido a agente desconhecido
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            req = urllib.request.Request(webhook_url, data=json_data, headers=headers)
             try:
                 with urllib.request.urlopen(req) as response:
                     if response.status == 204:
