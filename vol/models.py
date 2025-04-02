@@ -2339,7 +2339,11 @@ class Notificacao(models.Model):
                 with urllib.request.urlopen(req) as response:
                     if response.status == 204:
                         self.delete()
+                        return True
                     else:
-                        notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nStatus: {response.status}")
+                        response_text = response.read().decode("utf-8")
+                        notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nStatus: {response.status}\nErro: {response_text}")
             except urllib.error.HTTPError as e:
-                notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nCódigo: {e.code}\nErro: {e.reason}")
+                error_body = e.read().decode("utf-8")
+                notify_support(u'Erro no envio de notificação', f"Id: {self.id}\nCódigo: {e.code}\nErro: {e.reason}\nInfo: {error_body}")
+        return False

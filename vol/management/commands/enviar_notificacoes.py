@@ -14,12 +14,18 @@ class Command(BaseCommand):
 
         notificacoes_pendentes = Notificacao.objects.all().order_by('criada_em')
         n = 0
+        ok = 0
         for notificacao in notificacoes_pendentes:
-            notificacao.enviar()
+            if notificacao.enviar():
+                ok = ok + 1
             n = n + 1
 
-        texto = 'notificações enviadas'
+        texto_ok = 'notificações enviadas'
+        if ok == 1:
+            texto_ok = 'notificação enviada'
+
+        texto_pendentes = 'notificações pendentes'
         if n == 1:
-            texto = 'notificação enviada'
-            
-        self.stdout.write(self.style.NOTICE(f"{n} {texto}."))
+            texto_pendentes = 'notificação pendente'
+
+        self.stdout.write(self.style.NOTICE(f"{ok} {texto_ok} de {n} {texto_pendentes}."))
