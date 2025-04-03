@@ -88,7 +88,11 @@
                 {% include "vol/campo_formulario.html" with campo=form.data_aniversario div_class="combo-data" required=True %}
                 <table width="100%">
                     <tr>
-                        <td width="10%">
+                        <td width="5%">
+                           <img src="{% static 'images/misc/br.png' %}" width="15"/><br/>
+                           <span style="margin-right: 5px;">+55</span>
+                        </td>
+                        <td width="5%">
                             {% include "vol/campo_formulario.html" with campo=form.ddd %}
                         </td>
                         <td width="90%" style="padding-left: 10px;">
