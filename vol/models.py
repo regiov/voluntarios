@@ -2017,7 +2017,7 @@ class ProcessoSeletivo(models.Model):
     def agendar_notificacao_de_publicacao(self):
         # Agenda notificação no Discord sobre a publicação da vaga
         titulo = self.titulo
-        link_titulo = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.id})
+        link_titulo = "https://voluntarios.com.br" + reverse('exibe_processo_seletivo', kwargs={'codigo_processo': self.codigo})
         titulo_com_link = f"[{titulo}]({link_titulo})"
         nome_entidade = self.entidade.menor_nome()
         link_entidade = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.entidade.id})
