@@ -183,7 +183,7 @@ CSRF_FAILURE_VIEW = 'vol.views.csrf_failure'
 SITE_ID = 1
 
 # Django admin interface prefix
-MY_ADMIN_PREFIX = 'SET IN LOCAL SETTINGS'
+MY_ADMIN_PREFIX = 'adm'
 
 LOGGING = {
     'version': 1,
