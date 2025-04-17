@@ -1051,8 +1051,8 @@ class Entidade(StatusCnpj):
         # Agenda notificação no Discord sobre a aprovação da entidade
         nome = self.menor_nome()
         link = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.id})
-        nome_com_link = f"[{nome}]({link})"
-        msg = f"Nova entidade aprovada no site: {nome_com_link}"
+        nome_com_link = f"[{nome}](<{link}>)"
+        msg = f"\o/ Nova entidade aprovada no site: {nome_com_link}"
         local = self.cidade + " - " + self.estado
         msg = msg + "\n" + f"Local: {local}"
         area_atuacao = self.area_atuacao.nome
@@ -2018,11 +2018,11 @@ class ProcessoSeletivo(models.Model):
         # Agenda notificação no Discord sobre a publicação da vaga
         titulo = self.titulo
         link_titulo = "https://voluntarios.com.br" + reverse('exibe_processo_seletivo', kwargs={'codigo_processo': self.codigo})
-        titulo_com_link = f"[{titulo}]({link_titulo})"
+        titulo_com_link = f"[{titulo}](<{link_titulo}>)"
         nome_entidade = self.entidade.menor_nome()
         link_entidade = "https://voluntarios.com.br" + reverse('exibe_entidade', kwargs={'id_entidade': self.entidade.id})
-        nome_entidade_com_link = f"[{nome_entidade}]({link_entidade})"
-        msg = f"Nova vaga publicada no site: {titulo_com_link}"
+        nome_entidade_com_link = f"[{nome_entidade}](<{link_entidade}>)"
+        msg = f"\o/ Nova vaga publicada no site: {titulo_com_link}"
         msg = msg + "\n" + f"Entidade: {nome_entidade_com_link}"
         modo_trabalho = self.nome_modo_trabalho()
         msg = msg + "\n" + f"Modalidade: {modo_trabalho}"
