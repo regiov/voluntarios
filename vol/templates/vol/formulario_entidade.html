@@ -7,6 +7,8 @@
 
 <script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1/dist/cleave.min.js"></script>
+
 <script type="text/javascript">
     $(function() {
         $('.telformset').formset({formCssClass: 'telformset', prefix: 'tel_set', deleteText: 'remover', addText: 'incluir outro'});
@@ -36,7 +38,16 @@
             });
         });
     });
+
+    $(document).ready(function() {
+        new Cleave('#id_cnpj', {
+          delimiters: ['.', '.', '/', '-'],
+          blocks: [2, 3, 3, 4, 2],
+          numericOnly: true
+        });
+      });
 </script>
+
 
 {% endblock head %}
 

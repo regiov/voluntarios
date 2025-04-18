@@ -345,28 +345,44 @@ class FormEntidade(forms.ModelForm):
         return True
 
     def clean_cnpj(self):
+        
         instance = getattr(self, 'instance', None)
-        # Alteração de entidade existente
+        cnpj_raw = self.cleaned_data.get('cnpj', '')
+        cnpj_digits = re.sub(r'\D', '', cnpj_raw)
+
+        # Validação básica de tamanho
+        if len(cnpj_digits) != 14:
+            raise forms.ValidationError(u'CNPJ incorreto')
+
+        # Atualização de entidade existente
         if instance and instance.pk:
             if instance.cnpj and len(instance.cnpj) > 0:
                 if instance.cnpj_valido():
-                    # Garante que o CNPJ não seja alterado quando já preenchido e válido
-                    return instance.cnpj
+                    return instance.cnpj 
                 else:
-                    # Obriga correção do CNPJ
                     raise forms.ValidationError(u'CNPJ incorreto')
-        # Cadastro de entidade nova
+
+        # Cadastro de nova entidade
         else:
-            if len(self.cleaned_data['cnpj']) > 0:
-                # Verifica o CNPJ caso esteja preenchido
-                entidade_tmp = Entidade(cnpj=self.cleaned_data['cnpj'])
-                if entidade_tmp.cnpj_valido() == False:
-                    raise forms.ValidationError(u'CNPJ incorreto')
-                # Verifica se já existe outra entidade com o mesmo CNPJ
-                if Entidade.objects.filter(cnpj=self.cleaned_data['cnpj'], aprovado=True).count() > 0:
-                    notify_support(u'CNPJ repetido', u'Tentativa de cadastro de entidade com CNPJ existente: ' + self.cleaned_data['cnpj'])
-                    raise forms.ValidationError(u'Já existe uma entidade cadastrada com o mesmo CNPJ. Por favor, entre em contato conosco através do e-mail no final da página informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.')
-        return self.cleaned_data['cnpj']
+            entidade_tmp = Entidade(cnpj=cnpj_digits)
+            if not entidade_tmp.cnpj_valido():
+                raise forms.ValidationError(u'CNPJ incorreto')
+
+            if Entidade.objects.filter(cnpj=cnpj_digits, aprovado=True).exists():
+                notify_support(
+                    u'CNPJ repetido',
+                    f'Tentativa de cadastro de entidade com CNPJ existente: {cnpj_digits}'
+                )
+                raise forms.ValidationError(
+                    u'Já existe uma entidade cadastrada com o mesmo CNPJ. '
+                    u'Por favor, entre em contato conosco através do e-mail no final da página '
+                    u'informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.'
+                )
+
+        # Formatação do CNPJ antes de salvar
+        cnpj_formatado = f"{cnpj_digits[:2]}.{cnpj_digits[2:5]}.{cnpj_digits[5:8]}/{cnpj_digits[8:12]}-{cnpj_digits[12:]}"
+
+        return cnpj_formatado 
 
     def clean_num_vol(self):
         val = self.cleaned_data['num_vol'].strip()

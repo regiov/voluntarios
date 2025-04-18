@@ -735,7 +735,6 @@ class Entidade(StatusCnpj):
         return self.cnpj.strip().replace('-', '').replace('.', '').replace('/', '')
 
     def cnpj_valido(self):
-
         if not self.cnpj:
             return None
 
@@ -747,11 +746,9 @@ class Entidade(StatusCnpj):
         cnpj = self.cnpj_puro()
         
         if not cnpj.isdigit():
-            # Caracter estranho presente
             return False
 
         if len(cnpj) != 14:
-            # Tamanho incorreto
             return False
 
         # Verifica dígitos
@@ -760,12 +757,11 @@ class Entidade(StatusCnpj):
         for i in range(0,12):
             s1 = s1 + l1[i]*int(cnpj[i])
 
-        d1 = s1%11
+        d1 = s1 % 11
         if d1 == 10:
             d1 = 0
 
         if str(d1) != cnpj[12]:
-            # Dígito de verificação incorreto (a)
             return False
 
         l2 = [5,6,7,8,9,2,3,4,5,6,7,8,9]
@@ -773,15 +769,15 @@ class Entidade(StatusCnpj):
         for i in range(0,13):
             s2 = s2 + l2[i]*int(cnpj[i])
 
-        d2 = s2%11
+        d2 = s2 % 11
         if d2 == 10:
             d2 = 0
 
         if str(d2) != cnpj[13]:
-            # Dígito de verificação incorreto (b)
             return False
 
         return True
+
 
     def verifica_email_principal(self):
         '''Garante apenas um e-mail principal por entidade'''
