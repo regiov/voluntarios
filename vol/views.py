@@ -2301,7 +2301,9 @@ def revisao_processo_seletivo(request, codigo_processo):
             if 'aprovar' in request.POST:
                 qs = ProcessoSeletivo.objects.select_for_update().filter(codigo=codigo_processo, status=StatusProcessoSeletivo.AGUARDANDO_APROVACAO)
                 with transaction.atomic():
+                    nenhum_processo_retornado = True
                     for processo in qs:
+                        nenhum_processo_retornado = False
                         # Faz uma cópia do processo, pois a chamada ao is_valid abaixo já
                         # irá alterar os dados da instância
                         processo_original = deepcopy(processo)
@@ -2361,6 +2363,9 @@ def revisao_processo_seletivo(request, codigo_processo):
                                     messages.info(request, u'Processo salvo, aprovado e publicado!')
                                 proc.save()
                                 return redirect(reverse('revisao_processos_seletivos'))
+                    if nenhum_processo_retornado:
+                        messages.info(request, u'Este processo já foi revisado!')
+                        return redirect(reverse('revisao_processos_seletivos'))
 
             elif 'alterar' in request.POST:
 
