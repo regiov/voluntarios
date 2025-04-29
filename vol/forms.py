@@ -344,17 +344,28 @@ class FormEntidade(forms.ModelForm):
             return False
         return True
 
-    def _lida_com_cnpj_repetido(self, cnpj):
-        notify_support(
-            u'CNPJ repetido',
-            f'Tentativa de cadastro de entidade com CNPJ existente: {cnpj}'
-        )
-        raise forms.ValidationError(
-            u'Já existe uma entidade cadastrada com o mesmo CNPJ. '
-            u'Por favor, entre em contato conosco através do e-mail no final da página '
-            u'informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.'
-        )
-    
+    def _cnpj_valido(self, cnpj):
+        entidade_tmp = Entidade(cnpj=cnpj)
+        return entidade_tmp.cnpj_valido()
+
+    def _valida_alteracao_cnpj(self, cnpj, pk=None):
+        if not self._cnpj_valido(cnpj):
+            raise forms.ValidationError(u'CNPJ incorreto')
+        # obs: cnpjs são armazenados formatados
+        qs = Entidade.objects.filter(cnpj=cnpj, aprovado=True)
+        if pk:
+            qs = qs.exclude(pk=pk)
+        if qs.exists():
+            notify_support(
+                u'CNPJ repetido',
+                f'Tentativa de cadastro de entidade com CNPJ existente: {cnpj}'
+            )
+            raise forms.ValidationError(
+                u'Já existe uma entidade cadastrada com o mesmo CNPJ. '
+                u'Por favor, entre em contato conosco através do e-mail no final da página '
+                u'informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.'
+            )
+
     def clean_cnpj(self):
         
         instance = getattr(self, 'instance', None)
@@ -363,56 +374,46 @@ class FormEntidade(forms.ModelForm):
 
         # Possibilidades:
         # - Entidade já cadastrada:
-        #     - Com CNPJ:
-        #         - Válido
-        #             - Cadastro aguardando aprovação -> permitir alteração,
-        #                                                validando o CNPJ e evitando duplicidade no banco
-        #             - Cadastro já aprovado -> manter o cnpj antigo! avisar usuário se possível
-        #         - Inválido -> validar CNPJ
-        #           obs: cadastros antigos, antes de ter validação
-        #     - Sem CNPJ -> não validar
-        #       obs: cadastros antigos, ou cadastros novos de coletivos
+        #     - Campo CNPJ preenchido
+        #         - Conteúdo diferente do CNPJ no banco
+        #             - CNPJ no banco é válido
+        #                 - Cadastro aguardando aprovação -> permitir alteração,
+        #                                                    validando o CNPJ e evitando duplicidade
+        #                 - Cadastro já aprovado -> manter o cnpj antigo! avisar usuário
+        #             - CNPJ no banco é inválido -> permitir alteração,
+        #                                           validando o CNPJ e evitando duplicidade
+        #               obs: tb inclui valor em branco
+        #         - Conteúdo igual ao CNPJ no banco -> valida cnpj, pois pode estar errado no banco
+        #     - Campo CNPJ não preenchido -> form não vai permitir, pois é campo obrigatório
         # - Entidade nova:
-        #     - Com CNPJ -> validar CNPJ e verificar se já existe no banco
-        #     - Sem CNPJ -> não validar
-        #       obs: não deve cair aqui, pois por enquanto o campo é
-        #            de preenchimento obrigatório
+        #     - Campo CNPJ preenchido -> validar CNPJ e verificar se já existe no banco
+        #     - Campo CNPJ não preenchido -> form não vai permitir, pois é campo obrigatório
 
         # Atualização de entidade existente
         if instance and instance.pk:
-            if instance.cnpj and len(instance.cnpj) > 0:
-                if instance.cnpj_valido():
-                    # Garante que o CNPJ não seja alterado quando já preenchido e válido,
-                    # pois ao aprovar o cadastro de uma entidade nós fazemos uma verificação
-                    # no cadastro da receita federal. Para alterar CNPJ de entidades aprovadas
-                    # é necessário solicitar a alteração por e-mail.
-                    if instance.aprovado:
-                        # Ideal seria avisar usuário, caso tenha tentado alterar!
-                        return instance.cnpj
-                    else:
-                        # obs: cnpjs são armazenados formatados
-                        if Entidade.objects.filter(cnpj=cnpj, aprovado=True).exclude(pk=instance.pk).exists():
-                            self._lida_com_cnpj_repetido(cnpj)
-                else:
-                    # Obriga correção de qq cnpj pré-existente, independente do status do cadastro
-                    raise forms.ValidationError(u'CNPJ incorreto')
-            else:
-                # Existem entidades que não possuem cnpj (coletivos, por exemplo)
-                # então melhor não forçar validação nesses casos
-                pass
+            if cnpj:
+                if instance.cnpj != cnpj:
+                    if instance.cnpj_valido():
+                        if instance.aprovado:
+                            raise forms.ValidationError(u'Para alterar o CNPJ de uma entidade cujo cadastro já foi revisado, favor entrar em contato por e-mail.')
+                        else: # cadastro ainda não aprovado
+                            self._valida_alteracao_cnpj(cnpj, instance.pk)
+                    else: # cnpj inválido ou branco no banco de dados
+                        self._valida_alteracao_cnpj(cnpj, instance.pk)
+                else: # é igual ao atual
+                    if not self._cnpj_valido(cnpj):
+                        raise forms.ValidationError(u'CNPJ incorreto')
+            else: # Não especificou CNPJ
+                # Não deve cair aqui nunca!
+                raise forms.ValidationError(u'CNPJ deve ser preenchido')
 
         # Cadastro de nova entidade
         else:
-            if len(cnpj) > 0:
-                entidade_tmp = Entidade(cnpj=cnpj)
-                # Verifica o CNPJ caso esteja preenchido
-                if not entidade_tmp.cnpj_valido():
-                    raise forms.ValidationError(u'CNPJ incorreto')
-
-                # Verifica se já existe outra entidade com o mesmo CNPJ
-                # obs: cnpjs são armazenados formatados
-                if Entidade.objects.filter(cnpj=cnpj, aprovado=True).exists():
-                    self._lida_com_cnpj_repetido(cnpj)
+            if cnpj:
+                self._valida_alteracao_cnpj(cnpj)
+            else: # Não especificou CNPJ
+                # Não deve cair aqui nunca!
+                raise forms.ValidationError(u'CNPJ deve ser preenchido')
 
         return cnpj
 
