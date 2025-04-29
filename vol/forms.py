@@ -344,45 +344,77 @@ class FormEntidade(forms.ModelForm):
             return False
         return True
 
+    def _lida_com_cnpj_repetido(self, cnpj):
+        notify_support(
+            u'CNPJ repetido',
+            f'Tentativa de cadastro de entidade com CNPJ existente: {cnpj}'
+        )
+        raise forms.ValidationError(
+            u'Já existe uma entidade cadastrada com o mesmo CNPJ. '
+            u'Por favor, entre em contato conosco através do e-mail no final da página '
+            u'informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.'
+        )
+    
     def clean_cnpj(self):
         
         instance = getattr(self, 'instance', None)
-        cnpj_raw = self.cleaned_data.get('cnpj', '')
-        cnpj_digits = re.sub(r'\D', '', cnpj_raw)
+        # Quando preenchido, já deve vir formatado pelo uso da lib em javascript
+        cnpj = self.cleaned_data.get('cnpj', '')
 
-        # Validação básica de tamanho
-        if len(cnpj_digits) != 14:
-            raise forms.ValidationError(u'CNPJ incorreto')
+        # Possibilidades:
+        # - Entidade já cadastrada:
+        #     - Com CNPJ:
+        #         - Válido
+        #             - Cadastro aguardando aprovação -> permitir alteração,
+        #                                                validando o CNPJ e evitando duplicidade no banco
+        #             - Cadastro já aprovado -> manter o cnpj antigo! avisar usuário se possível
+        #         - Inválido -> validar CNPJ
+        #           obs: cadastros antigos, antes de ter validação
+        #     - Sem CNPJ -> não validar
+        #       obs: cadastros antigos, ou cadastros novos de coletivos
+        # - Entidade nova:
+        #     - Com CNPJ -> validar CNPJ e verificar se já existe no banco
+        #     - Sem CNPJ -> não validar
+        #       obs: não deve cair aqui, pois por enquanto o campo é
+        #            de preenchimento obrigatório
 
         # Atualização de entidade existente
         if instance and instance.pk:
             if instance.cnpj and len(instance.cnpj) > 0:
                 if instance.cnpj_valido():
-                    return instance.cnpj 
+                    # Garante que o CNPJ não seja alterado quando já preenchido e válido,
+                    # pois ao aprovar o cadastro de uma entidade nós fazemos uma verificação
+                    # no cadastro da receita federal. Para alterar CNPJ de entidades aprovadas
+                    # é necessário solicitar a alteração por e-mail.
+                    if instance.aprovado:
+                        # Ideal seria avisar usuário, caso tenha tentado alterar!
+                        return instance.cnpj
+                    else:
+                        # obs: cnpjs são armazenados formatados
+                        if Entidade.objects.filter(cnpj=cnpj, aprovado=True).exclude(pk=instance.pk).exists():
+                            self._lida_com_cnpj_repetido(cnpj)
                 else:
+                    # Obriga correção de qq cnpj pré-existente, independente do status do cadastro
                     raise forms.ValidationError(u'CNPJ incorreto')
+            else:
+                # Existem entidades que não possuem cnpj (coletivos, por exemplo)
+                # então melhor não forçar validação nesses casos
+                pass
 
         # Cadastro de nova entidade
         else:
-            entidade_tmp = Entidade(cnpj=cnpj_digits)
-            if not entidade_tmp.cnpj_valido():
-                raise forms.ValidationError(u'CNPJ incorreto')
+            if len(cnpj) > 0:
+                entidade_tmp = Entidade(cnpj=cnpj)
+                # Verifica o CNPJ caso esteja preenchido
+                if not entidade_tmp.cnpj_valido():
+                    raise forms.ValidationError(u'CNPJ incorreto')
 
-            if Entidade.objects.filter(cnpj=cnpj_digits, aprovado=True).exists():
-                notify_support(
-                    u'CNPJ repetido',
-                    f'Tentativa de cadastro de entidade com CNPJ existente: {cnpj_digits}'
-                )
-                raise forms.ValidationError(
-                    u'Já existe uma entidade cadastrada com o mesmo CNPJ. '
-                    u'Por favor, entre em contato conosco através do e-mail no final da página '
-                    u'informando nome e CNPJ da entidade para que possamos avaliar a melhor forma de proceder nesse caso.'
-                )
+                # Verifica se já existe outra entidade com o mesmo CNPJ
+                # obs: cnpjs são armazenados formatados
+                if Entidade.objects.filter(cnpj=cnpj, aprovado=True).exists():
+                    self._lida_com_cnpj_repetido(cnpj)
 
-        # Formatação do CNPJ antes de salvar
-        cnpj_formatado = f"{cnpj_digits[:2]}.{cnpj_digits[2:5]}.{cnpj_digits[5:8]}/{cnpj_digits[8:12]}-{cnpj_digits[12:]}"
-
-        return cnpj_formatado 
+        return cnpj
 
     def clean_num_vol(self):
         val = self.cleaned_data['num_vol'].strip()
