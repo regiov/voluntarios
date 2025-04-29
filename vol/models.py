@@ -731,8 +731,8 @@ class Entidade(StatusCnpj):
             return avisos[0].creation
         return None
 
-    def cnpj_puro(self):
-        return self.cnpj.strip().replace('-', '').replace('.', '').replace('/', '')
+    def cnpj_soh_numeros(self):
+        return re.sub(r'\D', '', self.cnpj)
 
     def cnpj_valido(self):
         if not self.cnpj:
@@ -743,11 +743,8 @@ class Entidade(StatusCnpj):
         if len(cnpj) == 0:
             return None
 
-        cnpj = self.cnpj_puro()
+        cnpj = self.cnpj_soh_numeros()
         
-        if not cnpj.isdigit():
-            return False
-
         if len(cnpj) != 14:
             return False
 
@@ -762,6 +759,7 @@ class Entidade(StatusCnpj):
             d1 = 0
 
         if str(d1) != cnpj[12]:
+            # Dígito de verificação incorreto
             return False
 
         l2 = [5,6,7,8,9,2,3,4,5,6,7,8,9]
@@ -774,10 +772,10 @@ class Entidade(StatusCnpj):
             d2 = 0
 
         if str(d2) != cnpj[13]:
+            # Dígito de verificação incorreto
             return False
 
         return True
-
 
     def verifica_email_principal(self):
         '''Garante apenas um e-mail principal por entidade'''
@@ -960,7 +958,7 @@ class Entidade(StatusCnpj):
         if not self.cnpj_valido():
             return False
 
-        url = 'https://www.receitaws.com.br/v1/cnpj/' + self.cnpj_puro()
+        url = 'https://www.receitaws.com.br/v1/cnpj/' + self.cnpj_soh_numeros()
 
         j = None
         try:
