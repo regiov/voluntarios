@@ -731,7 +731,7 @@ class Entidade(StatusCnpj):
             return avisos[0].creation
         return None
 
-    def cnpj_soh_numeros(self):
+    def cnpj_soh_digitos(self):
         return re.sub(r'\D', '', self.cnpj)
 
     def cnpj_valido(self):
@@ -743,7 +743,7 @@ class Entidade(StatusCnpj):
         if len(cnpj) == 0:
             return None
 
-        cnpj = self.cnpj_soh_numeros()
+        cnpj = self.cnpj_soh_digitos()
         
         if len(cnpj) != 14:
             return False
@@ -958,7 +958,7 @@ class Entidade(StatusCnpj):
         if not self.cnpj_valido():
             return False
 
-        url = 'https://www.receitaws.com.br/v1/cnpj/' + self.cnpj_soh_numeros()
+        url = 'https://www.receitaws.com.br/v1/cnpj/' + self.cnpj_soh_digitos()
 
         j = None
         try:
