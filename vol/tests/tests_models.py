@@ -106,3 +106,21 @@ class VoluntarioTestCase(TestCase):
         self.assertEqual(voluntario_teste.empresa, '')
         self.assertEqual(voluntario_teste.entidade_que_ajudou, '')
         self.assertEqual(voluntario_teste.profissao, 'Estudante')
+
+class EntidadeTestCase(TestCase):
+
+    def test_cnpj_soh_digitos(self):
+        entidade_teste = Entidade(cnpj='36.254.171/0001-94')
+        self.assertEqual(entidade_teste.cnpj_soh_digitos(), '36254171000194')
+
+    def test_cnpj_valido(self):
+        entidade_teste = Entidade(cnpj='36.254.171/0001-94')
+        self.assertEqual(entidade_teste.cnpj_valido(), True)
+        entidade_teste = Entidade(cnpj='36.254.171/0001-84')
+        self.assertEqual(entidade_teste.cnpj_valido(), False)
+        entidade_teste = Entidade(cnpj='36.254.171/0001-95')
+        self.assertEqual(entidade_teste.cnpj_valido(), False)
+        entidade_teste = Entidade()
+        self.assertEqual(entidade_teste.cnpj_valido(), False)
+        entidade_teste = Entidade(cnpj='')
+        self.assertEqual(entidade_teste.cnpj_valido(), False)
