@@ -2457,6 +2457,25 @@ def revisao_processo_seletivo(request, codigo_processo):
                         inscricao.save()
                     messages.info(request, u'Processo encerrado com sucesso!')
                     return redirect(reverse('monitoramento_processos_seletivos'))
+                else:
+                    messages.warning(request, u'Este processo não é passível de encerramento administrativo!')
+
+            elif 'cancelar' in request.POST:
+
+                processo = ProcessoSeletivo.objects.get(codigo=codigo_processo)
+
+                if processo.aguardando_aprovacao():
+                    # Neste caso o campo motivo é obrigatório
+                    if 'motivo' not in request.POST or len(request.POST['motivo'].strip()) == 0:
+                        messages.error(request, u'Para cancelar, é preciso especificar um motivo de cancelamento')
+                    else:
+                        motivo = request.POST['motivo'].strip()
+                        processo.cancelar(by=request.user, description=motivo)
+                        processo.save()
+                        messages.info(request, u'Processo cancelado!')
+                        return redirect(reverse('monitoramento_processos_seletivos'))
+                else:
+                    messages.warning(request, u'Somente processos aguardando aprovação podem ser cancelados!')
             else:
                 return redirect(reverse('painel'))
 
