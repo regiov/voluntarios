@@ -452,6 +452,8 @@ def busca_voluntarios(request):
         ordem = request.GET.get('ordem', 'nome')
         if ordem == 'trabalho':
             voluntarios = voluntarios.order_by('area_trabalho__nome', 'usuario__nome')
+        elif ordem == 'cadastro': # data de cadastro
+            voluntarios = voluntarios.order_by('data_cadastro')
         else: # nome
             voluntarios = voluntarios.order_by('usuario__nome', 'area_trabalho__nome')
         #else: # interesse
