@@ -434,6 +434,19 @@ def busca_voluntarios(request):
             ids = Voluntario.objects.annotate(search=SearchVector('profissao', 'descricao')).filter(search=fpalavras).distinct('pk')
             voluntarios = voluntarios.filter(pk__in=ids)
 
+        # Filtro por idade
+        hoje = datetime.datetime.now().date()
+        idade_min = request.GET.get('fidademin')
+        idade_max = request.GET.get('fidademax')
+        if idade_min and idade_min.isdigit():
+            idade_min = int(idade_min)
+            data_idade_min = hoje - datetime.timedelta(days=idade_min * 365.25)
+            voluntarios = voluntarios.filter(data_aniversario__lte=data_idade_min)
+        if idade_max and idade_max.isdigit():
+            idade_max = int(idade_max)
+            data_idade_max = hoje - datetime.timedelta(days=idade_max * 365.25)
+            voluntarios = voluntarios.filter(data_aniversario__gte=data_idade_max)
+
         # Filtro por última atualização cadastral
         atualiza = request.GET.get('atualiza')
         if atualiza.isdigit():

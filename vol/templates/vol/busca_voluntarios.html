@@ -56,6 +56,21 @@
     </div>
 
     <div class="form-group">
+      <label for="id_idademin">Idade entre:</label>
+      <div class="row">
+        <div class="col-xs-5">
+          <input type="number" class="form-control" id="id_idademin" name="fidademin" placeholder="Idade mínima" min="16"{% if request.GET.fidademin %} value="{{ request.GET.fidademin }}"{% endif %}>
+        </div>
+	<div class="col-xs-1">
+          <p class="form-control-static">e</p>
+        </div>
+        <div class="col-xs-6">
+          <input type="number" class="form-control" id="id_idademax" name="fidademax" placeholder="Idade máxima" min="16"{% if request.GET.fidademax %} value="{{ request.GET.fidademax }}"{% endif %}>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label for="id_ultima_atualizacao">Última atualização cadastral:</label>
       <select id="id_ultima_atualizacao" name="atualiza" class="form-control">
         <option value="0"{% if not request.GET.atualiza %} selected{% endif %}>-- Em qualquer época --</option>
