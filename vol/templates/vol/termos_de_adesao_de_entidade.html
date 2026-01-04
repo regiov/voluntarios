@@ -29,7 +29,7 @@
       {% endif %}</td>
     <td>{% if termo.data_aceitacao_vol %}<img src="{% static 'images/misc/icon-yes.svg' %}" title="sim"/>{% else %}<img src="{% static 'images/misc/icon-unknown.svg' %}" title="aguardando aceitação"/>{% endif %}</td>
     <td>{{ termo.data_inicio|date:"d-m-Y" }}</td>
-    <td{% if termo.data_fim and termo.data_fim < hoje %} class="text-danger"{% endif %}>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
+    <td{% if termo.data_fim and termo.data_fim < hoje %} class="expirado"{% elif termo.data_fim and termo.data_fim > hoje and termo.data_fim < limite_aviso %} class="quase-expirado"{% endif %}>{{ termo.data_fim|date:"d-m-Y"|default:"-" }}</td>
     <td>{% if termo.data_aceitacao_vol %}<a href="{% url 'termo_de_adesao' slug_termo=termo.slug %}?contexto=entidade"><i class="fas fa-eye" title="visualizar"></i></a>{% endif %}
     </td>
     <td>
@@ -41,7 +41,7 @@
             {% comment %}Se já foi aceito, não foi rescindido e ainda está válido, pode ser rescindido{% endcomment %}
             <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#confirm-terminate" data-termo="{{ termo.slug }}">rescindir</button>
           {% else %}
-            <span>expirado</span>
+            <span class="expirado">expirado</span>
           {% endif %}
         {% endif %}
       {% else %}

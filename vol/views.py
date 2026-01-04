@@ -1072,10 +1072,12 @@ def termos_de_adesao_de_entidade(request, id_entidade):
 
     current_tz = timezone.get_current_timezone()
     now = timezone.now().astimezone(current_tz)
+    warning_limit = now + datetime.timedelta(days=10)
 
     context = {'entidade': entidade,
                'termos': termos,
-               'hoje': now.date()}
+               'hoje': now.date(),
+               'limite_aviso': warning_limit.date()}
     template = loader.get_template('vol/termos_de_adesao_de_entidade.html')
     return HttpResponse(template.render(context, request))
 
