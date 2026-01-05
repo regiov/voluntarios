@@ -207,8 +207,11 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
     urlpatterns = [
-        re_path('__debug__/', include(debug_toolbar.urls)),
         re_path(r'^imagens/(?P<path>.*)$', views_static.serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'imagens')}),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + urlpatterns
+    try:
+        from debug_toolbar.toolbar import debug_toolbar_urls
+        urlpatterns = urlpatterns + debug_toolbar_urls()
+    except Exception as e:
+        pass
