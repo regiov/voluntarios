@@ -21,7 +21,16 @@ class Command(BaseCommand):
 
         msg = Message.objects.get(code='LEMBRETE_CADASTRO_VOLUNTARIO')
 
-        usuarios = Usuario.objects.annotate(sem_cadastro=~Exists(Voluntario.objects.filter(usuario=OuterRef('pk')))).annotate(sem_notificacao=~Exists(Event.objects.filter(user=OuterRef('pk'), message=msg))).filter(link='voluntario_novo', date_joined__lte=timezone.now()-timedelta(days=7), date_joined__gte=timezone.now()-timedelta(days=30), sem_cadastro=True, sem_notificacao=True, emailaddress__verified=True)
+        usuarios = Usuario.objects.annotate(
+            sem_cadastro=~Exists(Voluntario.objects.filter(usuario=OuterRef('pk')))
+        ).annotate(
+            sem_notificacao=~Exists(Event.objects.filter(user=OuterRef('pk'), message=msg))
+        ).filter(link='voluntario_novo',
+                 date_joined__lte=timezone.now()-timedelta(days=7),
+                 date_joined__gte=timezone.now()-timedelta(days=30),
+                 sem_cadastro=True,
+                 sem_notificacao=True,
+                 emailaddress__verified=True)
 
         for usuario in usuarios:
             notify_user_msg(usuario, msg)
