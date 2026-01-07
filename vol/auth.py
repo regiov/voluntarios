@@ -66,16 +66,16 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
 class MyAccountAdapter(DefaultAccountAdapter):
     "Adaptador customizado para excluir usuário atual da verificação de unicidade de e-mail"
     def validate_unique_email(self, email):
-        user = None
-        if self.request and self.request.user:
-            user = self.request.user
-
         from .models import EmailAddress
-
         # Remoção do filtro "verified", pois se alguém se cadastrou no passado, não validou o email
         # e depois tenta se cadastrar novamente, dá erro.
-        #if EmailAddress.objects.filter(email=email, verified=True).exclude(user=user).count() > 0:
-        if EmailAddress.objects.filter(email__iexact=email).exclude(user=user).count() > 0:
+        #qs = EmailAddress.objects.filter(email=email, verified=True)
+        qs = EmailAddress.objects.filter(email__iexact=email)
+        user = None
+        if self.request and self.request.user and self.request.user.is_authenticated:
+            qs = qs.exclude(user=self.request.user)
+        
+        if qs.count() > 0:
             raise forms.ValidationError(self.error_messages["email_taken"])
         return email
 
