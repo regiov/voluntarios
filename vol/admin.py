@@ -30,7 +30,6 @@ from notification.utils import notify_user_msg
 from vol.views import envia_confirmacao_email_entidade
 
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 
 from .utils import detecta_alteracoes, resume_alteracoes, notifica_aprovacao_voluntario
 
@@ -73,7 +72,8 @@ class MyUserAdmin(UserAdmin):
         num_messages = 0
         for obj in queryset:
             if not self.email_confirmado(obj):
-                send_email_confirmation(request, obj)
+                email = EmailAddress.objects.get(user=obj, email=obj.email)
+                email.send_confirmation(request)
                 num_messages = num_messages + 1
         main_msg = ''
         if num_messages > 0:
