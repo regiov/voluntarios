@@ -138,6 +138,7 @@ class MyUserManager(BaseUserManager):
         return user
 
 
+@track_data('email')
 class Usuario(AbstractBaseUser, PermissionsMixin):
     id           = models.AutoField(primary_key=True)
     email        = models.EmailField(verbose_name=u'E-mail', unique=True,)

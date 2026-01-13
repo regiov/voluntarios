@@ -23,6 +23,15 @@ def my_user_signed_up(request, user, **kwargs):
         fields.append('link')
     user.save(update_fields=fields)
 
+def usuario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
+    '''Post save de usuários para propagar alteração de e-mail.'''
+    if not created:
+        if instance.has_changed('email'):
+            old_email_address = instance.emailaddress_set.filter(email=instance.old_value('email')).first()
+            if old_email_address:
+                old_email_address.email = instance.email
+                old_email_address.save(update_fields=['email'])
+
 def voluntario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
     '''Post save de voluntários. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
     if instance.old_value('aprovado') is None and instance.aprovado:
