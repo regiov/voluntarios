@@ -29,8 +29,17 @@ def usuario_post_save(sender, instance, created, raw, using, update_fields, **kw
         if instance.has_changed('email'):
             old_email_address = instance.emailaddress_set.filter(email=instance.old_value('email')).first()
             if old_email_address:
-                old_email_address.email = instance.email
-                old_email_address.save(update_fields=['email'])
+                # A lógica abaixo foi introduzida em função de erros esporádicos de violação
+                # de unicidade de email ao atualizar o endereço. Não se sabe que condição deflagra
+                # esse tipo de situação.
+                new_email_address = instance.emailaddress_set.filter(email=instance.email).first()
+                if new_email_address:
+                    # Se já existir um email atualizado para o usuário, apaga o email antigo
+                    old_email_address.delete()
+                else:
+                    # Do contrário, atualiza o email antigo
+                    old_email_address.email = instance.email
+                    old_email_address.save(update_fields=['email'])
 
 def voluntario_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
     '''Post save de voluntários. Atenção: a aprovação pelo painel de controle não dispara este sinal, pois usa update!'''
